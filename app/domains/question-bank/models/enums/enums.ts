@@ -1,4 +1,3 @@
-// Enums TypeScript
 export enum Difficulty {
   EASY = 'EASY',
   MEDIUM = 'MEDIUM',
