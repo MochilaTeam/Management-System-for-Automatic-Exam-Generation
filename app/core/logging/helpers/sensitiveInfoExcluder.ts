@@ -1,32 +1,27 @@
-import { SensitiveKeys } from "../../logging/enums/sensitiveKeys";
+const SENSITIVE_KEYS = ['password', 'token', 'secret', 'ssn', 'creditCard'];
 
-const sensitiveKeysList = Object.values(SensitiveKeys) as string[];
+function sanitize(obj: unknown): unknown {
+  if (obj === null || obj === undefined) return obj;
 
+  if (Array.isArray(obj)) {
+    return obj.map((item) => sanitize(item));
+  }
 
-const excludeSensitiveInfoInData = (data: any): any => {
-
-  if (typeof data === 'object' && data !== null 
-      && !data.constructor.name.startsWith('model')) {
-    if (Array.isArray(data)) {
-      return data.map(item => excludeSensitiveInfoInData(item));
-    }
-
-    const redactedData: any = {};
-
-    for (const key in data) {
-      if (sensitiveKeysList.includes(key)) {
-        redactedData[key] = '*****'; 
+  if (typeof obj === 'object') {
+    const safeObj: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (SENSITIVE_KEYS.includes(key)) {
+        safeObj[key] = '[REDACTED]';
       } else {
-        // Recursively redact sensitive keys within nested objects
-        redactedData[key] = excludeSensitiveInfoInData(data[key]);
+        safeObj[key] = sanitize(value);
       }
     }
-
-    return redactedData;
-  } else {
-    return data;
+    return safeObj;
   }
-};
 
+  return obj;
+}
 
-export { excludeSensitiveInfoInData };
+export function excludeSensitiveInfoInData<T extends object>(response: T): T {
+  return sanitize(response) as T;
+}

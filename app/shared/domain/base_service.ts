@@ -1,14 +1,12 @@
-import { SystemLogger } from "../../core/logging/logger";
-import { BusinessRuleError, NotFoundError, ValidationError } from "../exceptions/domainErrors";
-
-
+import { SystemLogger } from '../../core/logging/logger';
+import { BusinessRuleError, NotFoundError, ValidationError } from '../exceptions/domainErrors';
 
 export abstract class BaseDomainService {
-  protected readonly logger: SystemLogger
+  protected readonly logger: SystemLogger;
   private readonly serviceName: string;
 
   constructor(logger: SystemLogger) {
-    this.logger = logger
+    this.logger = logger;
     this.serviceName = this.constructor.name;
   }
 
@@ -23,17 +21,20 @@ export abstract class BaseDomainService {
   protected logOperationError(operation: string, error: Error): void {
     this.logger.errorLogger.error(
       `FAILED: ${operation} | SERVICE: ${this.serviceName} | ERROR: ${error.message}`,
-      { stack: (error as Error).stack }
+      { stack: (error as Error).stack },
     );
   }
-
 
   protected raiseBusinessRuleError(
     operation: string,
     message: string,
-    opts?: { entity?: string | null; code?: string | null }
+    opts?: { entity?: string | null; code?: string | null },
   ): never {
-    const error = new BusinessRuleError({ message, entity: opts?.entity ?? null, code: opts?.code ?? null });
+    const error = new BusinessRuleError({
+      message,
+      entity: opts?.entity ?? null,
+      code: opts?.code ?? null,
+    });
     this.logOperationError(operation, error);
     throw error;
   }
@@ -41,20 +42,27 @@ export abstract class BaseDomainService {
   protected raiseValidationError(
     operation: string,
     message: string,
-    opts?: { entity?: string | null; code?: string | null }
+    opts?: { entity?: string | null; code?: string | null },
   ): never {
-    const error = new ValidationError({ message, entity: opts?.entity ?? null, code: opts?.code ?? null });
+    const error = new ValidationError({
+      message,
+      entity: opts?.entity ?? null,
+      code: opts?.code ?? null,
+    });
     this.logOperationError(operation, error);
     throw error;
   }
 
-
-  protected raiseNotFoundError( 
+  protected raiseNotFoundError(
     operation: string,
     message: string,
-    opts?: { entity?: string | null; code?: string | null }
+    opts?: { entity?: string | null; code?: string | null },
   ): never {
-    const error = new NotFoundError({ message, entity: opts?.entity ?? null, code: opts?.code ?? null });
+    const error = new NotFoundError({
+      message,
+      entity: opts?.entity ?? null,
+      code: opts?.code ?? null,
+    });
     this.logOperationError(operation, error);
     throw error;
   }

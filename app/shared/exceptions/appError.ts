@@ -1,5 +1,4 @@
-import { HttpStatus } from "../enums/httpStatusEnum";
-
+import { HttpStatus } from '../enums/httpStatusEnum';
 
 export interface AppErrorOptions {
   message: string;
@@ -24,10 +23,9 @@ export class AppError extends Error {
     Object.setPrototypeOf(this, new.target.prototype);
 
     this.name = this.constructor.name;
-    this.code = code ?? this.name;             
+    this.code = code ?? this.name;
     this.statusCode = statusCode ?? HttpStatus.INTERNAL_SERVER_ERROR;
     this.entity = entity ?? null;
-
   }
 
   toJSON() {
