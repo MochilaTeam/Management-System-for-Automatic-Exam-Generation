@@ -1,4 +1,0 @@
-La carpeta core/ en una arquitectura de software se utiliza para almacenar las funcionalidades 
-y servicios que son comunes a todos los dominios y que no pertenecen a un dominio específico. 
-Esto incluye cosas como loggers, manejo de errores, configuración global, y otras utilidades 
-transversales que pueden ser usadas por varias partes del sistema.

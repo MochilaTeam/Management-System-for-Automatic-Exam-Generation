@@ -1,0 +1,18 @@
+Hacer CRUD una pregunta de el banco de preguntas (Question Bank)
+Generar un examen usando las preguntas de el banco de preguntas, Hacer CRUD  a los examenes (ExamGen)
+Validar examenes (ExamGen)
+Asignar examenes a los estudiantes (ExamApplication)
+Reallizar examenes (ExamApplication)
+Revisar examenes (ExamApplication)
+auto revisar preguntas auto revisables de los examenes (ExamApplication)
+Ver caliificacion de el examen (ExamApplication)
+Ver respuestas de el examen realizado (ExamApplication)
+Pedir recalificacion y pedir el profesor (ExamApplication)
+Hacerle CRUD a los profesores y alumnos (User)
+
+Dominios: 
+-Question-Bank (Todo lo relacionado al banco de preguntas)
+-Exam-Gen (Todo lo relacionado a la asignacion de el examen)
+-ExamApplication (Todo lo relacionado a la aplicacion de el examen) 
+-User (Todo lo relacionado a los usuarios y los roles)
+-Analytics ()

@@ -1,18 +1,19 @@
-import { Sequelize, Model, STRING } from "sequelize";
-import { sequelize } from "../../../database/migrations/database";
+import { Model, STRING } from 'sequelize';
 
-class Question extends Model{
-    public id! : string;
+import { sequelize } from '../../../database/database';
+
+class Question extends Model {
+  public id!: string;
 }
 
 Question.init(
-    {
-        id:{
-            type : STRING,
-            primaryKey : true,
-        }
+  {
+    id: {
+      type: STRING,
+      primaryKey: true,
     },
-    {sequelize}
-)
-    
+  },
+  { sequelize },
+);
+
 export default Question;

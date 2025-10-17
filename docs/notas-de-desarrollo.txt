@@ -1,0 +1,42 @@
+en las rutas que tienen body (post, put, patch), usar el middleware request-validator con el schema que quieres validation
+Ejemplo: 
+app.post('/users', validateRequest(CreateUserSchema), (req, res) => {
+  res.status(201).json({ message: 'User created successfully' });
+});
+
+Ejemplo de creacion de un schema: "// src/schemas/user.ts
+import Joi from 'joi';
+
+export const CreateUserSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().min(8).required(),
+  name: Joi.string().min(1).required(),
+}).label("CreateUser");
+
+
+"
+
+Ejemplo para lanzar errores:
+    throw new ValidationError({
+      message: "Faltan campos obligatorios",
+      entity: "User",
+}
+    });
+
+
+Usar validate_request y validate_response en las rutas pasandole como parametros los schemas a validar
+app.post(
+  "/users",
+  validate_request(CreateUserRequestSchema),    // 👈 valida body de entrada
+  validate_response(CreateUserResponseSchema),  // 👈 valida JSON de salida
+  (req: Request, res: Response) => {
+    const { email, name } = req.body;
+
+    const newUser = { id: 1, email };
+
+    res.json({
+      message: "User created successfully",
+      data: newUser,
+    });
+  }
+);
