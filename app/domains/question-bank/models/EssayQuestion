@@ -1,0 +1,19 @@
+import { Model, STRING, TEXT } from "sequelize";
+import { sequelize } from "../../../database/database";
+import Question from "./Question"; 
+
+class EssayQuestion extends Question {
+  declare response: string;  
+}
+
+EssayQuestion.init(
+  {
+    response: { type: TEXT, allowNull: false },
+  },
+  {
+    sequelize,
+    tableName: "essay_questions",
+  }
+);
+
+export default EssayQuestion;

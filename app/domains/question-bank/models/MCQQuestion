@@ -1,0 +1,19 @@
+import { Model, STRING, JSON } from "sequelize";
+import { sequelize } from "../../../database/database";
+import Question from "./Question"; 
+
+class MCQQuestion extends Question {
+  declare options: Array<{ text: string, isCorrect: boolean }> | null;
+}
+
+MCQQuestion.init(
+  {
+    options: { type: JSON, allowNull: true }, 
+  },
+  {
+    sequelize,
+    tableName: "mcq_questions",
+  }
+);
+
+export default MCQQuestion;
