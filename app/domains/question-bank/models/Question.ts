@@ -1,7 +1,7 @@
 import { Model, STRING, ENUM, TEXT, JSON } from "sequelize";
 import { sequelize } from "../../../database/database";
 import { DifficultyValues, QuestionTypeValues } from "./enums/enums";
-import Teacher from "./Teacher"; 
+//import Teacher from "./Teacher"; 
 
 class Question extends Model {
   public id!: string;
@@ -16,9 +16,9 @@ class Question extends Model {
 
   public options!: Array<{ text: string, isCorrect: boolean }> | null; 
 
-  static associate() {
-    Question.belongsTo(Teacher, { foreignKey: "createdBy", as: "creator" });
-  }
+  // static associate() {
+  //   Question.belongsTo(Teacher, { foreignKey: "createdBy", as: "creator" });
+  // }
 }
 
 Question.init(
@@ -32,9 +32,6 @@ Question.init(
     difficulty: { type: ENUM(...DifficultyValues),   allowNull: false },
 
     body:        { type: STRING(1024), allowNull: false },
-    response:    { type: TEXT, allowNull: false },  
-
-    options: { type: JSON, allowNull: true }, 
   },
   {
     sequelize,
