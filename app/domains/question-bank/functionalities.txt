@@ -1,0 +1,10 @@
+Funcionalidades del banco de preguntas
+
+1. Crear/editar preguntas con created_by, updated_by, created_at, updated_at (editar solo preguntas de autoria)
+2. Clasificación obligatoria al crear (asignatura, tema, tipo, dificultad)
+3. Estructura por tipo de pregunta: MCQ {text, is_correct, order}, True/False enunciado answer ∈ {true,false}, Essay enunciado,criterios.
+4. Prevencion de duplicados no se bloquea la creación si hay “near-duplicate”; se bloquea solo exacto.
+5. Todo profesor asignado a una asignatura puede ver/buscar todas las preguntas de esa asignatura.
+6. Texto libre + filtros: asignatura, tema/subtema, tipo, dificultad, estado, autor.
+7. Ordenar por uso, fecha, dificultad, popularidad
+8. Revisión por “jefe de asignatura” antes de pasar a approved
