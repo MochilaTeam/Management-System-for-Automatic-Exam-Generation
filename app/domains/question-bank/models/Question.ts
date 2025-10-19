@@ -27,7 +27,7 @@ Question.init(
     subjectId: { type: STRING, allowNull: false },
 
     options: { type: JSON, allowNull: true }, // <-- Array<{text,isCorrect}>  (mcq)
-    response: { type: TEXT, allowNull: false }, // <-- (essay)
+    response: { type: TEXT, allowNull: true }, // <-- (essay)
 
     professorId: {
       type: INTEGER,
