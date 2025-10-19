@@ -1,36 +1,39 @@
-// src/models/Task.ts
 import { Model, STRING } from "sequelize";
 import { sequelize } from "../../../database/database";
+import Subtopic from "./SubTopic";
+import Subject from "./Subject";
+import SubjectTopic from "./SubjectTopic";
 
 class Topic extends Model {
-  public id!: string;
-  public title!: string;
-  public parentTopicId!: string | null; 
+  public id!: string;        
+  public title!: string;    
 }
 
 Topic.init(
   {
-    id: { type: STRING, primaryKey: true },
-    title: { type: STRING(200), allowNull: false },
-    parentTopicId: {
-      type: STRING,
-      allowNull: true,
-      references: { model: "Topic", key: "id" },
-      onUpdate: "CASCADE",
-      onDelete: "SET NULL",
-    },
+    id:    { type: STRING, primaryKey: true },
+    title: { type: STRING(200), allowNull: false, unique: true },
   },
   {
     sequelize,
-    tableName: "Topics",
-    indexes: [
-      { fields: ["parentTopicId"] }, 
-      { unique: true, fields: ["parentTopicId", "title"] },
-    ],
+    tableName: "Topics", 
   }
 );
 
-Topic.belongsTo(Topic, { as: "parentTopic", foreignKey: "parentTopicId" });
-Topic.hasMany(Topic,   { as: "subTopics",   foreignKey: "parentTopicId" });
+Topic.hasMany(Subtopic, {
+  as: "subtopics",
+  foreignKey: "topicId",
+  sourceKey: "id",
+  onUpdate: "CASCADE",
+  onDelete: "CASCADE",
+});
+
+Topic.belongsToMany(Subject, {
+  through: SubjectTopic,
+  as: "subjects",
+  foreignKey: "topicId",
+  otherKey: "subjectId",
+});
 
 export default Topic;
+export { Topic };
