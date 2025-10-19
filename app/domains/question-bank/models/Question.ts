@@ -60,7 +60,6 @@ Question.init(
   }
 );
 
-
 QuestionType.hasMany(Question, {
   foreignKey: "questionTypeId",
   as: "questions",
@@ -104,3 +103,4 @@ Subtopic.belongsToMany(Question, {
 });
 
 export default Question;
+
