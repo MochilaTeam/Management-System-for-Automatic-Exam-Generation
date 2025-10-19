@@ -9,8 +9,10 @@ export interface ProfesorAttributes {
 
 export type ProfesorCreationAttributes = Optional<ProfesorAttributes, 'id'>;
 
-export class Profesor extends Model<ProfesorAttributes, ProfesorCreationAttributes>
-  implements ProfesorAttributes {
+export class Profesor
+  extends Model<ProfesorAttributes, ProfesorCreationAttributes>
+  implements ProfesorAttributes
+{
   public id!: number;
   public nombre!: string;
   public especialidad!: string;
@@ -36,7 +38,7 @@ export default function defineProfesor(sequelize: Sequelize) {
       tableName: 'profesores',
       timestamps: false,
       indexes: [{ unique: true, fields: ['userId'] }],
-    }
+    },
   );
 
   return Profesor;

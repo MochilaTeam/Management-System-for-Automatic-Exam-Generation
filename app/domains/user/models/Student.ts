@@ -10,8 +10,10 @@ export interface EstudianteAttributes {
 
 export type EstudianteCreationAttributes = Optional<EstudianteAttributes, 'id'>;
 
-export class Estudiante extends Model<EstudianteAttributes, EstudianteCreationAttributes>
-  implements EstudianteAttributes {
+export class Estudiante
+  extends Model<EstudianteAttributes, EstudianteCreationAttributes>
+  implements EstudianteAttributes
+{
   public id!: number;
   public nombre!: string;
   public edad!: number;
@@ -39,7 +41,7 @@ export default function defineEstudiante(sequelize: Sequelize) {
       tableName: 'estudiantes',
       timestamps: false,
       indexes: [{ unique: true, fields: ['userId'] }],
-    }
+    },
   );
 
   return Estudiante;

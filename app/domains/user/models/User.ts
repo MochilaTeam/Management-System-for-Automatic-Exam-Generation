@@ -8,8 +8,7 @@ export interface UserAttributes {
 
 export type UserCreationAttributes = Optional<UserAttributes, 'id'>;
 
-export class User extends Model<UserAttributes, UserCreationAttributes>
-  implements UserAttributes {
+export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   public id!: number;
   public nick!: string;
   public hashContrasenna!: string;
@@ -36,7 +35,7 @@ export default function defineUser(sequelize: Sequelize) {
       tableName: 'users',
       timestamps: false,
       indexes: [{ unique: true, fields: ['nick'] }],
-    }
+    },
   );
 
   return User;

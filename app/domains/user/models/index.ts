@@ -1,7 +1,7 @@
-import { sequelize } from '../../../database/database'; // <- usa TU instancia
-import defineUser, { User } from './User';
-import defineProfesor, { Profesor } from './Teacher';
 import defineEstudiante, { Estudiante } from './Student';
+import defineProfesor, { Profesor } from './Teacher';
+import defineUser, { User } from './User';
+import { sequelize } from '../../../database/database'; // <- usa TU instancia
 
 // 1) Definir modelos (NO crear nueva instancia de Sequelize aquí)
 defineUser(sequelize);

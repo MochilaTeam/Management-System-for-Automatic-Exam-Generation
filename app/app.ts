@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+
 import '../domains/user/models';
 import { get_logger } from './core/dependencies/dependencies';
 import { SystemLogger } from './core/logging/logger';
