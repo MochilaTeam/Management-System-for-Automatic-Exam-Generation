@@ -1,5 +1,6 @@
-import { Model, STRING } from "sequelize";
-import { sequelize } from "../../../database/database";
+import { Model, STRING } from 'sequelize';
+
+import { sequelize } from '../../../database/database';
 
 class SubjectTopic extends Model {
   public topicId!: string;
@@ -12,24 +13,24 @@ SubjectTopic.init(
       type: STRING,
       allowNull: false,
       primaryKey: true,
-      references: { model: "Topics", key: "id" },
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      references: { model: 'Topics', key: 'id' },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
     },
     subjectId: {
       type: STRING,
       allowNull: false,
       primaryKey: true,
-      references: { model: "Subjects", key: "id" },
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      references: { model: 'Subjects', key: 'id' },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
     },
   },
   {
     sequelize,
-    tableName: "SubjectTopics",
-    indexes: [{ fields: ["subjectId"] }, { fields: ["topicId"] }],
-  }
+    tableName: 'SubjectTopics',
+    indexes: [{ fields: ['subjectId'] }, { fields: ['topicId'] }],
+  },
 );
 
 export default SubjectTopic;

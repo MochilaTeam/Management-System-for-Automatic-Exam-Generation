@@ -1,12 +1,11 @@
-import { Model, STRING, ENUM, INTEGER, JSON, TEXT } from "sequelize";
-import { sequelize } from "../../../database/database";
-import { DifficultyValues, QuestionTypeValues } from "./enums/enums";
-import QuestionType from "./QuestionType";
+import { Model, STRING, ENUM, INTEGER, JSON, TEXT } from 'sequelize';
 
-import Subtopic from "./SubTopic";
-import QuestionSubtopic from "./QuestionSubTopic";
-
-import { Profesor } from "../../user/models/Teacher";
+import { DifficultyValues, QuestionTypeValues } from './enums/enums';
+import QuestionSubtopic from './QuestionSubTopic';
+import QuestionType from './QuestionType';
+import Subtopic from './SubTopic';
+import { sequelize } from '../../../database/database';
+import { Profesor } from '../../user/models/Teacher';
 
 class Question extends Model {
   public id!: string;
@@ -24,83 +23,81 @@ class Question extends Model {
 
 Question.init(
   {
-    id:          { type: STRING, primaryKey: true },
-    subjectId:   { type: STRING, allowNull: false },
+    id: { type: STRING, primaryKey: true },
+    subjectId: { type: STRING, allowNull: false },
 
-    options:  { type: JSON, allowNull: true },            // <-- Array<{text,isCorrect}>  (mcq)
-    response: { type: TEXT, allowNull: false },           // <-- (essay)
-      
+    options: { type: JSON, allowNull: true }, // <-- Array<{text,isCorrect}>  (mcq)
+    response: { type: TEXT, allowNull: false }, // <-- (essay)
 
     professorId: {
       type: INTEGER,
       allowNull: false,
-      references: { model: "profesores", key: "id" }, 
-      onUpdate: "CASCADE",
-      onDelete: "RESTRICT", 
+      references: { model: 'profesores', key: 'id' },
+      onUpdate: 'CASCADE',
+      onDelete: 'RESTRICT',
     },
 
-    difficulty:  { type: ENUM(...DifficultyValues), allowNull: false },
-    body:        { type: STRING(1024), allowNull: false },
+    difficulty: { type: ENUM(...DifficultyValues), allowNull: false },
+    body: { type: STRING(1024), allowNull: false },
 
     questionTypeId: {
       type: STRING,
       allowNull: false,
-      references: { model: "QuestionTypes", key: "id" },
+      references: { model: 'QuestionTypes', key: 'id' },
     },
   },
   {
     sequelize,
-    tableName: "Questions",
+    tableName: 'Questions',
     indexes: [
-      { fields: ["subjectId", "difficulty", "options", "response"] },
-      { unique: true, fields: ["subjectId", "body"] },
-      { fields: ["questionTypeId"] },
-      { fields: ["professorId"] },
+      { fields: ['subjectId', 'difficulty', 'options', 'response'] },
+      { unique: true, fields: ['subjectId', 'body'] },
+      { fields: ['questionTypeId'] },
+      { fields: ['professorId'] },
     ],
-  }
+  },
 );
 
 QuestionType.hasMany(Question, {
-  foreignKey: "questionTypeId",
-  as: "questions",
-  onDelete: "RESTRICT",
-  onUpdate: "CASCADE",
+  foreignKey: 'questionTypeId',
+  as: 'questions',
+  onDelete: 'RESTRICT',
+  onUpdate: 'CASCADE',
 });
 
 Question.belongsTo(QuestionType, {
-  foreignKey: "questionTypeId",
-  as: "questionType",
+  foreignKey: 'questionTypeId',
+  as: 'questionType',
 });
 
 Profesor.hasMany(Question, {
-  foreignKey: "professorId",
-  as: "questions",
-  onDelete: "RESTRICT",
-  onUpdate: "CASCADE",
+  foreignKey: 'professorId',
+  as: 'questions',
+  onDelete: 'RESTRICT',
+  onUpdate: 'CASCADE',
 });
 
 Question.belongsTo(Profesor, {
-  foreignKey: "professorId",
-  as: "professor",
+  foreignKey: 'professorId',
+  as: 'professor',
 });
 
 Question.belongsToMany(Subtopic, {
   through: QuestionSubtopic,
-  as: "subtopics",
-  foreignKey: "questionId",
-  otherKey: "subtopicId",
-  onUpdate: "CASCADE",
-  onDelete: "CASCADE",
+  as: 'subtopics',
+  foreignKey: 'questionId',
+  otherKey: 'subtopicId',
+  onUpdate: 'CASCADE',
+  onDelete: 'CASCADE',
 });
 
 Subtopic.belongsToMany(Question, {
   through: QuestionSubtopic,
-  as: "questions",
-  foreignKey: "subtopicId",
-  otherKey: "questionId",
-  onUpdate: "CASCADE",
-  onDelete: "CASCADE",
+  as: 'questions',
+  foreignKey: 'subtopicId',
+  otherKey: 'questionId',
+  onUpdate: 'CASCADE',
+  onDelete: 'CASCADE',
 });
 
 export default Question;
-

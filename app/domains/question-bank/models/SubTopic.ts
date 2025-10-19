@@ -1,11 +1,12 @@
-import { Model, STRING } from "sequelize";
-import { sequelize } from "../../../database/database";
-import Topic from "./Topic";
+import { Model, STRING } from 'sequelize';
+
+import Topic from './Topic';
+import { sequelize } from '../../../database/database';
 
 class Subtopic extends Model {
-  public id!: string;       
-  public topicId!: string; 
-  public name!: string;    
+  public id!: string;
+  public topicId!: string;
+  public name!: string;
 }
 
 Subtopic.init(
@@ -17,9 +18,9 @@ Subtopic.init(
     topicId: {
       type: STRING,
       allowNull: false,
-      references: { model: "Topics", key: "id" },
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      references: { model: 'Topics', key: 'id' },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
     },
     name: {
       type: STRING(200),
@@ -28,18 +29,15 @@ Subtopic.init(
   },
   {
     sequelize,
-    tableName: "Subtopics",
-    indexes: [
-      { fields: ["topicId"] },
-      { unique: true, fields: ["topicId", "name"] },
-    ],
-  }
+    tableName: 'Subtopics',
+    indexes: [{ fields: ['topicId'] }, { unique: true, fields: ['topicId', 'name'] }],
+  },
 );
 
 Subtopic.belongsTo(Topic, {
-  as: "topic",
-  foreignKey: "topicId",
-  targetKey: "id",
+  as: 'topic',
+  foreignKey: 'topicId',
+  targetKey: 'id',
 });
 
 export default Subtopic;

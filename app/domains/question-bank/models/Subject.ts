@@ -1,7 +1,8 @@
-import { Model, STRING } from "sequelize";
-import { sequelize } from "../../../database/database";
-import Topic from "./Topic";
-import SubjectTopic from "./SubjectTopic";
+import { Model, STRING } from 'sequelize';
+
+import SubjectTopic from './SubjectTopic';
+import Topic from './Topic';
+import { sequelize } from '../../../database/database';
 
 class Subject extends Model {
   public id!: string;
@@ -14,17 +15,14 @@ Subject.init(
     name: { type: STRING(200), allowNull: false, unique: true },
     program: { type: STRING(200), allowNull: false },
   },
-  { sequelize, tableName: "Subjects" }
-
-  
+  { sequelize, tableName: 'Subjects' },
 );
 
 Subject.belongsToMany(Topic, {
   through: SubjectTopic,
-  as: "topics",
-  foreignKey: "subjectId",
-  otherKey: "topicId",
+  as: 'topics',
+  foreignKey: 'subjectId',
+  otherKey: 'topicId',
 });
-
 
 export default Subject;

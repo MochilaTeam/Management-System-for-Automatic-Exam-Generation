@@ -1,9 +1,10 @@
-import { Model, INTEGER, STRING } from "sequelize";
-import { sequelize } from "../../../database/database";
+import { Model, INTEGER, STRING } from 'sequelize';
+
+import { sequelize } from '../../../database/database';
 
 class TeacherSubject extends Model {
-  public professorId!: number; 
-  public subjectId!: string;   
+  public professorId!: number;
+  public subjectId!: string;
 }
 
 TeacherSubject.init(
@@ -12,27 +13,24 @@ TeacherSubject.init(
       type: INTEGER,
       allowNull: false,
       primaryKey: true,
-      references: { model: "profesores", key: "id" },
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      references: { model: 'profesores', key: 'id' },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
     },
     subjectId: {
       type: STRING,
       allowNull: false,
       primaryKey: true,
-      references: { model: "Subjects", key: "id" },
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      references: { model: 'Subjects', key: 'id' },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
     },
   },
   {
     sequelize,
-    tableName: "TeacherSubjects", 
-    indexes: [
-      { fields: ["professorId"] },
-      { fields: ["subjectId"] },
-    ],
-  }
+    tableName: 'TeacherSubjects',
+    indexes: [{ fields: ['professorId'] }, { fields: ['subjectId'] }],
+  },
 );
 
 export default TeacherSubject;
