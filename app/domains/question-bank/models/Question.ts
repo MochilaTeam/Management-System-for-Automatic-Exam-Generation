@@ -1,6 +1,6 @@
 import { Model, STRING, ENUM, INTEGER, JSON, TEXT } from 'sequelize';
 
-import { DifficultyValues, QuestionTypeValues } from './enums/enums';
+import { DifficultyValues } from './enums/enums';
 import QuestionSubtopic from './QuestionSubTopic';
 import QuestionType from './QuestionType';
 import Subtopic from './SubTopic';

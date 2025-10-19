@@ -1,4 +1,4 @@
-import { Model, STRING, TEXT, JSON } from 'sequelize';
+import { Model, STRING } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
 
