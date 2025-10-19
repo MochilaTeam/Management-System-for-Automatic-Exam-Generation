@@ -1,33 +1,43 @@
-// Importa los elementos necesarios de Sequelize
-const { Model, DataTypes } = require('sequelize');
+import { Model, DataTypes, Sequelize, Optional } from 'sequelize';
 
-// Exporta el modelo de Profesor
-module.exports = (sequelize) => {
-  class Profesor extends Model {}
+export interface ProfesorAttributes {
+  id: number;
+  nombre: string;
+  especialidad: string;
+  userId: number;
+}
 
+export type ProfesorCreationAttributes = Optional<ProfesorAttributes, 'id'>;
+
+export class Profesor extends Model<ProfesorAttributes, ProfesorCreationAttributes>
+  implements ProfesorAttributes {
+  public id!: number;
+  public nombre!: string;
+  public especialidad!: string;
+  public userId!: number;
+}
+
+export default function defineProfesor(sequelize: Sequelize) {
   Profesor.init(
     {
-      id: {
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      nombre: { type: DataTypes.STRING(200), allowNull: false },
+      especialidad: { type: DataTypes.STRING(200), allowNull: false },
+      userId: {
         type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
+        allowNull: false,
+        unique: true, // 1:1 con users
+        references: { model: 'users', key: 'id' },
       },
-      nombre: {
-        type: DataTypes.STRING,
-        allowNull: false
-      },
-      especialidad: {
-        type: DataTypes.STRING,
-        allowNull: false
-      }
     },
     {
       sequelize,
       modelName: 'Profesor',
       tableName: 'profesores',
-      timestamps: false  // Si no usas campos de "createdAt" y "updatedAt"
+      timestamps: false,
+      indexes: [{ unique: true, fields: ['userId'] }],
     }
   );
 
   return Profesor;
-};
+}
