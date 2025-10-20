@@ -23,7 +23,7 @@ export const initExamQuestion = () => {
       indexes: [{ unique: true, fields: ['name'] }],
     },
   );
-  return ExamState
-}
+  return ExamState;
+};
 
 export default ExamState;

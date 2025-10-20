@@ -42,7 +42,7 @@ export const initExamQuestion = () => {
       ],
     },
   );
-  return ExamQuestion
-}
+  return ExamQuestion;
+};
 
 export default ExamQuestion;

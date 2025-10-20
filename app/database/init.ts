@@ -32,11 +32,11 @@ export const syncTables = async (): Promise<void> => {
   await Teacher.sync({ force: false });
   await User.sync({ force: false });
   //ExamGeneration
-  await Exam.sync({force: false});
-  await ExamQuestion.sync({force: false})
-  await ExamState.sync({force: false})
+  await Exam.sync({ force: false });
+  await ExamQuestion.sync({ force: false });
+  await ExamState.sync({ force: false });
   //ExamApplication
-  await ExamAssignments.sync({force: false})
-  await ExamRegrades.sync({force: false})
-  await ExamResponses.sync({force: false})
+  await ExamAssignments.sync({ force: false });
+  await ExamRegrades.sync({ force: false });
+  await ExamResponses.sync({ force: false });
 };
