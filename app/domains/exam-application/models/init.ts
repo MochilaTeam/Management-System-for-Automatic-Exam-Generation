@@ -1,10 +1,10 @@
 import ExamAssignment from './ExamAssignment';
 import ExamRegrade from './ExamRegrade';
 import ExamResponse from './ExamResponse';
-import Exam from '../../examG/models/Exam';
 import Question from '../../question-bank/models/Question';
 import Student from '../../user/models/Student';
 import Teacher from '../../user/models/Teacher';
+import Exam from '../../exam-generation/models/Exam';
 
 let __EXAM_ASSOCS_INIT__ = false;
 

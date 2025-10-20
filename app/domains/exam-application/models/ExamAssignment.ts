@@ -1,5 +1,4 @@
 import { DataTypes, Model } from 'sequelize';
-import { UUID } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
 
@@ -37,7 +36,7 @@ ExamAssignments.init(
   },
   {
     sequelize,
-    tableName: 'exam_assignments',
+    tableName: 'ExamAssignments',
     timestamps: true,
     indexes: [
       { unique: true, fields: ['studentId', 'examId', 'professorId'] }, // agregación ternaria

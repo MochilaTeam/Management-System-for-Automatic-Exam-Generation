@@ -1,5 +1,4 @@
 import { DataTypes, Model } from 'sequelize';
-import { UUID } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
 
@@ -39,7 +38,7 @@ ExamRegrades.init(
   },
   {
     sequelize,
-    tableName: 'exam_regrades',
+    tableName: 'ExamRegrades',
     timestamps: true,
     indexes: [{ fields: ['examId'] }, { fields: ['studentId'] }, { fields: ['professorId'] }],
   },

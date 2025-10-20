@@ -1,6 +1,5 @@
 import { Model, STRING } from 'sequelize';
 
-import Topic from './Topic';
 import { sequelize } from '../../../database/database';
 
 class Subject extends Model {
