@@ -1,7 +1,6 @@
 import { Model, STRING, INTEGER } from 'sequelize';
+
 import { sequelize } from '../../../database/database';
-import Teacher from './Teacher';
-import Student from './Student';
 
 class User extends Model {
   public id!: number;
@@ -27,22 +26,7 @@ User.init(
     tableName: 'Users',
     timestamps: false,
     indexes: [{ unique: true, fields: ['username'] }],
-  }
+  },
 );
-
-// Associations (1:1 with Teacher / Student)
-User.hasOne(Teacher, {
-  foreignKey: 'userId',
-  as: 'teacher',
-  onDelete: 'CASCADE',
-  onUpdate: 'CASCADE',
-});
-
-User.hasOne(Student, {
-  foreignKey: 'userId',
-  as: 'student',
-  onDelete: 'CASCADE',
-  onUpdate: 'CASCADE',
-});
 
 export default User;

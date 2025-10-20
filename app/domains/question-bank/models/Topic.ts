@@ -1,8 +1,5 @@
 import { Model, STRING } from 'sequelize';
 
-import Subject from './Subject';
-import SubjectTopic from './SubjectTopic';
-import Subtopic from './SubTopic';
 import { sequelize } from '../../../database/database';
 
 class Topic extends Model {
@@ -21,20 +18,4 @@ Topic.init(
   },
 );
 
-Topic.hasMany(Subtopic, {
-  as: 'subtopics',
-  foreignKey: 'topicId',
-  sourceKey: 'id',
-  onUpdate: 'CASCADE',
-  onDelete: 'CASCADE',
-});
-
-Topic.belongsToMany(Subject, {
-  through: SubjectTopic,
-  as: 'subjects',
-  foreignKey: 'topicId',
-  otherKey: 'subjectId',
-});
-
 export default Topic;
-export { Topic };

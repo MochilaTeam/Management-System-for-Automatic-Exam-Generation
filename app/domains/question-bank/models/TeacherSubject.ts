@@ -34,4 +34,3 @@ TeacherSubject.init(
 );
 
 export default TeacherSubject;
-export { TeacherSubject };

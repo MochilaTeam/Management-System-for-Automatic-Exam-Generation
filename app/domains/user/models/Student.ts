@@ -1,6 +1,6 @@
 import { Model, STRING, INTEGER } from 'sequelize';
+
 import { sequelize } from '../../../database/database';
-import User from './User';
 
 class Student extends Model {
   public id!: number;
@@ -28,13 +28,7 @@ Student.init(
     tableName: 'Students',
     timestamps: false,
     indexes: [{ unique: true, fields: ['userId'] }],
-  }
+  },
 );
-
-// Associations
-Student.belongsTo(User, {
-  foreignKey: 'userId',
-  as: 'user',
-});
 
 export default Student;

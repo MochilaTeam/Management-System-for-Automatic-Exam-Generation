@@ -1,6 +1,5 @@
 import { Model, STRING } from 'sequelize';
 
-import SubjectTopic from './SubjectTopic';
 import Topic from './Topic';
 import { sequelize } from '../../../database/database';
 
@@ -17,12 +16,5 @@ Subject.init(
   },
   { sequelize, tableName: 'Subjects' },
 );
-
-Subject.belongsToMany(Topic, {
-  through: SubjectTopic,
-  as: 'topics',
-  foreignKey: 'subjectId',
-  otherKey: 'topicId',
-});
 
 export default Subject;

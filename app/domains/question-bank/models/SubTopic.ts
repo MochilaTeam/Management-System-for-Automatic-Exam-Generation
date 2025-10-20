@@ -1,6 +1,5 @@
 import { Model, STRING } from 'sequelize';
 
-import Topic from './Topic';
 import { sequelize } from '../../../database/database';
 
 class Subtopic extends Model {
@@ -34,11 +33,4 @@ Subtopic.init(
   },
 );
 
-Subtopic.belongsTo(Topic, {
-  as: 'topic',
-  foreignKey: 'topicId',
-  targetKey: 'id',
-});
-
 export default Subtopic;
-export { Subtopic };
