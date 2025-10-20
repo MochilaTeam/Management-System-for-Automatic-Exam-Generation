@@ -1,30 +1,30 @@
 import { Model, DataTypes, Sequelize, Optional } from 'sequelize';
 
-export interface ProfesorAttributes {
+export interface TeacherAttributes {
   id: number;
   nombre: string;
-  especialidad: string;
+  specialty: string;
   userId: number;
 }
 
-export type ProfesorCreationAttributes = Optional<ProfesorAttributes, 'id'>;
+export type TeacherCreationAttributes = Optional<TeacherAttributes, 'id'>;
 
-export class Profesor
-  extends Model<ProfesorAttributes, ProfesorCreationAttributes>
-  implements ProfesorAttributes
+export class Teacher
+  extends Model<TeacherAttributes, TeacherCreationAttributes>
+  implements TeacherAttributes
 {
   public id!: number;
   public nombre!: string;
-  public especialidad!: string;
+  public specialty!: string;
   public userId!: number;
 }
 
-export default function defineProfesor(sequelize: Sequelize) {
-  Profesor.init(
+export default function defineTeacher(sequelize: Sequelize) {
+  Teacher.init(
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       nombre: { type: DataTypes.STRING(200), allowNull: false },
-      especialidad: { type: DataTypes.STRING(200), allowNull: false },
+      specialty: { type: DataTypes.STRING(200), allowNull: false },
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -34,12 +34,12 @@ export default function defineProfesor(sequelize: Sequelize) {
     },
     {
       sequelize,
-      modelName: 'Profesor',
-      tableName: 'profesores',
+      modelName: 'Teacher',
+      tableName: 'Teacheres',
       timestamps: false,
       indexes: [{ unique: true, fields: ['userId'] }],
     },
   );
 
-  return Profesor;
+  return Teacher;
 }

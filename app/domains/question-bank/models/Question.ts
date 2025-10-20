@@ -5,7 +5,7 @@ import QuestionSubtopic from './QuestionSubTopic';
 import QuestionType from './QuestionType';
 import Subtopic from './SubTopic';
 import { sequelize } from '../../../database/database';
-import { Profesor } from '../../user/models/Teacher';
+import { Teacher } from '../../user/models/Teacher';
 
 class Question extends Model {
   public id!: string;
@@ -26,13 +26,13 @@ Question.init(
     id: { type: STRING, primaryKey: true },
     subjectId: { type: STRING, allowNull: false },
 
-    options: { type: JSON, allowNull: true }, // <-- Array<{text,isCorrect}>  (mcq)
-    response: { type: TEXT, allowNull: true }, // <-- (essay)
+    options: { type: JSON, allowNull: true }, 
+    response: { type: TEXT, allowNull: true },
 
     professorId: {
       type: INTEGER,
       allowNull: false,
-      references: { model: 'profesores', key: 'id' },
+      references: { model: 'Teacheres', key: 'id' },
       onUpdate: 'CASCADE',
       onDelete: 'RESTRICT',
     },
@@ -70,14 +70,14 @@ Question.belongsTo(QuestionType, {
   as: 'questionType',
 });
 
-Profesor.hasMany(Question, {
+Teacher.hasMany(Question, {
   foreignKey: 'professorId',
   as: 'questions',
   onDelete: 'RESTRICT',
   onUpdate: 'CASCADE',
 });
 
-Question.belongsTo(Profesor, {
+Question.belongsTo(Teacher, {
   foreignKey: 'professorId',
   as: 'professor',
 });

@@ -1,34 +1,34 @@
-import defineEstudiante, { Estudiante } from './Student';
-import defineProfesor, { Profesor } from './Teacher';
+import defineStudent, { Student } from './Student';
+import defineTeacher, { Teacher } from './Teacher';
 import defineUser, { User } from './User';
 import { sequelize } from '../../../database/database'; // <- usa TU instancia
 
 // 1) Definir modelos (NO crear nueva instancia de Sequelize aquí)
 defineUser(sequelize);
-defineProfesor(sequelize);
-defineEstudiante(sequelize);
+defineTeacher(sequelize);
+defineStudent(sequelize);
 
 // 2) Asociaciones (una vez definidos todos)
-User.hasOne(Profesor, {
+User.hasOne(Teacher, {
   foreignKey: 'userId',
-  as: 'profesor',
+  as: 'Teacher',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
-Profesor.belongsTo(User, {
+Teacher.belongsTo(User, {
   foreignKey: 'userId',
   as: 'user',
 });
 
-User.hasOne(Estudiante, {
+User.hasOne(Student, {
   foreignKey: 'userId',
-  as: 'estudiante',
+  as: 'student',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
-Estudiante.belongsTo(User, {
+Student.belongsTo(User, {
   foreignKey: 'userId',
   as: 'user',
 });
 
-export { sequelize, User, Profesor, Estudiante };
+export { sequelize, User, Teacher, Student };

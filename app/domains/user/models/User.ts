@@ -3,7 +3,7 @@ import { Model, DataTypes, Sequelize, Optional } from 'sequelize';
 export interface UserAttributes {
   id: number;
   nick: string;
-  hashContrasenna: string;
+  hashpassword: string;
 }
 
 export type UserCreationAttributes = Optional<UserAttributes, 'id'>;
@@ -11,7 +11,7 @@ export type UserCreationAttributes = Optional<UserAttributes, 'id'>;
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   public id!: number;
   public nick!: string;
-  public hashContrasenna!: string;
+  public hashpassword!: string;
 }
 
 export default function defineUser(sequelize: Sequelize) {
@@ -24,7 +24,7 @@ export default function defineUser(sequelize: Sequelize) {
         unique: true,
         validate: { len: [3, 50] },
       },
-      hashContrasenna: {
+      hashpassword: {
         type: DataTypes.STRING(255),
         allowNull: false,
       },

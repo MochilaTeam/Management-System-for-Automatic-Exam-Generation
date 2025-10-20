@@ -7,7 +7,7 @@ import { errorHandler } from './core/middlewares/errorHandler';
 import { responseInterceptor } from './core/middlewares/responseInterceptor';
 import { createDatabaseIfNotExists } from './database/database';
 import { connect } from './database/database';
-import Question from './domains/question-bank/models/Question';
+import { syncTables } from './database/init';
 
 const PORT = 5000;
 const logger: SystemLogger = get_logger();
@@ -19,7 +19,7 @@ app.use(responseInterceptor);
 const start = async () => {
   await createDatabaseIfNotExists();
   await connect();
-  await Question.sync({ force: false });
+  await syncTables();
 
   app.use(errorHandler);
   app.listen(PORT, () => {

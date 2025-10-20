@@ -1,6 +1,6 @@
 import { Model, DataTypes, Sequelize, Optional } from 'sequelize';
 
-export interface EstudianteAttributes {
+export interface StudentAttributes {
   id: number;
   nombre: string;
   edad: number;
@@ -8,11 +8,11 @@ export interface EstudianteAttributes {
   userId: number;
 }
 
-export type EstudianteCreationAttributes = Optional<EstudianteAttributes, 'id'>;
+export type StudentCreationAttributes = Optional<StudentAttributes, 'id'>;
 
-export class Estudiante
-  extends Model<EstudianteAttributes, EstudianteCreationAttributes>
-  implements EstudianteAttributes
+export class Student
+  extends Model<StudentAttributes, StudentCreationAttributes>
+  implements StudentAttributes
 {
   public id!: number;
   public nombre!: string;
@@ -21,8 +21,8 @@ export class Estudiante
   public userId!: number;
 }
 
-export default function defineEstudiante(sequelize: Sequelize) {
-  Estudiante.init(
+export default function defineStudent(sequelize: Sequelize) {
+  Student.init(
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       nombre: { type: DataTypes.STRING(200), allowNull: false },
@@ -37,12 +37,12 @@ export default function defineEstudiante(sequelize: Sequelize) {
     },
     {
       sequelize,
-      modelName: 'Estudiante',
-      tableName: 'estudiantes',
+      modelName: 'student',
+      tableName: 'students',
       timestamps: false,
       indexes: [{ unique: true, fields: ['userId'] }],
     },
   );
 
-  return Estudiante;
+  return Student;
 }
