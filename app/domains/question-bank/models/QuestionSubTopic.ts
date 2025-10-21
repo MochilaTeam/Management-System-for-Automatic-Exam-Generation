@@ -34,4 +34,3 @@ QuestionSubtopic.init(
 );
 
 export default QuestionSubtopic;
-export { QuestionSubtopic };

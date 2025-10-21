@@ -1,34 +1,40 @@
-import defineEstudiante, { Estudiante } from './Student';
-import defineProfesor, { Profesor } from './Teacher';
-import defineUser, { User } from './User';
-import { sequelize } from '../../../database/database'; // <- usa TU instancia
+import Student from './Student';
+import Teacher from './Teacher';
+import User from './User';
 
-// 1) Definir modelos (NO crear nueva instancia de Sequelize aquí)
-defineUser(sequelize);
-defineProfesor(sequelize);
-defineEstudiante(sequelize);
+let __USER_ASSOCS_INIT__ = false;
 
-// 2) Asociaciones (una vez definidos todos)
-User.hasOne(Profesor, {
-  foreignKey: 'userId',
-  as: 'profesor',
-  onDelete: 'CASCADE',
-  onUpdate: 'CASCADE',
-});
-Profesor.belongsTo(User, {
-  foreignKey: 'userId',
-  as: 'user',
-});
+export function initUserAssociations() {
+  if (__USER_ASSOCS_INIT__) return;
+  __USER_ASSOCS_INIT__ = true;
 
-User.hasOne(Estudiante, {
-  foreignKey: 'userId',
-  as: 'estudiante',
-  onDelete: 'CASCADE',
-  onUpdate: 'CASCADE',
-});
-Estudiante.belongsTo(User, {
-  foreignKey: 'userId',
-  as: 'user',
-});
+  Student.belongsTo(User, {
+    as: 'user',
+    foreignKey: { name: 'userId', allowNull: false },
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  });
 
-export { sequelize, User, Profesor, Estudiante };
+  Teacher.belongsTo(User, {
+    as: 'user',
+    foreignKey: { name: 'userId', allowNull: false },
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  });
+
+  User.hasOne(Student, {
+    as: 'student',
+    foreignKey: { name: 'userId', allowNull: false },
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  });
+
+  User.hasOne(Teacher, {
+    as: 'teacher',
+    foreignKey: { name: 'userId', allowNull: false },
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  });
+}
+
+initUserAssociations();
