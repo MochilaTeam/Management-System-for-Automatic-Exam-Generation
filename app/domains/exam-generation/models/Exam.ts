@@ -2,19 +2,19 @@ import { Model, DATE, ENUM, INTEGER, STRING, TEXT, JSON, DataTypes } from 'seque
 
 import { sequelize } from '../../../database/database';
 import { DifficultyValues } from '../../question-bank/models/enums/enums';
+import { ExamStatusEnum } from './enums/ExamStatusEnum';
 
 class Exam extends Model {
-  public id!: number;
+  public id!: string;
 
   public difficulty!: (typeof DifficultyValues)[number];
 
-  public examStateId!: string; // FK -> ExamStates.id (obligatoria)
+  public ExamStatus!: ExamStatusEnum;
 
-  // ↓ VIRTUAL: nombre del estado (derivado de la asociación "state")
-  // public examStateName!: ExamState | null;  //TODO:DESPUES AGREGAR ESTO COMO UN CAMPO VIRTUAL
 
-  public authorId!: number; // FK -> profesores.id (obligatoria)
-  public validatorId!: number; // FK -> jefe_de_asignature.id (obligatoria)
+  public authorId!: string; // FK -> profesores.id (obligatoria)
+  public validatorId!: string; // FK -> jefe_de_asignature.id 
+  public subjectId!: string  //FK -> subject.id (obligatoria)
   public observations!: string | null;
 
   public questionCount!: number;
@@ -28,78 +28,70 @@ class Exam extends Model {
   public readonly updatedAt!: Date;
 }
 
-export const initExam = () => {
-  Exam.init(
-    {
-      id: {
-        type: DataTypes.UUID,
-        primaryKey: true,
-        defaultValue: DataTypes.UUIDV4,
-      }, //TODO: Fijarme por el de Camilo
 
-      difficulty: { type: ENUM(...DifficultyValues), allowNull: false },
-      examStateId: {
-        type: STRING,
-        allowNull: false,
-        references: { model: 'ExamStates', key: 'id' },
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-      },
-
-      authorId: {
-        type: INTEGER,
-        allowNull: false,
-        references: { model: 'Profesores', key: 'id' },
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-      },
-
-      validatorId: {
-        type: INTEGER,
-        allowNull: true,
-        references: { model: 'Profesores', key: 'id' }, //TODO: Tabla profesores en mayuscula
-        onUpdate: 'CASCADE',
-        onDelete: 'RESTRICT',
-      },
-
-      observations: { type: TEXT },
-
-      questionCount: { type: INTEGER, allowNull: false },
-      topicProportion: { type: JSON, allowNull: false },
-      topicCoverage: { type: JSON, allowNull: false },
-
-      validatedAt: { type: DATE },
-
-      // examStateName: {
-      //   type: VIRTUAL(ENUM(...ExamStateNameValues)),
-      //   get(this: Exam) {
-      //     const state = (this as any).getDataValue('state');
-      //     const name: unknown = state?.name;
-      //     return (ExamStateNameValues as readonly string[]).includes(String(name))
-      //       ? (name as ExamState)
-      //       : null;
-      //   }
-      // }
+Exam.init(
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+      allowNull: false,
     },
-    {
-      sequelize,
-      tableName: 'Exams',
-      // defaultScope: {
-      //   include: [{ model: ExamState, as: 'state', attributes: ['id', 'name'] }],
-      // },
-      indexes: [
-        { fields: ['examStateId'] },
-        { fields: ['difficulty'] },
-        { fields: ['createdAt'] },
-        { fields: ['authorId'] },
-        { fields: ['questionCount'] },
-      ],
+
+    difficulty: { type: ENUM(...DifficultyValues), allowNull: false },
+
+    authorId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: 'Teachers', key: 'id' },
+      onUpdate: 'CASCADE',
+      onDelete: 'RESTRICT',
+    }, //TODO: AÑADIR CHECKS DE QUE AUTHOR SEA DE ROL EXAMINADOR Y VALIDADOR ROL JEFE DE ASIGNATURA?
+
+    validatorId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: { model: 'Teachers', key: 'id' }, 
+      onUpdate: 'CASCADE',
+      onDelete: 'RESTRICT',
     },
-  );
-  return Exam;
-};
+
+    subjectId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {model: 'Subjects', key: 'id'},
+      onUpdate: 'CASCADE',
+      onDelete: 'RESTRICT',
+    },
+
+    observations: { type: TEXT },
+
+    questionCount: { type: INTEGER, allowNull: false },
+    topicProportion: { type: JSON, allowNull: false },
+    topicCoverage: { type: JSON, allowNull: false },
+
+    validatedAt: { type: DATE },
+    //TODO: Agregar examstatus
+    //TODO: Agregar tambien una lista de questions?
+  },
+  {
+    sequelize,
+    tableName: 'Exams',
+    // defaultScope: {
+    //   include: [{ model: ExamState, as: 'state', attributes: ['id', 'name'] }],
+    // },
+    indexes: [
+      { fields: ['examStateId'] },
+      { fields: ['difficulty'] },
+      { fields: ['createdAt'] },
+      { fields: ['authorId'] },
+      { fields: ['questionCount'] },
+    ],
+  },
+);
 
 export default Exam;
 
 //TODO: Hacer la relacion de examen con asugnatura
 //TODO: Hacer la semilla de los primeros valores en la tabla
+//TODO: MIRAR ESTE CAMPO VALIDATE

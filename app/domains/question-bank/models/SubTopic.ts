@@ -1,4 +1,4 @@
-import { Model, STRING } from 'sequelize';
+import { DataTypes, Model, STRING } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
 
@@ -11,15 +11,17 @@ class Subtopic extends Model {
 Subtopic.init(
   {
     id: {
-      type: STRING,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
+      allowNull: false,
     },
     topicId: {
-      type: STRING,
+      type: DataTypes.UUID,
       allowNull: false,
       references: { model: 'Topics', key: 'id' },
       onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      onDelete: 'RESTRICT',
     },
     name: {
       type: STRING(200),

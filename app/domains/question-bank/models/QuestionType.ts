@@ -1,15 +1,15 @@
-import { Model, STRING } from 'sequelize';
+import { DataTypes, Model, STRING } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
 
 class QuestionType extends Model {
   public id!: string;
-  public name!: string;
+  public name!: string; //TODO: PONER AQUI QUE SOLO ACEPTE LOS VALORES DEL ENUM
 }
 
 QuestionType.init(
   {
-    id: { type: STRING, primaryKey: true },
+    id: { type: DataTypes.UUID, primaryKey: true },
     name: { type: STRING, allowNull: false, unique: true },
   },
   {

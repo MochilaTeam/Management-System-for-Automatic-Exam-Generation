@@ -3,7 +3,6 @@ import ExamRegrades from '../domains/exam-application/models/ExamRegrade';
 import ExamResponses from '../domains/exam-application/models/ExamResponse';
 import Exam from '../domains/exam-generation/models/Exam';
 import ExamQuestion from '../domains/exam-generation/models/ExamQuestion';
-import ExamState from '../domains/exam-generation/models/ExamState';
 import Question from '../domains/question-bank/models/Question';
 import QuestionSubtopic from '../domains/question-bank/models/QuestionSubTopic';
 import QuestionType from '../domains/question-bank/models/QuestionType';
@@ -34,7 +33,6 @@ export const syncTables = async (): Promise<void> => {
   //ExamGeneration
   await Exam.sync({ force: false });
   await ExamQuestion.sync({ force: false });
-  await ExamState.sync({ force: false });
   //ExamApplication
   await ExamAssignments.sync({ force: false });
   await ExamRegrades.sync({ force: false });
