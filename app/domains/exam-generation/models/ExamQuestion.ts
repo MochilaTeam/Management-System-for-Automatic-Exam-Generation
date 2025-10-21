@@ -9,9 +9,14 @@ class ExamQuestion extends Model {
 }
 ExamQuestion.init(
     {
+        id: {
+            type: DataTypes.UUID,
+            defaultValue: DataTypes.UUIDV4,
+            primaryKey: true,
+            allowNull: false,
+        },
         examId: {
             type: DataTypes.UUID,
-            primaryKey: true,
             allowNull: false,
             references: { model: 'Exams', key: 'id' },
             onUpdate: 'CASCADE',
@@ -19,7 +24,6 @@ ExamQuestion.init(
         },
         questionId: {
             type: DataTypes.UUID,
-            primaryKey: true,
             allowNull: false,
             references: { model: 'Questions', key: 'id' },
             onUpdate: 'CASCADE',

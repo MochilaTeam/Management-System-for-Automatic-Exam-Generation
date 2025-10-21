@@ -6,9 +6,6 @@ class Subtopic extends Model {
     public id!: string;
     public topicId!: string;
     public name!: string;
-    public id!: string;
-    public topicId!: string;
-    public name!: string;
 }
 
 Subtopic.init(

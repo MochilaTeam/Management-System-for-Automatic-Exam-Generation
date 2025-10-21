@@ -3,15 +3,15 @@ import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../../../database/database';
 
 class ExamResponses extends Model {
-      public id!: string;
-      public studentId!: string;
-      public examQuestionId!: string;
+    public id!: string;
+    public studentId!: string;
+    public examQuestionId!: string;
     public examId!: string;
-        public selectedOptionId!: string | null;
-      public textAnswer!: string | null;
-      public autoPoints!: number;
-      public manualPoints!: number | null;
-      public answeredAt!: Date | null;
+    public selectedOptionId!: string | null;
+    public textAnswer!: string | null;
+    public autoPoints!: number;
+    public manualPoints!: number | null;
+    public answeredAt!: Date | null;
 }
 
 ExamResponses.init(
