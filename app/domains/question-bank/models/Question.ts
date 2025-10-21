@@ -1,33 +1,30 @@
-import { Model, STRING, ENUM, INTEGER, JSON, TEXT } from 'sequelize';
+import { Model, STRING, ENUM, JSON, TEXT, DataTypes } from 'sequelize';
 
 import { DifficultyValues } from './enums/enums';
 import { sequelize } from '../../../database/database';
 
 class Question extends Model {
     public id!: string;
-    public subjectId!: string;
-    public professorId!: number;
+    public subTopicId!: string;
+    public authorId!: string;
     public difficulty!: (typeof DifficultyValues)[number];
     public body!: string;
     public questionTypeId!: string;
-    public options!: Array<{ text: string; isCorrect: boolean }> | null;
+    public options!: Array<{ text: string; isCorrect: boolean }> | null; //TODO: CHEQUEAR BIEN EL TIPO DE ESTO
     public response!: string | null;
 }
 
 Question.init(
     {
-        id: { type: STRING, primaryKey: true },
-
-        subjectId: {
-            type: STRING,
+        id: {
+            type: DataTypes.UUID,
+            defaultValue: DataTypes.UUIDV4,
+            primaryKey: true,
             allowNull: false,
-            references: { model: 'Subjects', key: 'id' },
-            onUpdate: 'CASCADE',
-            onDelete: 'RESTRICT',
         },
 
-        professorId: {
-            type: INTEGER,
+        authorId: {
+            type: DataTypes.UUID,
             allowNull: false,
             references: { model: 'Teachers', key: 'id' },
             onUpdate: 'CASCADE',
@@ -35,9 +32,17 @@ Question.init(
         },
 
         questionTypeId: {
-            type: STRING,
+            type: DataTypes.UUID,
             allowNull: false,
             references: { model: 'QuestionTypes', key: 'id' },
+            onUpdate: 'CASCADE',
+            onDelete: 'RESTRICT',
+        },
+
+        subTopicId: {
+            type: DataTypes.UUID,
+            allowNull: false,
+            references: { model: 'Subtopics', key: 'id' },
             onUpdate: 'CASCADE',
             onDelete: 'RESTRICT',
         },
@@ -51,10 +56,9 @@ Question.init(
         sequelize,
         tableName: 'Questions',
         indexes: [
-            { name: 'q_subject_difficulty', fields: ['subjectId', 'difficulty'] },
+            { name: 'q_subject_difficulty', fields: ['subtopicId', 'difficulty'] },
             { name: 'q_question_type', fields: ['questionTypeId'] },
-            { name: 'q_professor', fields: ['professorId'] },
-            { name: 'q_unique_subject_body', unique: true, fields: ['subjectId', 'body'] },
+            { name: 'q_author', fields: ['authorId'] },
         ],
     },
 );

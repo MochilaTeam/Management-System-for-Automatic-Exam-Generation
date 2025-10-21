@@ -12,3 +12,5 @@ export enum QuestionType {
 
 export const DifficultyValues = Object.values(Difficulty);
 export const QuestionTypeValues = Object.values(QuestionType);
+
+//TODO: DIVIDIR EN VARIOS ARCHIVOS

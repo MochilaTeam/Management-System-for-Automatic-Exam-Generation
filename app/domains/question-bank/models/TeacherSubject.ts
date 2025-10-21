@@ -1,35 +1,35 @@
-import { Model, INTEGER, STRING } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
 
 class TeacherSubject extends Model {
-    public professorId!: number;
+    public teacherId!: string;
     public subjectId!: string;
 }
 
 TeacherSubject.init(
     {
-        professorId: {
-            type: INTEGER,
+        teacherId: {
+            type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            references: { model: 'profesores', key: 'id' },
+            references: { model: 'Teachers', key: 'id' },
             onUpdate: 'CASCADE',
-            onDelete: 'CASCADE',
+            onDelete: 'RESTRICT',
         },
         subjectId: {
-            type: STRING,
+            type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
             references: { model: 'Subjects', key: 'id' },
             onUpdate: 'CASCADE',
-            onDelete: 'CASCADE',
+            onDelete: 'RESTRICT',
         },
     },
     {
         sequelize,
         tableName: 'TeacherSubjects',
-        indexes: [{ fields: ['professorId'] }, { fields: ['subjectId'] }],
+        indexes: [{ fields: ['teacherId'] }, { fields: ['subjectId'] }],
     },
 );
 

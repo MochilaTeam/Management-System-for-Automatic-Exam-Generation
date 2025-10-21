@@ -1,4 +1,4 @@
-import { Model, STRING } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
 
@@ -10,20 +10,20 @@ class SubjectTopic extends Model {
 SubjectTopic.init(
     {
         topicId: {
-            type: STRING,
+            type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
             references: { model: 'Topics', key: 'id' },
             onUpdate: 'CASCADE',
-            onDelete: 'CASCADE',
+            onDelete: 'RESTRICT',
         },
         subjectId: {
-            type: STRING,
+            type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
             references: { model: 'Subjects', key: 'id' },
             onUpdate: 'CASCADE',
-            onDelete: 'CASCADE',
+            onDelete: 'RESTRICT',
         },
     },
     {
