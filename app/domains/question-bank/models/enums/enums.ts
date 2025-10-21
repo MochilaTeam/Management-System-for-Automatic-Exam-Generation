@@ -1,13 +1,13 @@
 export enum Difficulty {
-  EASY = 'EASY',
-  MEDIUM = 'MEDIUM',
-  HARD = 'HARD',
+    EASY = 'EASY',
+    MEDIUM = 'MEDIUM',
+    HARD = 'HARD',
 }
 
 export enum QuestionType {
-  MCQ = 'MCQ',
-  TRUE_FALSE = 'TRUE_FALSE',
-  ESSAY = 'ESSAY',
+    MCQ = 'MCQ',
+    TRUE_FALSE = 'TRUE_FALSE',
+    ESSAY = 'ESSAY',
 }
 
 export const DifficultyValues = Object.values(Difficulty);

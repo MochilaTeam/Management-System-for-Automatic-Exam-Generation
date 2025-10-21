@@ -16,21 +16,21 @@ app.use(express.json());
 app.use(responseInterceptor);
 
 const start = async () => {
-  await createDatabaseIfNotExists();
-  await connect();
-  await syncTables();
+    await createDatabaseIfNotExists();
+    await connect();
+    await syncTables();
 
-  app.use(errorHandler);
-  app.listen(PORT, () => {
-    logger.debugLogger.debug(`Server On Port ${PORT}`);
-  });
+    app.use(errorHandler);
+    app.listen(PORT, () => {
+        logger.debugLogger.debug(`Server On Port ${PORT}`);
+    });
 };
 
 start().catch((err) => {
-  logger.errorLogger.error('Fallo al iniciar la app', err);
-  process.exit(1);
+    logger.errorLogger.error('Fallo al iniciar la app', err);
+    process.exit(1);
 });
 
 app.get('/ping', (req: Request, res: Response) => {
-  res.json({ message: 'pong' });
+    res.json({ message: 'pong' });
 });

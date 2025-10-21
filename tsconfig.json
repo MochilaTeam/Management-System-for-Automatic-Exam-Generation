@@ -1,15 +1,15 @@
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "CommonJS",
-    "outDir": "dist",
-    "rootDir": "app",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "types": ["node"],
-    "lib": ["ES2020"],
-    "moduleResolution": "node"
-  },
-  "include": ["app"]
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "CommonJS",
+        "outDir": "dist",
+        "rootDir": "app",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "types": ["node"],
+        "lib": ["ES2020"],
+        "moduleResolution": "node"
+    },
+    "include": ["app"]
 }

@@ -10,14 +10,14 @@
 
 - **Docker** y **Docker Compose** instalados.
 - Archivo **`.env`** en la raíz del proyecto (ejemplo):
-  ```dotenv
-  DB_HOST=db
-  DB_PORT=3306
-  DB_USER=root
-  DB_PASSWORD=tu_password_segura
-  DB_NAME=mi_app
-  LOG_LEVEL=debug
-  ```
+    ```dotenv
+    DB_HOST=db
+    DB_PORT=3306
+    DB_USER=root
+    DB_PASSWORD=tu_password_segura
+    DB_NAME=mi_app
+    LOG_LEVEL=debug
+    ```
 
 ---
 

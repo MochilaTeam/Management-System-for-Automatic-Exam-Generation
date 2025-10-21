@@ -4,43 +4,43 @@ import Question from '../../question-bank/models/Question';
 import Teacher from '../../user/models/Teacher';
 
 Teacher.hasMany(Exam, {
-  foreignKey: { name: 'authorId', allowNull: false },
-  as: 'exams',
-  onDelete: 'RESTRICT',
-  onUpdate: 'CASCADE',
+    foreignKey: { name: 'authorId', allowNull: false },
+    as: 'exams',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE',
 });
 
 Exam.belongsTo(Teacher, {
-  foreignKey: { name: 'authorId', allowNull: false },
-  as: 'author',
+    foreignKey: { name: 'authorId', allowNull: false },
+    as: 'author',
 });
 
 Teacher.hasMany(Exam, {
-  foreignKey: { name: 'validatorId', allowNull: true },
-  as: 'validatedExams',
-  onDelete: 'SET NULL',
-  onUpdate: 'CASCADE',
+    foreignKey: { name: 'validatorId', allowNull: true },
+    as: 'validatedExams',
+    onDelete: 'SET NULL',
+    onUpdate: 'CASCADE',
 });
 
 Exam.belongsTo(Teacher, {
-  foreignKey: 'validatorId',
-  as: 'validator',
+    foreignKey: 'validatorId',
+    as: 'validator',
 });
 
 Exam.belongsToMany(Question, {
-  through: ExamQuestion,
-  as: 'questions',
-  foreignKey: 'examId',
-  otherKey: 'questionId',
-  onUpdate: 'CASCADE',
-  onDelete: 'RESTRICT',
+    through: ExamQuestion,
+    as: 'questions',
+    foreignKey: 'examId',
+    otherKey: 'questionId',
+    onUpdate: 'CASCADE',
+    onDelete: 'RESTRICT',
 });
 
 Question.belongsToMany(Exam, {
-  through: ExamQuestion,
-  as: 'exams',
-  foreignKey: 'questionId',
-  otherKey: 'examId',
-  onUpdate: 'CASCADE',
-  onDelete: 'RESTRICT',
+    through: ExamQuestion,
+    as: 'exams',
+    foreignKey: 'questionId',
+    otherKey: 'examId',
+    onUpdate: 'CASCADE',
+    onDelete: 'RESTRICT',
 });
