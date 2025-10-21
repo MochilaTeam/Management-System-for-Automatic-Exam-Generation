@@ -1,6 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
+
 import { sequelize } from '../../../database/database';
-import { AssignedExamStatus } from './enum/AssignedExamStatus';
 
 class ExamAssignments extends Model {
     public id!: string;
@@ -9,7 +9,7 @@ class ExamAssignments extends Model {
     public professorId!: string;
     public durationMinutes!: number | null;
     public applicationDate!: Date | null;
-    public status!: AssignedExamStatus;
+    public status!: 'pending' | 'enabled' | 'submitted' | 'graded' | 'cancelled';
     public grade!: number | null;
 }
 

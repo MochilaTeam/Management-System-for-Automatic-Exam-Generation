@@ -90,7 +90,7 @@ export function initExamAssociations() {
         onUpdate: 'CASCADE',
     });
 
-    //ExamRegrade 
+    //ExamRegrade
     ExamRegrade.belongsTo(Student, {
         as: 'student',
         foreignKey: { name: 'studentId', allowNull: false },
