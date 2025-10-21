@@ -1,48 +1,34 @@
-import { Model, DataTypes, Sequelize, Optional } from 'sequelize';
+import { Model, STRING, INTEGER } from 'sequelize';
 
-export interface EstudianteAttributes {
-  id: number;
-  nombre: string;
-  edad: number;
-  curso: string;
-  userId: number;
-}
+import { sequelize } from '../../../database/database';
 
-export type EstudianteCreationAttributes = Optional<EstudianteAttributes, 'id'>;
-
-export class Estudiante
-  extends Model<EstudianteAttributes, EstudianteCreationAttributes>
-  implements EstudianteAttributes
-{
+class Student extends Model {
   public id!: number;
-  public nombre!: string;
-  public edad!: number;
-  public curso!: string;
+  public name!: string;
+  public age!: number;
+  public course!: string;
   public userId!: number;
 }
 
-export default function defineEstudiante(sequelize: Sequelize) {
-  Estudiante.init(
-    {
-      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-      nombre: { type: DataTypes.STRING(200), allowNull: false },
-      edad: { type: DataTypes.INTEGER, allowNull: false },
-      curso: { type: DataTypes.STRING(100), allowNull: false },
-      userId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        unique: true, // 1:1 con users
-        references: { model: 'users', key: 'id' },
-      },
+Student.init(
+  {
+    id: { type: INTEGER, primaryKey: true, autoIncrement: true },
+    name: { type: STRING(200), allowNull: false },
+    age: { type: INTEGER, allowNull: false },
+    course: { type: STRING(100), allowNull: false },
+    userId: {
+      type: INTEGER,
+      allowNull: false,
+      unique: true, // one user ↔ one student
+      references: { model: 'Users', key: 'id' },
     },
-    {
-      sequelize,
-      modelName: 'Estudiante',
-      tableName: 'estudiantes',
-      timestamps: false,
-      indexes: [{ unique: true, fields: ['userId'] }],
-    },
-  );
+  },
+  {
+    sequelize,
+    tableName: 'Students',
+    timestamps: false,
+    indexes: [{ unique: true, fields: ['userId'] }],
+  },
+);
 
-  return Estudiante;
-}
+export default Student;

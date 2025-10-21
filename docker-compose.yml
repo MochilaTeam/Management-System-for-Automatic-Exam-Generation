@@ -11,6 +11,8 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - backend
+    ports: 
+      - "${DB_PORT}:${DB_PORT}"
 
   app:
     build:

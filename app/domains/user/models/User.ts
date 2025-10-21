@@ -1,42 +1,32 @@
-import { Model, DataTypes, Sequelize, Optional } from 'sequelize';
+import { Model, STRING, INTEGER } from 'sequelize';
 
-export interface UserAttributes {
-  id: number;
-  nick: string;
-  hashContrasenna: string;
-}
+import { sequelize } from '../../../database/database';
 
-export type UserCreationAttributes = Optional<UserAttributes, 'id'>;
-
-export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
+class User extends Model {
   public id!: number;
-  public nick!: string;
-  public hashContrasenna!: string;
+  public username!: string;
+  public passwordHash!: string;
 }
 
-export default function defineUser(sequelize: Sequelize) {
-  User.init(
-    {
-      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-      nick: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
-        unique: true,
-        validate: { len: [3, 50] },
-      },
-      hashContrasenna: {
-        type: DataTypes.STRING(255),
-        allowNull: false,
-      },
+User.init(
+  {
+    id: { type: INTEGER, primaryKey: true, autoIncrement: true },
+    username: {
+      type: STRING(100),
+      allowNull: false,
+      unique: true,
     },
-    {
-      sequelize,
-      modelName: 'User',
-      tableName: 'users',
-      timestamps: false,
-      indexes: [{ unique: true, fields: ['nick'] }],
+    passwordHash: {
+      type: STRING(255),
+      allowNull: false,
     },
-  );
+  },
+  {
+    sequelize,
+    tableName: 'Users',
+    timestamps: false,
+    indexes: [{ unique: true, fields: ['username'] }],
+  },
+);
 
-  return User;
-}
+export default User;
