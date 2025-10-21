@@ -71,12 +71,12 @@ Exam.init(
 
         validatedAt: { type: DATE },
         examStatus: {
-          type: DataTypes.STRING(20),
-          allowNull: false,
-          validate: {
-            isIn: [Object.values(ExamStatusEnum)],
-          },
-          defaultValue: ExamStatusEnum.DRAFT,
+            type: DataTypes.STRING(20),
+            allowNull: false,
+            validate: {
+                isIn: [Object.values(ExamStatusEnum)],
+            },
+            defaultValue: ExamStatusEnum.DRAFT,
         },
     },
     {
@@ -92,4 +92,3 @@ Exam.init(
 );
 
 export default Exam;
-

@@ -1,8 +1,8 @@
 import Exam from './Exam';
 import ExamQuestion from './ExamQuestion';
 import Question from '../../question-bank/models/Question';
-import Teacher from '../../user/models/Teacher';
 import Subject from '../../question-bank/models/Subject';
+import Teacher from '../../user/models/Teacher';
 
 Teacher.hasMany(Exam, {
     foreignKey: { name: 'authorId', allowNull: false },
@@ -47,13 +47,13 @@ Question.belongsToMany(Exam, {
 });
 
 Subject.hasMany(Exam, {
-  foreignKey: {name: 'subjectId', allowNull: false},
-  as: 'exams',
-  onDelete: 'RESTRICT',
-  onUpdate: 'CASCADE',
+    foreignKey: { name: 'subjectId', allowNull: false },
+    as: 'exams',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE',
 });
 
 Exam.belongsTo(Subject, {
-  foreignKey: 'subjectId',
-  as: 'subject',
+    foreignKey: 'subjectId',
+    as: 'subject',
 });

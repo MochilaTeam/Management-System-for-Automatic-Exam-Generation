@@ -8,7 +8,7 @@ class Teacher extends Model {
     public specialty!: string;
     public userId!: string;
     public hasRoleSubjectLeader!: boolean;
-    public hasRoleExaminer!: boolean
+    public hasRoleExaminer!: boolean;
 }
 
 Teacher.init(
@@ -22,14 +22,14 @@ Teacher.init(
         name: { type: STRING(200), allowNull: false },
         specialty: { type: STRING(200), allowNull: false },
         hasRoleSubjectLeader: {
-          type: DataTypes.BOOLEAN,
-          allowNull: false,
-          defaultValue: false, 
+            type: BOOLEAN,
+            allowNull: false,
+            defaultValue: false,
         },
         hasRoleExaminer: {
-          type: DataTypes.BOOLEAN,
-          allowNull: false,
-          defaultValue: false,
+            type: BOOLEAN,
+            allowNull: false,
+            defaultValue: false,
         },
         userId: {
             type: DataTypes.UUID,
