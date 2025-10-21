@@ -5,6 +5,8 @@ import { sequelize } from '../../../database/database';
 class Topic extends Model {
     public id!: string;
     public title!: string;
+    public id!: string;
+    public title!: string;
 }
 
 Topic.init(
