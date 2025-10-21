@@ -1,4 +1,4 @@
-import { Model, STRING, DataTypes } from 'sequelize';
+import { Model, STRING, DataTypes, BOOLEAN } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
 
@@ -7,6 +7,8 @@ class Teacher extends Model {
     public name!: string;
     public specialty!: string;
     public userId!: string;
+    public hasRoleSubjectLeader!: boolean;
+    public hasRoleExaminer!: boolean
 }
 
 Teacher.init(
@@ -19,6 +21,16 @@ Teacher.init(
         },
         name: { type: STRING(200), allowNull: false },
         specialty: { type: STRING(200), allowNull: false },
+        hasRoleSubjectLeader: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: false, 
+        },
+        hasRoleExaminer: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
+        },
         userId: {
             type: DataTypes.UUID,
             allowNull: false,

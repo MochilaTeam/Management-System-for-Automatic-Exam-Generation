@@ -9,7 +9,7 @@ class Exam extends Model {
 
     public difficulty!: (typeof DifficultyValues)[number];
 
-    public ExamStatus!: ExamStatusEnum;
+    public examStatus!: ExamStatusEnum;
 
     public authorId!: string; // FK -> profesores.id (obligatoria)
     public validatorId!: string; // FK -> jefe_de_asignature.id
@@ -45,6 +45,7 @@ Exam.init(
             onUpdate: 'CASCADE',
             onDelete: 'RESTRICT',
         }, //TODO: AÑADIR CHECKS DE QUE AUTHOR SEA DE ROL EXAMINADOR Y VALIDADOR ROL JEFE DE ASIGNATURA?
+        // ESO HACERLO DESPUES, QUE CADA UNO HAGA LAS LOGICAS DE SU MODELOS
 
         validatorId: {
             type: DataTypes.UUID,
@@ -69,15 +70,18 @@ Exam.init(
         topicCoverage: { type: JSON, allowNull: false },
 
         validatedAt: { type: DATE },
-        //TODO: Agregar examstatus
-        //TODO: Agregar tambien una lista de questions?
+        examStatus: {
+          type: DataTypes.STRING(20),
+          allowNull: false,
+          validate: {
+            isIn: [Object.values(ExamStatusEnum)],
+          },
+          defaultValue: ExamStatusEnum.DRAFT,
+        },
     },
     {
         sequelize,
         tableName: 'Exams',
-        // defaultScope: {
-        //   include: [{ model: ExamState, as: 'state', attributes: ['id', 'name'] }],
-        // },
         indexes: [
             { fields: ['difficulty'] },
             { fields: ['createdAt'] },
@@ -89,6 +93,3 @@ Exam.init(
 
 export default Exam;
 
-//TODO: Hacer la relacion de examen con asugnatura
-//TODO: Hacer la semilla de los primeros valores en la tabla
-//TODO: MIRAR ESTE CAMPO VALIDATE
