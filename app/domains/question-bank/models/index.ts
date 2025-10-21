@@ -8,8 +8,6 @@ import TeacherSubject from './TeacherSubject';
 import Topic from './Topic';
 import Teacher from '../../user/models/Teacher';
 
-
-
 Subject.belongsToMany(Topic, {
   through: SubjectTopic,
   as: 'topics',
@@ -28,7 +26,7 @@ Topic.hasMany(Subtopic, {
   as: 'subtopics',
   foreignKey: 'topicId',
   sourceKey: 'id',
-  onDelete: 'CASCADE',
+  onDelete: 'RESTRICT',
   onUpdate: 'CASCADE',
 });
 Subtopic.belongsTo(Topic, { as: 'topic', foreignKey: 'topicId', targetKey: 'id' });
@@ -46,9 +44,9 @@ Question.belongsTo(QuestionType, { as: 'questionType', foreignKey: 'questionType
 Teacher.belongsToMany(Subject, {
   through: TeacherSubject,
   as: 'subjects',
-  foreignKey: 'professorId',
+  foreignKey: 'teacherId',
   otherKey: 'subjectId',
-  onDelete: 'CASCADE',
+  onDelete: 'RESTRICT',
   onUpdate: 'CASCADE',
 });
 Subject.belongsToMany(Teacher, {
@@ -56,17 +54,16 @@ Subject.belongsToMany(Teacher, {
   as: 'professors',
   foreignKey: 'subjectId',
   otherKey: 'professorId',
-  onDelete: 'CASCADE',
+  onDelete: 'RESTRICT',
   onUpdate: 'CASCADE',
 });
 
-// Question ↔ Subtopic
 Question.belongsToMany(Subtopic, {
   through: QuestionSubtopic,
   as: 'subtopics',
   foreignKey: 'questionId',
   otherKey: 'subtopicId',
-  onDelete: 'CASCADE',
+  onDelete: 'RESTRICT',
   onUpdate: 'CASCADE',
 });
 Subtopic.belongsToMany(Question, {
@@ -74,7 +71,6 @@ Subtopic.belongsToMany(Question, {
   as: 'questions',
   foreignKey: 'subtopicId',
   otherKey: 'questionId',
-  onDelete: 'CASCADE',
+  onDelete: 'RESTRICT',
   onUpdate: 'CASCADE',
 });
-

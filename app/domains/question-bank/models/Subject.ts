@@ -17,7 +17,7 @@ Subject.init(
       primaryKey: true,
       allowNull: false,
     },
-    
+
     name: { type: STRING(200), allowNull: false, unique: true },
     program: { type: STRING, allowNull: false },
 
@@ -28,7 +28,6 @@ Subject.init(
       onUpdate: 'CASCADE',
       onDelete: 'RESTRICT',
     },
-
   },
   { sequelize, tableName: 'Subjects' },
 );

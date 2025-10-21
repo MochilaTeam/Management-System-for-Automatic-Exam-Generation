@@ -1,11 +1,11 @@
-import { Model, STRING, ENUM, INTEGER, JSON, TEXT, DataTypes } from 'sequelize';
+import { Model, STRING, ENUM, JSON, TEXT, DataTypes } from 'sequelize';
 
-import { sequelize } from '../../../database/database';
 import { DifficultyValues } from './enums/enums';
+import { sequelize } from '../../../database/database';
 
 class Question extends Model {
   public id!: string;
-  public subTopicId!: string; 
+  public subTopicId!: string;
   public authorId!: string;
   public difficulty!: (typeof DifficultyValues)[number];
   public body!: string;
@@ -32,9 +32,17 @@ Question.init(
     },
 
     questionTypeId: {
-      type: STRING,
+      type: DataTypes.UUID,
       allowNull: false,
       references: { model: 'QuestionTypes', key: 'id' },
+      onUpdate: 'CASCADE',
+      onDelete: 'RESTRICT',
+    },
+
+    subTopicId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: 'Subtopics', key: 'id' },
       onUpdate: 'CASCADE',
       onDelete: 'RESTRICT',
     },
@@ -48,10 +56,9 @@ Question.init(
     sequelize,
     tableName: 'Questions',
     indexes: [
-      { name: 'q_subject_difficulty', fields: ['subjectId', 'difficulty'] },
+      { name: 'q_subject_difficulty', fields: ['subtopicId', 'difficulty'] },
       { name: 'q_question_type', fields: ['questionTypeId'] },
-      { name: 'q_professor', fields: ['professorId'] },
-      { name: 'q_unique_subject_body', unique: true, fields: ['subjectId', 'body'] },
+      { name: 'q_author', fields: ['authorId'] },
     ],
   },
 );

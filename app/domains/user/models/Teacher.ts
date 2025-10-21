@@ -1,23 +1,28 @@
-import { Model, STRING, INTEGER } from 'sequelize';
+import { Model, STRING, DataTypes } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
 
 class Teacher extends Model {
-  public id!: number;
+  public id!: string;
   public name!: string;
   public specialty!: string;
-  public userId!: number;
+  public userId!: string;
 }
 
 Teacher.init(
   {
-    id: { type: INTEGER, primaryKey: true, autoIncrement: true },
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+      allowNull: false,
+    },
     name: { type: STRING(200), allowNull: false },
     specialty: { type: STRING(200), allowNull: false },
     userId: {
-      type: INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
-      unique: true, // one user ↔ one teacher
+      unique: true,
       references: { model: 'Users', key: 'id' },
     },
   },

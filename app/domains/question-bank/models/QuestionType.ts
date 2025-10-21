@@ -9,7 +9,12 @@ class QuestionType extends Model {
 
 QuestionType.init(
   {
-    id: { type: DataTypes.UUID, primaryKey: true },
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+      allowNull: false,
+    },
     name: { type: STRING, allowNull: false, unique: true },
   },
   {

@@ -4,19 +4,19 @@ import Question from '../../question-bank/models/Question';
 import Teacher from '../../user/models/Teacher';
 
 Teacher.hasMany(Exam, {
-  foreignKey: {name: 'authorId', allowNull: false},
+  foreignKey: { name: 'authorId', allowNull: false },
   as: 'exams',
   onDelete: 'RESTRICT',
   onUpdate: 'CASCADE',
 });
 
 Exam.belongsTo(Teacher, {
-  foreignKey: {name: 'authorId', allowNull: false},
+  foreignKey: { name: 'authorId', allowNull: false },
   as: 'author',
 });
 
 Teacher.hasMany(Exam, {
-  foreignKey: {name: 'validatorId', allowNull: true},
+  foreignKey: { name: 'validatorId', allowNull: true },
   as: 'validatedExams',
   onDelete: 'SET NULL',
   onUpdate: 'CASCADE',

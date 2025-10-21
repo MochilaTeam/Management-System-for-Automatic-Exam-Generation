@@ -1,8 +1,8 @@
-import { Model, DATE, ENUM, INTEGER, STRING, TEXT, JSON, DataTypes } from 'sequelize';
+import { Model, DATE, ENUM, INTEGER, TEXT, JSON, DataTypes } from 'sequelize';
 
+import { ExamStatusEnum } from './enums/ExamStatusEnum';
 import { sequelize } from '../../../database/database';
 import { DifficultyValues } from '../../question-bank/models/enums/enums';
-import { ExamStatusEnum } from './enums/ExamStatusEnum';
 
 class Exam extends Model {
   public id!: string;
@@ -11,10 +11,9 @@ class Exam extends Model {
 
   public ExamStatus!: ExamStatusEnum;
 
-
   public authorId!: string; // FK -> profesores.id (obligatoria)
-  public validatorId!: string; // FK -> jefe_de_asignature.id 
-  public subjectId!: string  //FK -> subject.id (obligatoria)
+  public validatorId!: string; // FK -> jefe_de_asignature.id
+  public subjectId!: string; //FK -> subject.id (obligatoria)
   public observations!: string | null;
 
   public questionCount!: number;
@@ -27,7 +26,6 @@ class Exam extends Model {
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
-
 
 Exam.init(
   {
@@ -51,7 +49,7 @@ Exam.init(
     validatorId: {
       type: DataTypes.UUID,
       allowNull: true,
-      references: { model: 'Teachers', key: 'id' }, 
+      references: { model: 'Teachers', key: 'id' },
       onUpdate: 'CASCADE',
       onDelete: 'RESTRICT',
     },
@@ -59,7 +57,7 @@ Exam.init(
     subjectId: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: {model: 'Subjects', key: 'id'},
+      references: { model: 'Subjects', key: 'id' },
       onUpdate: 'CASCADE',
       onDelete: 'RESTRICT',
     },
@@ -81,7 +79,6 @@ Exam.init(
     //   include: [{ model: ExamState, as: 'state', attributes: ['id', 'name'] }],
     // },
     indexes: [
-      { fields: ['examStateId'] },
       { fields: ['difficulty'] },
       { fields: ['createdAt'] },
       { fields: ['authorId'] },

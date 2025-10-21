@@ -1,4 +1,4 @@
-import { DataTypes, INTEGER, Model } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
 
@@ -36,6 +36,5 @@ ExamQuestion.init(
     ],
   },
 );
-
 
 export default ExamQuestion;

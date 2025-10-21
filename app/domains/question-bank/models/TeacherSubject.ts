@@ -1,4 +1,4 @@
-import { Model, INTEGER, STRING, DataTypes } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
 
@@ -29,7 +29,7 @@ TeacherSubject.init(
   {
     sequelize,
     tableName: 'TeacherSubjects',
-    indexes: [{ fields: ['professorId'] }, { fields: ['subjectId'] }],
+    indexes: [{ fields: ['teacherId'] }, { fields: ['subjectId'] }],
   },
 );
 
