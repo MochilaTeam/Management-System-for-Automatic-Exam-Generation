@@ -2,8 +2,11 @@
 import { sequelize } from './database';
 import ExamAssignment from '../domains/exam-application/models/ExamAssignment';
 import ExamResponse from '../domains/exam-application/models/ExamResponse';
+import { ExamStatusEnum } from '../domains/exam-generation/models/enums/ExamStatusEnum';
 import Exam from '../domains/exam-generation/models/Exam';
 import ExamQuestion from '../domains/exam-generation/models/ExamQuestion';
+import { DifficultyLevelEnum } from '../domains/question-bank/models/enums/DifficultyLevels';
+import { QuestionTypeEnum } from '../domains/question-bank/models/enums/QuestionType';
 import Question from '../domains/question-bank/models/Question';
 import QuestionSubtopic from '../domains/question-bank/models/QuestionSubTopic';
 import QuestionType from '../domains/question-bank/models/QuestionType';
@@ -15,9 +18,6 @@ import Topic from '../domains/question-bank/models/Topic';
 import Student from '../domains/user/models/Student';
 import Teacher from '../domains/user/models/Teacher';
 import User from '../domains/user/models/User';
-import { ExamStatusEnum } from '../domains/exam-generation/models/enums/ExamStatusEnum';
-import { DifficultyLevelEnum } from '../domains/question-bank/models/enums/DifficultyLevels';
-import { QuestionTypeEnum } from '../domains/question-bank/models/enums/QuestionType';
 
 async function seed() {
     await sequelize.authenticate();
@@ -95,8 +95,14 @@ async function seed() {
             where: { name: QuestionTypeEnum.MCQ },
             transaction: t,
         });
-        await QuestionType.findOrCreate({ where: { name: QuestionTypeEnum.TRUE_FALSE }, transaction: t });
-        await QuestionType.findOrCreate({ where: { name: QuestionTypeEnum.ESSAY }, transaction: t });
+        await QuestionType.findOrCreate({
+            where: { name: QuestionTypeEnum.TRUE_FALSE },
+            transaction: t,
+        });
+        await QuestionType.findOrCreate({
+            where: { name: QuestionTypeEnum.ESSAY },
+            transaction: t,
+        });
 
         // 5) Topics & Subtopics
         const [topic] = await Topic.findOrCreate({
