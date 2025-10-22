@@ -1,5 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 
+import { AssignedExamStatus } from './enum/AssignedExamStatus';
 import { sequelize } from '../../../database/database';
 
 class ExamAssignments extends Model {
@@ -9,7 +10,7 @@ class ExamAssignments extends Model {
     public professorId!: string;
     public durationMinutes!: number | null;
     public applicationDate!: Date | null;
-    public status!: 'pending' | 'enabled' | 'submitted' | 'graded' | 'cancelled';
+    public status!: AssignedExamStatus;
     public grade!: number | null;
 }
 
@@ -27,10 +28,10 @@ ExamAssignments.init(
         durationMinutes: { type: DataTypes.INTEGER, allowNull: true },
         applicationDate: { type: DataTypes.DATE, allowNull: true },
         status: {
-            type: DataTypes.ENUM('pending', 'enabled', 'submitted', 'graded', 'cancelled'),
+            type: DataTypes.STRING,
             allowNull: false,
-            defaultValue: 'pending',
-            validate: { isIn: [['pending', 'enabled', 'submitted', 'graded', 'cancelled']] },
+            defaultValue: AssignedExamStatus.PENDING,
+            validate: { isIn: [Object.values(AssignedExamStatus)] },
         },
         grade: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
     },

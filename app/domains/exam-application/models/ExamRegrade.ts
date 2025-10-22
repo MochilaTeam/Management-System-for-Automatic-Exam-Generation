@@ -1,5 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 
+import { ExamRegradesStatus } from './enum/ExamRegradeStatus';
 import { sequelize } from '../../../database/database';
 
 class ExamRegrades extends Model {
@@ -8,7 +9,7 @@ class ExamRegrades extends Model {
     public examId!: string;
     public professorId!: string;
     public reason!: string | null;
-    public status!: 'requested' | 'in_review' | 'resolved' | 'rejected';
+    public status!: ExamRegradesStatus;
     public requestedAt!: Date;
     public resolvedAt!: Date | null;
     public finalGrade!: number | null;
@@ -27,10 +28,10 @@ ExamRegrades.init(
         professorId: { type: DataTypes.UUID, allowNull: false },
         reason: { type: DataTypes.TEXT, allowNull: true },
         status: {
-            type: DataTypes.ENUM('requested', 'in_review', 'resolved', 'rejected'),
+            type: DataTypes.STRING,
             allowNull: false,
-            defaultValue: 'requested',
-            validate: { isIn: [['requested', 'in_review', 'resolved', 'rejected']] },
+            validate: { isIn: [Object.values(ExamRegradesStatus)] },
+            defaultValue: ExamRegradesStatus.REQUESTED,
         },
         requestedAt: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
         resolvedAt: { type: DataTypes.DATE, allowNull: true },
