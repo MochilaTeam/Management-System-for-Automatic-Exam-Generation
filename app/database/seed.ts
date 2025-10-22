@@ -15,6 +15,9 @@ import Topic from '../domains/question-bank/models/Topic';
 import Student from '../domains/user/models/Student';
 import Teacher from '../domains/user/models/Teacher';
 import User from '../domains/user/models/User';
+import { ExamStatusEnum } from '../domains/exam-generation/models/enums/ExamStatusEnum';
+import { DifficultyLevelEnum } from '../domains/question-bank/models/enums/DifficultyLevels';
+import { QuestionTypeEnum } from '../domains/question-bank/models/enums/QuestionType';
 
 async function seed() {
     await sequelize.authenticate();
@@ -89,11 +92,11 @@ async function seed() {
 
         // 4) QuestionTypes
         const [qtMultiple] = await QuestionType.findOrCreate({
-            where: { name: 'MULTIPLE' },
+            where: { name: QuestionTypeEnum.MCQ },
             transaction: t,
         });
-        await QuestionType.findOrCreate({ where: { name: 'TRUE_FALSE' }, transaction: t });
-        await QuestionType.findOrCreate({ where: { name: 'ESSAY' }, transaction: t });
+        await QuestionType.findOrCreate({ where: { name: QuestionTypeEnum.TRUE_FALSE }, transaction: t });
+        await QuestionType.findOrCreate({ where: { name: QuestionTypeEnum.ESSAY }, transaction: t });
 
         // 5) Topics & Subtopics
         const [topic] = await Topic.findOrCreate({
@@ -161,7 +164,7 @@ async function seed() {
         const [exam] = await Exam.findOrCreate({
             where: { observations: 'Parcial 1 - BD II' },
             defaults: {
-                difficulty: 'MEDIUM',
+                difficulty: DifficultyLevelEnum.MEDIUM,
                 authorId: tCamilo.id,
                 validatorId: tGuill.id,
                 subjectId: subject.id,
@@ -169,7 +172,7 @@ async function seed() {
                 topicProportion: { [topic.id]: 1 } as any,
                 topicCoverage: { [subtopic.id]: 100 } as any,
                 validatedAt: null,
-                examStatus: 'DRAFT',
+                examStatus: ExamStatusEnum.DRAFT,
             },
             transaction: t,
         });
