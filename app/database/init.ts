@@ -17,24 +17,24 @@ import User from '../domains/user/models/User';
 
 export const syncTables = async (): Promise<void> => {
     //QuestionBank
-    await Question.sync({ force: false });
-    await QuestionSubtopic.sync({ force: false });
-    await QuestionType.sync({ force: false });
-    await Subject.sync({ force: false });
-    await SubjectTopic.sync({ force: false });
-    await Subtopic.sync({ force: false });
-    await TeacherSubject.sync({ force: false });
-    await Topic.sync({ force: false });
-    await QuestionType.sync({ force: false });
+    await Question.sync({ alter: true });
+    await QuestionSubtopic.sync({ alter: true });
+    await QuestionType.sync({ alter: true });
+    await Subject.sync({ alter: true });
+    await SubjectTopic.sync({ alter: true });
+    await Subtopic.sync({ alter: true });
+    await TeacherSubject.sync({ alter: true });
+    await Topic.sync({ alter: true });
+    await QuestionType.sync({ alter: true });
     //User
-    await Student.sync({ force: false });
-    await Teacher.sync({ force: false });
-    await User.sync({ force: false });
+    await Student.sync({ alter: true });
+    await Teacher.sync({ alter: true });
+    await User.sync({ alter: true });
     //ExamGeneration
-    await Exam.sync({ force: false });
-    await ExamQuestion.sync({ force: false });
+    await Exam.sync({ alter: true });
+    await ExamQuestion.sync({ alter: true });
     //ExamApplication
-    await ExamAssignments.sync({ force: false });
-    await ExamRegrades.sync({ force: false });
-    await ExamResponses.sync({ force: false });
+    await ExamAssignments.sync({ alter: true });
+    await ExamRegrades.sync({ alter: true });
+    await ExamResponses.sync({ alter: true });
 };

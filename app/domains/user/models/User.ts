@@ -29,7 +29,7 @@ User.init(
     {
         sequelize,
         tableName: 'Users',
-        timestamps: false,
+        timestamps: true,
         indexes: [{ unique: true, fields: ['username'] }],
     },
 );
