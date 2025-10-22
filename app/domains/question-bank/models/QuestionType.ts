@@ -1,11 +1,11 @@
-import { DataTypes, Model, STRING } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 
-import { sequelize } from '../../../database/database';
 import { QuestionTypeEnum } from './enums/QuestionType';
+import { sequelize } from '../../../database/database';
 
 class QuestionType extends Model {
     public id!: string;
-    public name!: QuestionTypeEnum; 
+    public name!: QuestionTypeEnum;
 }
 
 QuestionType.init(
@@ -16,11 +16,11 @@ QuestionType.init(
             primaryKey: true,
             allowNull: false,
         },
-        name: { 
+        name: {
             type: DataTypes.STRING(20),
-            allowNull: false, 
+            allowNull: false,
             validate: {
-                isIn: [Object.values(QuestionTypeEnum)]
+                isIn: [Object.values(QuestionTypeEnum)],
             },
         },
     },

@@ -1,7 +1,7 @@
-import { Model, STRING, ENUM, JSON, TEXT, DataTypes } from 'sequelize';
+import { Model, STRING, JSON, TEXT, DataTypes } from 'sequelize';
 
-import { sequelize } from '../../../database/database';
 import { DifficultyLevelEnum } from './enums/DifficultyLevels';
+import { sequelize } from '../../../database/database';
 
 class Question extends Model {
     public id!: string;
@@ -48,14 +48,14 @@ Question.init(
         },
 
         difficulty: {
-          type: DataTypes.STRING(20),
-          allowNull: false,
-          validate: {
-            isIn: [Object.values(DifficultyLevelEnum)],
-          },
-          defaultValue: DifficultyLevelEnum.MEDIUM
+            type: DataTypes.STRING(20),
+            allowNull: false,
+            validate: {
+                isIn: [Object.values(DifficultyLevelEnum)],
+            },
+            defaultValue: DifficultyLevelEnum.MEDIUM,
         },
-        
+
         body: { type: STRING(1024), allowNull: false },
         options: { type: JSON, allowNull: true },
         response: { type: TEXT, allowNull: true },

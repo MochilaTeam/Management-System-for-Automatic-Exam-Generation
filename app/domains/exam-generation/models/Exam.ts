@@ -1,4 +1,4 @@
-import { Model, DATE, ENUM, INTEGER, TEXT, JSON, DataTypes } from 'sequelize';
+import { Model, DATE, INTEGER, TEXT, JSON, DataTypes } from 'sequelize';
 
 import { ExamStatusEnum } from './enums/ExamStatusEnum';
 import { sequelize } from '../../../database/database';
@@ -10,9 +10,9 @@ class Exam extends Model {
     public difficulty!: DifficultyLevelEnum;
     public examStatus!: ExamStatusEnum;
 
-    public authorId!: string; 
-    public validatorId!: string; 
-    public subjectId!: string; 
+    public authorId!: string;
+    public validatorId!: string;
+    public subjectId!: string;
     public observations!: string | null;
 
     public questionCount!: number;
@@ -76,13 +76,13 @@ Exam.init(
             defaultValue: ExamStatusEnum.DRAFT,
         },
         difficulty: {
-          type: DataTypes.STRING(20),
-          allowNull: false,
-          validate: {
-            isIn: [Object.values(DifficultyLevelEnum)],
-          },
-          defaultValue: DifficultyLevelEnum.MEDIUM
-        }
+            type: DataTypes.STRING(20),
+            allowNull: false,
+            validate: {
+                isIn: [Object.values(DifficultyLevelEnum)],
+            },
+            defaultValue: DifficultyLevelEnum.MEDIUM,
+        },
     },
     {
         sequelize,
