@@ -6,7 +6,6 @@ import ExamQuestion from '../../exam-generation/models/ExamQuestion';
 import Student from '../../user/models/Student';
 import Teacher from '../../user/models/Teacher';
 
-
 ExamResponse.belongsTo(Student, {
     as: 'student',
     foreignKey: { name: 'studentId', allowNull: false },
@@ -123,4 +122,3 @@ Teacher.hasMany(ExamRegrade, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
 });
-

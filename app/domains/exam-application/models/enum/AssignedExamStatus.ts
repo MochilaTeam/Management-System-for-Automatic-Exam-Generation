@@ -4,5 +4,4 @@ export enum AssignedExamStatus {
     SUBMITTED = 'SUBMITTED',
     GRADED = 'GRADED',
     CANCELLED = 'CANCELLED',
-    
 }

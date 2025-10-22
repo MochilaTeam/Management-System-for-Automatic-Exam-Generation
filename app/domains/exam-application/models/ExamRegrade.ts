@@ -1,7 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 
-import { sequelize } from '../../../database/database';
 import { ExamRegradesStatus } from './enum/ExamRegradeStatus';
+import { sequelize } from '../../../database/database';
 
 class ExamRegrades extends Model {
     public id!: string;
@@ -23,7 +23,7 @@ ExamRegrades.init(
             primaryKey: true,
             allowNull: false,
         },
-        studentId:{type: DataTypes.UUID, allowNull: false },
+        studentId: { type: DataTypes.UUID, allowNull: false },
         examId: { type: DataTypes.UUID, allowNull: false },
         professorId: { type: DataTypes.UUID, allowNull: false },
         reason: { type: DataTypes.TEXT, allowNull: true },
