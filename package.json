@@ -29,6 +29,7 @@
         "dev": "nodemon",
         "lint": "eslint \"app/**/*.{ts,tsx}\"",
         "lint:fix": "eslint \"app/**/*.{ts,tsx}\" --fix",
-        "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\""
+        "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
+        "seed": "sudo docker compose exec app npx tsx app/database/seed.ts"
     }
 }
