@@ -1,19 +1,18 @@
-import { Model, DATE, ENUM, INTEGER, TEXT, JSON, DataTypes } from 'sequelize';
+import { Model, DATE, INTEGER, TEXT, JSON, DataTypes } from 'sequelize';
 
 import { ExamStatusEnum } from './enums/ExamStatusEnum';
 import { sequelize } from '../../../database/database';
-import { DifficultyValues } from '../../question-bank/models/enums/enums';
+import { DifficultyLevelEnum } from '../../question-bank/models/enums/DifficultyLevels';
 
 class Exam extends Model {
     public id!: string;
 
-    public difficulty!: (typeof DifficultyValues)[number];
-
+    public difficulty!: DifficultyLevelEnum;
     public examStatus!: ExamStatusEnum;
 
-    public authorId!: string; // FK -> profesores.id (obligatoria)
-    public validatorId!: string; // FK -> jefe_de_asignature.id
-    public subjectId!: string; //FK -> subject.id (obligatoria)
+    public authorId!: string;
+    public validatorId!: string;
+    public subjectId!: string;
     public observations!: string | null;
 
     public questionCount!: number;
@@ -35,8 +34,6 @@ Exam.init(
             primaryKey: true,
             allowNull: false,
         },
-
-        difficulty: { type: ENUM(...DifficultyValues), allowNull: false },
 
         authorId: {
             type: DataTypes.UUID,
@@ -77,6 +74,14 @@ Exam.init(
                 isIn: [Object.values(ExamStatusEnum)],
             },
             defaultValue: ExamStatusEnum.DRAFT,
+        },
+        difficulty: {
+            type: DataTypes.STRING(20),
+            allowNull: false,
+            validate: {
+                isIn: [Object.values(DifficultyLevelEnum)],
+            },
+            defaultValue: DifficultyLevelEnum.MEDIUM,
         },
     },
     {
