@@ -6,7 +6,7 @@ class Subject extends Model {
     public id!: string;
     public name!: string;
     public program!: string; //TODO: Programa de estudios, deberia ser un pdf
-    public leadTeacherId!: string; //TODO: AGREGAR LA ASOCIACION
+    public leadTeacherId!: string; 
 }
 
 Subject.init(

@@ -1,10 +1,11 @@
 import { DataTypes, Model, STRING } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
+import { QuestionTypeEnum } from './enums/QuestionType';
 
 class QuestionType extends Model {
     public id!: string;
-    public name!: string; //TODO: PONER AQUI QUE SOLO ACEPTE LOS VALORES DEL ENUM
+    public name!: QuestionTypeEnum; 
 }
 
 QuestionType.init(
@@ -15,7 +16,13 @@ QuestionType.init(
             primaryKey: true,
             allowNull: false,
         },
-        name: { type: STRING, allowNull: false, unique: true },
+        name: { 
+            type: DataTypes.STRING(20),
+            allowNull: false, 
+            validate: {
+                isIn: [Object.values(QuestionTypeEnum)]
+            },
+        },
     },
     {
         sequelize,

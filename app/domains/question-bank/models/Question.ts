@@ -1,13 +1,13 @@
 import { Model, STRING, ENUM, JSON, TEXT, DataTypes } from 'sequelize';
 
-import { DifficultyValues } from './enums/enums';
 import { sequelize } from '../../../database/database';
+import { DifficultyLevelEnum } from './enums/DifficultyLevels';
 
 class Question extends Model {
     public id!: string;
     public subTopicId!: string;
     public authorId!: string;
-    public difficulty!: (typeof DifficultyValues)[number];
+    public difficulty!: DifficultyLevelEnum;
     public body!: string;
     public questionTypeId!: string;
     public options!: Array<{ text: string; isCorrect: boolean }> | null; //TODO: CHEQUEAR BIEN EL TIPO DE ESTO
@@ -47,7 +47,15 @@ Question.init(
             onDelete: 'RESTRICT',
         },
 
-        difficulty: { type: ENUM(...DifficultyValues), allowNull: false },
+        difficulty: {
+          type: DataTypes.STRING(20),
+          allowNull: false,
+          validate: {
+            isIn: [Object.values(DifficultyLevelEnum)],
+          },
+          defaultValue: DifficultyLevelEnum.MEDIUM
+        },
+        
         body: { type: STRING(1024), allowNull: false },
         options: { type: JSON, allowNull: true },
         response: { type: TEXT, allowNull: true },
