@@ -57,7 +57,18 @@ Subject.belongsToMany(Teacher, {
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE',
 });
-
+Subject.belongsTo(Teacher, {
+  foreignKey: 'leadTeacherId',
+  as: 'leadTeacher',
+  onUpdate: 'CASCADE',
+  onDelete: 'RESTRICT',
+});
+Teacher.hasMany(Subject, {
+  foreignKey: 'leadTeacherId',
+  as: 'leadSubjects',
+  onUpdate: 'CASCADE',
+  onDelete: 'RESTRICT',
+});
 Question.belongsToMany(Subtopic, {
     through: QuestionSubtopic,
     as: 'subtopics',

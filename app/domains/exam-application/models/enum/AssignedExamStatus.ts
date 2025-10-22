@@ -1,10 +1,8 @@
 export enum AssignedExamStatus {
-    ASSIGNED = 'ASSIGNED',
-    AVAILABLE = 'AVAILABLE',
-    IN_PROGRESS = 'IN_PROGRESS',
+    PENDING = 'PENDING',
+    ENABLED = 'ENABLED',
     SUBMITTED = 'SUBMITTED',
     GRADED = 'GRADED',
-    RETURNED = 'RETURNED',
-    EXPIRED = 'EXPIRED',
     CANCELLED = 'CANCELLED',
+    
 }
