@@ -2,8 +2,11 @@
 import { sequelize } from './database';
 import ExamAssignment from '../domains/exam-application/models/ExamAssignment';
 import ExamResponse from '../domains/exam-application/models/ExamResponse';
+import { ExamStatusEnum } from '../domains/exam-generation/models/enums/ExamStatusEnum';
 import Exam from '../domains/exam-generation/models/Exam';
 import ExamQuestion from '../domains/exam-generation/models/ExamQuestion';
+import { DifficultyLevelEnum } from '../domains/question-bank/models/enums/DifficultyLevels';
+import { QuestionTypeEnum } from '../domains/question-bank/models/enums/QuestionType';
 import Question from '../domains/question-bank/models/Question';
 import QuestionSubtopic from '../domains/question-bank/models/QuestionSubTopic';
 import QuestionType from '../domains/question-bank/models/QuestionType';
@@ -15,6 +18,13 @@ import Topic from '../domains/question-bank/models/Topic';
 import Student from '../domains/user/models/Student';
 import Teacher from '../domains/user/models/Teacher';
 import User from '../domains/user/models/User';
+
+type QuestionOption = {
+    id: string;
+    text: string;
+};
+
+type TopicMap = Record<number, number>;
 
 async function seed() {
     await sequelize.authenticate();
@@ -89,11 +99,17 @@ async function seed() {
 
         // 4) QuestionTypes
         const [qtMultiple] = await QuestionType.findOrCreate({
-            where: { name: 'MULTIPLE' },
+            where: { name: QuestionTypeEnum.MCQ },
             transaction: t,
         });
-        await QuestionType.findOrCreate({ where: { name: 'TRUE_FALSE' }, transaction: t });
-        await QuestionType.findOrCreate({ where: { name: 'ESSAY' }, transaction: t });
+        await QuestionType.findOrCreate({
+            where: { name: QuestionTypeEnum.TRUE_FALSE },
+            transaction: t,
+        });
+        await QuestionType.findOrCreate({
+            where: { name: QuestionTypeEnum.ESSAY },
+            transaction: t,
+        });
 
         // 5) Topics & Subtopics
         const [topic] = await Topic.findOrCreate({
@@ -144,7 +160,7 @@ async function seed() {
                     { id: 'B', text: 'Eliminar dependencias transitivas' },
                     { id: 'C', text: 'Asegurar clave primaria compuesta' },
                     { id: 'D', text: 'Permitir redundancia controlada' },
-                ] as any,
+                ] satisfies QuestionOption[],
                 response: null,
             },
             transaction: t,
@@ -161,15 +177,15 @@ async function seed() {
         const [exam] = await Exam.findOrCreate({
             where: { observations: 'Parcial 1 - BD II' },
             defaults: {
-                difficulty: 'MEDIUM',
+                difficulty: DifficultyLevelEnum.MEDIUM,
                 authorId: tCamilo.id,
                 validatorId: tGuill.id,
                 subjectId: subject.id,
                 questionCount: 1,
-                topicProportion: { [topic.id]: 1 } as any,
-                topicCoverage: { [subtopic.id]: 100 } as any,
+                topicProportion: { [topic.id]: 1 } satisfies TopicMap,
+                topicCoverage: { [subtopic.id]: 100 } satisfies TopicMap,
                 validatedAt: null,
-                examStatus: 'DRAFT',
+                examStatus: ExamStatusEnum.DRAFT,
             },
             transaction: t,
         });
@@ -198,7 +214,7 @@ async function seed() {
             where: {
                 studentId: sMauricio.id,
                 examId: exam.id,
-                examQuestionId: (examQuestion as any).id,
+                examQuestionId: examQuestion.id,
             },
             defaults: {
                 selectedOptionId: null,

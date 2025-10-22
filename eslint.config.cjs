@@ -54,7 +54,7 @@ module.exports = [
     rules: {
       // --- Reglas TypeScript ---
       '@typescript-eslint/explicit-function-return-type': 'off',
-      // '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
