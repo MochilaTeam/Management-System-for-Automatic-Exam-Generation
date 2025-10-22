@@ -19,11 +19,10 @@ import Student from '../domains/user/models/Student';
 import Teacher from '../domains/user/models/Teacher';
 import User from '../domains/user/models/User';
 
-
 type QuestionOption = {
     id: string;
     text: string;
-}
+};
 
 type TopicMap = Record<number, number>;
 
