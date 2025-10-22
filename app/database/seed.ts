@@ -19,6 +19,14 @@ import Student from '../domains/user/models/Student';
 import Teacher from '../domains/user/models/Teacher';
 import User from '../domains/user/models/User';
 
+
+type QuestionOption = {
+    id: string;
+    text: string;
+}
+
+type TopicMap = Record<number, number>;
+
 async function seed() {
     await sequelize.authenticate();
     const t = await sequelize.transaction();
@@ -153,7 +161,7 @@ async function seed() {
                     { id: 'B', text: 'Eliminar dependencias transitivas' },
                     { id: 'C', text: 'Asegurar clave primaria compuesta' },
                     { id: 'D', text: 'Permitir redundancia controlada' },
-                ] as any,
+                ] satisfies QuestionOption[],
                 response: null,
             },
             transaction: t,
@@ -175,8 +183,8 @@ async function seed() {
                 validatorId: tGuill.id,
                 subjectId: subject.id,
                 questionCount: 1,
-                topicProportion: { [topic.id]: 1 } as any,
-                topicCoverage: { [subtopic.id]: 100 } as any,
+                topicProportion: { [topic.id]: 1 } satisfies TopicMap,
+                topicCoverage: { [subtopic.id]: 100 } satisfies TopicMap,
                 validatedAt: null,
                 examStatus: ExamStatusEnum.DRAFT,
             },
@@ -207,7 +215,7 @@ async function seed() {
             where: {
                 studentId: sMauricio.id,
                 examId: exam.id,
-                examQuestionId: (examQuestion as any).id,
+                examQuestionId: examQuestion.id,
             },
             defaults: {
                 selectedOptionId: null,
