@@ -1,23 +1,23 @@
 // app/database/seed.ts
 import { sequelize } from './database';
-import ExamAssignment from '../domains/exam-application/models/ExamAssignment';
-import ExamResponse from '../domains/exam-application/models/ExamResponse';
-import { ExamStatusEnum } from '../domains/exam-generation/models/enums/ExamStatusEnum';
-import Exam from '../domains/exam-generation/models/Exam';
-import ExamQuestion from '../domains/exam-generation/models/ExamQuestion';
-import { DifficultyLevelEnum } from '../domains/question-bank/models/enums/DifficultyLevels';
-import { QuestionTypeEnum } from '../domains/question-bank/models/enums/QuestionType';
-import Question from '../domains/question-bank/models/Question';
-import QuestionSubtopic from '../domains/question-bank/models/QuestionSubTopic';
-import QuestionType from '../domains/question-bank/models/QuestionType';
-import Subject from '../domains/question-bank/models/Subject';
-import SubjectTopic from '../domains/question-bank/models/SubjectTopic';
-import Subtopic from '../domains/question-bank/models/SubTopic';
-import TeacherSubject from '../domains/question-bank/models/TeacherSubject';
-import Topic from '../domains/question-bank/models/Topic';
-import Student from '../domains/user/models/Student';
-import Teacher from '../domains/user/models/Teacher';
-import User from '../domains/user/models/User';
+import { ExamStatusEnum } from '../domains/exam-generation/entities/enums/ExamStatusEnum';
+import Exam from '../infrastructure/exam-generation/models/Exam';
+import { DifficultyLevelEnum } from '../domains/question-bank/entities/enums/DifficultyLevels';
+import { QuestionTypeEnum } from '../domains/question-bank/entities/enums/QuestionType';
+import QuestionSubtopic from '../infrastructure/question-bank/models/QuestionSubTopic';
+import QuestionType from '../infrastructure/question-bank/models/QuestionType';
+import Subject from '../infrastructure/question-bank/models/Subject';
+import SubjectTopic from '../infrastructure/question-bank/models/SubjectTopic';
+import Subtopic from '../infrastructure/question-bank/models/SubTopic';
+import TeacherSubject from '../infrastructure/question-bank/models/TeacherSubject';
+import Topic from '../infrastructure/question-bank/models/Topic';
+import User from '../infrastructure/user/models/User';
+import Teacher from '../infrastructure/user/models/Teacher';
+import Student from '../infrastructure/user/models/Student';
+import Question from '../infrastructure/question-bank/models/Question';
+import ExamAssignment from '../infrastructure/exam-application/models/ExamAssignment';
+import ExamResponse from '../infrastructure/exam-application/models/ExamResponse';
+import ExamQuestion from '../infrastructure/exam-generation/models/ExamQuestion';
 
 type QuestionOption = {
     id: string;
