@@ -3,7 +3,6 @@
 // // Los schemas se importan desde schemas
 // // Los handlers se importan desde dependencies (Una dependencia que construye el handler)
 
-
 // // ---------- Controllers (delgados): validan → llaman handler → responden
 
 // // GET /v1/users

@@ -1,6 +1,6 @@
 import { Model, STRING, INTEGER, DataTypes } from 'sequelize';
-import { sequelize } from '../../../database/database';
 
+import { sequelize } from '../../../database/database';
 
 class Student extends Model {
     public id!: string;

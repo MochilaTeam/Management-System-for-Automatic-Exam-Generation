@@ -1,9 +1,13 @@
 // app/database/seed.ts
 import { sequelize } from './database';
 import { ExamStatusEnum } from '../domains/exam-generation/entities/enums/ExamStatusEnum';
-import Exam from '../infrastructure/exam-generation/models/Exam';
 import { DifficultyLevelEnum } from '../domains/question-bank/entities/enums/DifficultyLevels';
 import { QuestionTypeEnum } from '../domains/question-bank/entities/enums/QuestionType';
+import ExamAssignment from '../infrastructure/exam-application/models/ExamAssignment';
+import ExamResponse from '../infrastructure/exam-application/models/ExamResponse';
+import Exam from '../infrastructure/exam-generation/models/Exam';
+import ExamQuestion from '../infrastructure/exam-generation/models/ExamQuestion';
+import Question from '../infrastructure/question-bank/models/Question';
 import QuestionSubtopic from '../infrastructure/question-bank/models/QuestionSubTopic';
 import QuestionType from '../infrastructure/question-bank/models/QuestionType';
 import Subject from '../infrastructure/question-bank/models/Subject';
@@ -11,13 +15,9 @@ import SubjectTopic from '../infrastructure/question-bank/models/SubjectTopic';
 import Subtopic from '../infrastructure/question-bank/models/SubTopic';
 import TeacherSubject from '../infrastructure/question-bank/models/TeacherSubject';
 import Topic from '../infrastructure/question-bank/models/Topic';
-import User from '../infrastructure/user/models/User';
-import Teacher from '../infrastructure/user/models/Teacher';
 import Student from '../infrastructure/user/models/Student';
-import Question from '../infrastructure/question-bank/models/Question';
-import ExamAssignment from '../infrastructure/exam-application/models/ExamAssignment';
-import ExamResponse from '../infrastructure/exam-application/models/ExamResponse';
-import ExamQuestion from '../infrastructure/exam-generation/models/ExamQuestion';
+import Teacher from '../infrastructure/user/models/Teacher';
+import User from '../infrastructure/user/models/User';
 
 type QuestionOption = {
     id: string;

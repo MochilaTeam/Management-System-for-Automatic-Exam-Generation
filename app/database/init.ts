@@ -15,7 +15,6 @@ import Student from '../infrastructure/user/models/Student';
 import Teacher from '../infrastructure/user/models/Teacher';
 import User from '../infrastructure/user/models/User';
 
-
 export const syncTables = async (): Promise<void> => {
     //QuestionBank
     await Question.sync({ alter: true });

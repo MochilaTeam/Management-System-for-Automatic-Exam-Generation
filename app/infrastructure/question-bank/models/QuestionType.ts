@@ -1,7 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 
-import { QuestionTypeEnum } from '../../../domains/question-bank/entities/enums/QuestionType';
 import { sequelize } from '../../../database/database';
+import { QuestionTypeEnum } from '../../../domains/question-bank/entities/enums/QuestionType';
 
 class QuestionType extends Model {
     public id!: string;

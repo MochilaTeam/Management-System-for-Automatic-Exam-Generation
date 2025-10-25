@@ -1,8 +1,8 @@
 import Exam from './Exam';
 import ExamQuestion from './ExamQuestion';
+import Question from '../../question-bank/models/Question';
 import Subject from '../../question-bank/models/Subject';
 import Teacher from '../../user/models/Teacher';
-import Question from '../../question-bank/models/Question';
 
 Teacher.hasMany(Exam, {
     foreignKey: { name: 'authorId', allowNull: false },

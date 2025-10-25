@@ -1,8 +1,7 @@
 import { Model, STRING, JSON, TEXT, DataTypes } from 'sequelize';
-import { DifficultyLevelEnum } from '../../../domains/question-bank/entities/enums/DifficultyLevels';
+
 import { sequelize } from '../../../database/database';
-
-
+import { DifficultyLevelEnum } from '../../../domains/question-bank/entities/enums/DifficultyLevels';
 
 class Question extends Model {
     public id!: string;

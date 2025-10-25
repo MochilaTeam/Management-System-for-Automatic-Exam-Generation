@@ -1,6 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../../../database/database';
 
+import { sequelize } from '../../../database/database';
 
 class ExamQuestion extends Model {
     public id!: string;
