@@ -154,3 +154,5 @@ curl -i -X POST http://localhost:3000/api/exams \
 
 ### Listo ✅
 Con esto puedes proteger rutas de forma consistente: primero **autenticar**, luego **autorizar** según tus **roles**. 
+# IMPORTANTE
+Al usar el middleware `authenticate` vas a poder acceder al id de el usuario que hace la peticion con `req.user.id`
