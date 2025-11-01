@@ -36,5 +36,3 @@ const responseInterceptor = (req: Request, res: Response, next: NextFunction) =>
 };
 
 export { responseInterceptor };
-
-//TODO: Crear middlewares de autenticacion, autorizacion
