@@ -8,7 +8,8 @@
         "nodemon": "^3.1.10",
         "sequelize": "^6.37.7",
         "winston": "^3.17.0",
-        "winston-daily-rotate-file": "^5.0.0"
+        "winston-daily-rotate-file": "^5.0.0",
+        "zod": "^4.1.12"
     },
     "devDependencies": {
         "@types/joi": "^17.2.2",
