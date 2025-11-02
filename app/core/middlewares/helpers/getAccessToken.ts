@@ -1,11 +1,10 @@
-import { Request } from "express";
+import { Request } from 'express';
 
 export function getAccessToken(req: Request): string | null {
+    const auth = req.headers.authorization;
+    if (auth && auth.startsWith('Bearer ')) {
+        return auth.slice(7).trim();
+    }
 
-  const auth = req.headers.authorization;
-  if (auth && auth.startsWith("Bearer ")) {
-    return auth.slice(7).trim();
-  }
-  
-  return null;
+    return null;
 }

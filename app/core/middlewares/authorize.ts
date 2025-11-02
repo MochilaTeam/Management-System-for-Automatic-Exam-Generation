@@ -1,41 +1,45 @@
-import type { Request, Response, NextFunction } from "express";
-import { HttpStatus } from "../../shared/enums/httpStatusEnum";
-import type { Roles } from "../../shared/enums/rolesEnum";
+import type { Request, Response, NextFunction } from 'express';
 
+import { HttpStatus } from '../../shared/enums/httpStatusEnum';
+import type { Roles } from '../../shared/enums/rolesEnum';
+import { AppError } from '../../shared/exceptions/appError';
 
-function forbid(
-    res: Response, 
-    message: string = "Forbidden", 
-    httpStatus: HttpStatus = HttpStatus.FORBIDDEN
-) {
-  return res.status(httpStatus).json({ message });
+function getAppError(message: string, statusCode: HttpStatus): AppError {
+    return new AppError({
+        message: message,
+        statusCode: statusCode,
+        entity: 'Auth',
+    });
 }
 
 //Requiere que el usuario tenga AL MENOS uno de los roles indicados.
 export function requireRoles(...allowed: Roles[]) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const user = req.user;
-    if (!user) return forbid(res, "Unauthenticated", HttpStatus.UNAUTHORIZED);
-    const userRoles = user.roles ?? [];
+    return (req: Request, _res: Response, next: NextFunction) => {
+        const user = req.user;
+        if (!user) {
+            throw getAppError('Unauthenticated', HttpStatus.UNAUTHORIZED);
+        }
 
-    const hasAny = userRoles.some(r => allowed.includes(r));
-    if (!hasAny) return forbid(res);
+        const userRoles = user.roles ?? [];
 
-    return next();
-  };
-}   
+        const hasAny = userRoles.some((r) => allowed.includes(r));
+        if (!hasAny) throw getAppError('Forbidden', HttpStatus.FORBIDDEN);
 
+        return next();
+    };
+}
 
 //Requiere que el usuario tenga TODOS los roles indicados.
 export function requireAllRoles(...required: Roles[]) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const user = req.user;
-    if (!user) return forbid(res, "Unauthenticated", HttpStatus.UNAUTHORIZED);
-    const userRoles = user.roles ?? [];
+    return (req: Request, _res: Response, next: NextFunction) => {
+        const user = req.user;
+        if (!user) throw getAppError('Unauthenticated', HttpStatus.UNAUTHORIZED);
 
-    const hasAll = required.every(r => userRoles.includes(r));
-    if (!hasAll) return forbid(res);
+        const userRoles = user.roles ?? [];
 
-    return next();
-  };
+        const hasAll = required.every((r) => userRoles.includes(r));
+        if (!hasAll) throw getAppError('Forbidden', HttpStatus.FORBIDDEN);
+
+        return next();
+    };
 }
