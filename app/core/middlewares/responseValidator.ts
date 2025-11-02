@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { ObjectSchema } from 'joi';
+import { z } from 'zod';
 
 import { ValidationError } from '../../shared/exceptions/domainErrors';
 
-function validate_response<T>(schema: ObjectSchema<T>) {
+function validate_response<T extends z.ZodTypeAny>(schema: T) {
     return (_req: Request, res: Response, next: NextFunction) => {
         const originalSend = res.send.bind(res);
         let bypass = false;
@@ -24,17 +24,17 @@ function validate_response<T>(schema: ObjectSchema<T>) {
             }
 
             if (payload && typeof payload === 'object') {
-                const { error, value } = schema.validate(payload, { stripUnknown: false });
+                const result = schema.safeParse(payload);
 
-                if (error) {
+                if (!result.success) {
                     bypass = true;
                     throw new ValidationError({
                         message: 'Response validation failed',
-                        entity: schema.describe().label || schema.describe().type || 'Response',
+                        entity: schema.description ?? 'Response',
                     });
                 }
                 res.type('application/json');
-                return originalSend(JSON.stringify(value));
+                return originalSend(JSON.stringify(result.data));
             }
             return originalSend(body);
         };

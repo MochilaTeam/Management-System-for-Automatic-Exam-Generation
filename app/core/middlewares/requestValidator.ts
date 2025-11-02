@@ -1,25 +1,27 @@
 import { Request, Response, NextFunction } from 'express';
-import { ObjectSchema } from 'joi';
+import { z } from 'zod';
 
 import { ValidationError } from '../../shared/exceptions/domainErrors';
 
-function validate_request<T>(schema: ObjectSchema<T>) {
-    return (req: Request, res: Response, next: NextFunction) => {
-        const data = req.body;
+function validate_request<T extends z.ZodTypeAny>(schema: T) {
+    return (req: Request, _res: Response, next: NextFunction) => {
+        const input = req.body;
+        const result = schema.safeParse(input);
 
-        if (!data) {
-            next();
+        if (!result.success) {
+            return next(
+                new ValidationError({
+                    message: 'Request validation failed',
+                    entity: 'Body',
+                    details: result.error.issues.map((i) => ({
+                        path: i.path.join('.'),
+                        message: i.message,
+                    })),
+                }),
+            );
         }
 
-        const { error } = schema.validate(data);
-
-        if (error) {
-            throw new ValidationError({
-                message: 'Request Validation failed',
-                entity: schema.describe().label || schema.describe().type || 'body',
-            });
-        }
-
+        req.body = result.data as z.infer<T>;
         next();
     };
 }
