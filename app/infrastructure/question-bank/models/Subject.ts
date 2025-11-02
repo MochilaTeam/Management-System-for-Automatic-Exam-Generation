@@ -5,7 +5,7 @@ import { sequelize } from '../../../database/database';
 class Subject extends Model {
     public id!: string;
     public name!: string;
-    public program!: string; //TODO: Programa de estudios, deberia ser un pdf
+    public program!: string; //TODO: Chequear bien el tipo de esto, program es el programa de estudios y sera un pdf
     public leadTeacherId!: string;
 }
 
