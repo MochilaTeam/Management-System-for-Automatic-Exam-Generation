@@ -42,7 +42,6 @@ Exam.init(
             onUpdate: 'CASCADE',
             onDelete: 'RESTRICT',
         }, //TODO: AÑADIR CHECKS DE QUE AUTHOR SEA DE ROL EXAMINADOR Y VALIDADOR ROL JEFE DE ASIGNATURA?
-        // ESO HACERLO DESPUES, QUE CADA UNO HAGA LAS LOGICAS DE SU MODELOS
 
         validatorId: {
             type: DataTypes.UUID,

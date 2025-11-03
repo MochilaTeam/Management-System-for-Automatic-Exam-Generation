@@ -7,6 +7,7 @@ import { responseInterceptor } from './core/middlewares/responseInterceptor';
 import { createDatabaseIfNotExists } from './database/database';
 import { connect } from './database/database';
 import { syncTables } from './database/init';
+import { userRouter } from './domains/user/main';
 
 const PORT = 5000;
 const logger: SystemLogger = get_logger();
@@ -14,6 +15,7 @@ const logger: SystemLogger = get_logger();
 const app = express();
 app.use(express.json());
 app.use(responseInterceptor);
+app.use(userRouter);
 
 const start = async () => {
     await createDatabaseIfNotExists();
@@ -31,6 +33,6 @@ start().catch((err) => {
     process.exit(1);
 });
 
-app.get('/ping', (req: Request, res: Response) => {
+app.get('/ping', (_req: Request, res: Response) => {
     res.json({ message: 'pong' });
 });
