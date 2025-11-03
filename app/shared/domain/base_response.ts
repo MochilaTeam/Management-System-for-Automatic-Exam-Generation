@@ -1,46 +1,61 @@
+// shared/domain/base_response.ts
+
 /** Contrato base que comparten todas las respuestas */
-export interface BaseResponse {
-    success: boolean;
-    message: string;
+export class BaseResponse {
+    constructor(
+        public success: boolean = true,
+        public message: string = 'Operación exitosa',
+    ) {}
 }
 
 /** Paginación básica */
-export interface PaginationSchema<T> extends BaseResponse {
-    data: T[];
-    page_size: number;
-    total: number;
+export class PaginationSchema<T> extends BaseResponse {
+    constructor(
+        public data: T[],
+        public page_size: number,
+        public total: number,
+        message: string = 'Consulta paginada exitosa',
+        success: boolean = true,
+    ) {
+        super(success, message);
+    }
 }
 
 /** Paginación con datos adicionales (metadatos, agregados, filtros aplicados, etc.) */
-export interface PaginationWithAdditionalDataSchema<T, A = Record<string, unknown>>
-    extends BaseResponse {
-    data: T[];
-    page_size: number;
-    total: number;
-    additional_data: A;
+export class PaginationWithAdditionalDataSchema<
+    T,
+    A = Record<string, unknown>,
+> extends BaseResponse {
+    constructor(
+        public data: T[],
+        public page_size: number,
+        public total: number,
+        public additional_data: A,
+        message: string = 'Consulta paginada (con metadatos) exitosa',
+        success: boolean = true,
+    ) {
+        super(success, message);
+    }
 }
 
 /** Recuperación de un único elemento */
-export interface RetrieveOneSchema<T> extends BaseResponse {
-    data?: T | null;
+export class RetrieveOneSchema<T> extends BaseResponse {
+    constructor(
+        public data: T | null = null,
+        message: string = 'Consulta de elemento exitosa',
+        success: boolean = true,
+    ) {
+        super(success, message);
+    }
 }
 
 /** Recuperación de múltiples elementos (sin paginar) */
-export interface RetrieveManySchema<T> extends BaseResponse {
-    data: T[];
-}
-
-/* ===== Helpers opcionales para no repetir ===== */
-
-/** Crea un OperationResult<T> de éxito */
-export function successResult<T>(data: T, message = 'Operación exitosa'): RetrieveOneSchema<T> {
-    return { success: true, message, data };
-}
-
-/** Crea un OperationResult<T> de error */
-export function errorResult<T = unknown>(
-    message = 'Ocurrió un error',
-    data: T | null = null,
-): RetrieveOneSchema<T> {
-    return { success: false, message, data };
+export class RetrieveManySchema<T> extends BaseResponse {
+    constructor(
+        public data: T[],
+        message: string = 'Consulta de múltiples elementos exitosa',
+        success: boolean = true,
+    ) {
+        super(success, message);
+    }
 }
