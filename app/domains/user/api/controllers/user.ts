@@ -1,26 +1,43 @@
 import { Request, Response, NextFunction } from "express";
-import {listUsersQuerySchema,createUserBodySchema} from "../../schemas/user"
+import {listUsersQuerySchema,userIdParamsSchema,createUserBodySchema, updateUserBodySchema} from "../../schemas/user";
 
 export async function listUsers(req: Request, res: Response, next: NextFunction) {
   try {
-    const dto = listUsersQuerySchema.parse(req.query); 
-    const result = await listUsersHandler.execute(dto);
+    const queryDto = listUsersQuerySchema.parse(req.query);
+    const result = await container.user.listUsersHandler.execute(queryDto);
     res.status(200).json(result);
   } catch (err) { next(err); }
 }
 
 export async function getUserById(req: Request, res: Response, next: NextFunction) {
   try {
-    const params = userIdParamsSchema.parse(req.params);
-    const result = await getUserByIdHandler.execute(params);
+    const { userId } = userIdParamsSchema.parse(req.params);
+    const result = await container.user.getUserByIdHandler.execute({ id: userId });
     res.status(200).json(result);
   } catch (err) { next(err); }
 }
 
 export async function createUser(req: Request, res: Response, next: NextFunction) {
   try {
-    const body = createUserBodySchema.parse(req.body);
-    const result = await container.createUserHandler.execute(body);
+    const bodyDto = createUserBodySchema.parse(req.body);
+    const result = await container.user.createUserHandler.execute(bodyDto);
     res.status(201).json(result);
+  } catch (err) { next(err); }
+}
+
+export async function updateUser(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { userId } = userIdParamsSchema.parse(req.params);
+    const patchDto = updateUserBodySchema.parse(req.body); 
+    const result = await container.user.updateUserHandler.execute({ id: userId, patch: patchDto });
+    res.status(200).json(result);
+  } catch (err) { next(err); }
+}
+
+export async function deleteUser(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { userId } = userIdParamsSchema.parse(req.params);
+    await container.user.deleteUserHandler.execute({ id: userId });
+    res.status(204).send();
   } catch (err) { next(err); }
 }
