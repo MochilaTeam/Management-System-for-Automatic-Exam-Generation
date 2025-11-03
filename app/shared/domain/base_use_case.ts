@@ -93,4 +93,4 @@ export abstract class BaseQuery<TInput, TOutput> extends BaseUseCase<TInput, TOu
         }
     }
 }
-//TODO: Implementar manejador de eventos?
+//TODO: Implementar manejador de eventos
