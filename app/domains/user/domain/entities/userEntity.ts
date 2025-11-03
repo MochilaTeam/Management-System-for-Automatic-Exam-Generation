@@ -21,5 +21,3 @@ export class UserEntity {
         return this.props.passwordHash;
     }
 }
-
-
