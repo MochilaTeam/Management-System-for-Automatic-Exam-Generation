@@ -2,7 +2,7 @@ import { Response } from 'express';
 
 import { ValidatedReq } from '../../../../core/middlewares/requestValidator';
 import { HttpStatus } from '../../../../shared/enums/httpStatusEnum';
-import { LoginBodySchema } from '../../schemas/loginSchemas';
+import { LoginBodySchema } from '../../schemas/login';
 import { makeLoginCommand } from '../dependencies';
 
 export async function login(req: ValidatedReq<LoginBodySchema>, res: Response) {

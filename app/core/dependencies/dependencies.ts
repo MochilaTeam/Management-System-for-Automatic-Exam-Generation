@@ -8,3 +8,9 @@ export function get_logger(): SystemLogger {
     }
     return cached_logger;
 }
+export function getCore() {
+  return {
+    logger: /* tu logger singleton */,
+    models: { User: /* Sequelize User */, Teacher: /* ... */, Student: /* ... */ },
+    hasher: /* opcional */,
+  };

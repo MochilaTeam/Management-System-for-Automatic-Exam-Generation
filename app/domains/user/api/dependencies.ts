@@ -1,6 +1,6 @@
 import { get_logger } from '../../../core/dependencies/dependencies';
 import { SystemLogger } from '../../../core/logging/logger';
-import { LoginCommand } from '../application/commands/loginCommand';
+import { LoginCommand } from '../application/commands/login';
 import { IUserRepository } from '../domain/ports/IUserRepository';
 import { UserService } from '../domain/services/userService';
 

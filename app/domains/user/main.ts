@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { loginRouter } from './api/routes/loginRouter';
+import { loginRouter } from './api/routes/login';
 
 const userRouter = Router();
 userRouter.use('/user', loginRouter);

@@ -51,14 +51,6 @@ export const userResponseSchema = z.object({
   meta: z.object({}).strict(),
 }).strict();
 
-// export const errorResponseSchema = z.object({
-//   error: z.object({
-//     code: z.string(),
-//     message: z.string(),
-//     details: z.any().optional(),
-//   }).strict(),
-// }).strict();
-
 export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
 export type UserIdParams = z.infer<typeof userIdParamsSchema>;
 export type CreateUserBody = z.infer<typeof createUserBodySchema>;

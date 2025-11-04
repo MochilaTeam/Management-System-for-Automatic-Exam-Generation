@@ -1,7 +1,7 @@
 import { RetrieveOneSchema } from '../../../../shared/domain/base_response';
 import { BaseCommand } from '../../../../shared/domain/base_use_case';
 import { UserService } from '../../domain/services/userService';
-import { LoginBodySchema } from '../../schemas/loginSchemas';
+import { LoginBodySchema } from '../../schemas/login';
 import { UserReadSchema } from '../../schemas/userSchemas';
 
 export class LoginCommand extends BaseCommand<LoginBodySchema, RetrieveOneSchema<UserReadSchema>> {
