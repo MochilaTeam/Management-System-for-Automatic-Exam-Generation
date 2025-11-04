@@ -1,6 +1,5 @@
 import { FindOptions, Model, ModelStatic, WhereOptions } from 'sequelize';
 
-import { BaseMapper } from './base_mapper';
 import {
     BaseDatabaseError,
     MultipleResultsFoundError,
@@ -11,11 +10,11 @@ import {
 
 export class BaseRepository<TModel extends Model, TRead> {
     protected readonly model: ModelStatic<TModel>;
-    protected readonly mapper: BaseMapper<TModel, TRead>;
+    protected readonly toReadFn: (row: TModel) => TRead;
 
-    constructor(model: ModelStatic<TModel>, mapper: BaseMapper<TModel, TRead>) {
+    constructor(model: ModelStatic<TModel>, toRead: (row: TModel) => TRead) {
         this.model = model;
-        this.mapper = mapper;
+        this.toReadFn = toRead;
     }
 
     /**
@@ -30,7 +29,7 @@ export class BaseRepository<TModel extends Model, TRead> {
                 throw new MultipleResultsFoundError({ message: 'More than one entity found' });
             }
             const row = rows[0] ?? null;
-            return row ? this.mapper.toRead(row) : null;
+            return row ? this.toReadFn(row) : null;
         } catch (e) {
             this.raiseError(e, this.model.name);
         }
@@ -42,7 +41,7 @@ export class BaseRepository<TModel extends Model, TRead> {
     async create(data: TModel['_creationAttributes']): Promise<TRead> {
         try {
             const created = await this.model.create(data);
-            return this.mapper.toRead(created);
+            return this.toReadFn(created);
         } catch (e) {
             this.raiseError(e, this.model.name);
         }
@@ -55,7 +54,7 @@ export class BaseRepository<TModel extends Model, TRead> {
     async get_by_id(id: string): Promise<TRead | null> {
         try {
             const row = await this.model.findByPk(id);
-            return row ? this.mapper.toRead(row) : null;
+            return row ? this.toReadFn(row) : null;
         } catch (e) {
             this.raiseError(e, this.model.name);
         }
@@ -73,7 +72,7 @@ export class BaseRepository<TModel extends Model, TRead> {
             const { offset = 0, limit = 100, filters = {} as WhereOptions } = opts ?? {};
             const options: FindOptions = { where: filters, offset, limit };
             const rows = await this.model.findAll(options);
-            return rows.map((r) => this.mapper.toRead(r));
+            return rows.map((r) => this.toReadFn(r));
         } catch (e) {
             this.raiseError(e, this.model.name);
         }
@@ -89,7 +88,7 @@ export class BaseRepository<TModel extends Model, TRead> {
             const row = await this.model.findByPk(id);
             if (!row) return null;
             await row.update(data);
-            return this.mapper.toRead(row);
+            return this.toReadFn(row);
         } catch (e) {
             this.raiseError(e, this.model.name);
         }
