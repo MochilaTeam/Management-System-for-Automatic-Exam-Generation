@@ -46,12 +46,9 @@ export const listUsersResponseSchema = z.object({
   }).strict(),
 }).strict();
 
-export const userResponseSchema = z.object({
-  data: userPublicSchema,
-  meta: z.object({}).strict(),
-}).strict();
 
-export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
+export type ListUsers = z.infer<typeof listUsersQuerySchema>;
 export type UserIdParams = z.infer<typeof userIdParamsSchema>;
 export type CreateUserBody = z.infer<typeof createUserBodySchema>;
 export type UpdateUserBody = z.infer<typeof updateUserBodySchema>;
+export type UserRead = z.infer<typeof userPublicSchema>;

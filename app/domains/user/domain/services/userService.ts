@@ -1,14 +1,14 @@
 import { BaseDomainService } from "../../../../shared/domain/base_service";
 import type { IUserRepository, UserEntity } from "../ports/IUserRepository";
 
-type Deps = { repo: IUserRepository; logger: BaseDomainService["logger"]; hasher?: { hash: (p: string) => Promise<string> } };
+type Deps = { repo: IUserRepository; hasher?: { hash: (p: string) => Promise<string> } };
 
 export class UserService extends BaseDomainService {
-  private readonly repo: IUserRepository;
+  public readonly repo: IUserRepository;
   private readonly hasher?: Deps["hasher"];
 
-  constructor({ repo, logger, hasher }: Deps) {
-    super(logger);
+  constructor({ repo, hasher }: Deps) {
+    super();
     this.repo = repo;
     this.hasher = hasher;
   }

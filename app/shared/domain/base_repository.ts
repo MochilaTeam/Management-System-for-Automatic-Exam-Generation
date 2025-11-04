@@ -1,6 +1,5 @@
 import { FindOptions, Model, ModelStatic, WhereOptions } from 'sequelize';
 
-import { BaseMapper } from './base_mapper';
 import {
     BaseDatabaseError,
     MultipleResultsFoundError,

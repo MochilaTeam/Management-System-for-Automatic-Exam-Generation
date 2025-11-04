@@ -1,50 +1,89 @@
-// domains/user/application/dependencies.ts
-import type { SystemLogger } from "../../../core/logging/logger";
-import type { SequelizeModels } from "../../../infrastructure/_shared/BaseSequelizeRepository";
+import { getModels } from "../../../database/models";
+import { CreateUserCommand } from "../../../domains/user/application/commands/createUser";
+import { DeleteUserCommand } from "../../../domains/user/application/commands/deleteUser";
+import { UpdateUserCommand } from "../../../domains/user/application/commands/updateUser";
+import { GetUserByIdQuery } from "../../../domains/user/application/queries/GetUserByIdQuery";
+import { ListUsersQuery } from "../../../domains/user/application/queries/ListUserQuery";
+import { UserService } from "../../../domains/user/domain/services/userService";
 import { UserRepositorySequelize } from "../../../infrastructure/user/repositories/UserRepositorySequelize";
-import { UserService } from "../../user/domain/services/UserService";
-import { ListUsersQuery } from "../../user/application/queries/ListUsers/ListUsersQuery";
-import { GetUserByIdQuery } from "../../user/application/queries/GetUserById/GetUserByIdQuery";
-import { CreateUserCommand } from "../../user/application/commands/CreateUser/CreateUserCommand";
-import { UpdateUserCommand } from "../../user/application/commands/UpdateUser/UpdateUserCommand";
-import { DeleteUserCommand } from "../../user/application/commands/DeleteUser/DeleteUserCommand";
+import { SystemLogger } from "../../logging/logger";
+import { getCore } from "../dependencies";
 
-// ---- caches (singletons) ----
+type Core = {
+  logger: SystemLogger;
+  models: ReturnType<typeof getModels>;
+  hasher?: { hash(p: string): Promise<string>; compare?(p: string, h: string): Promise<boolean> };
+};
+
 let _repo: UserRepositorySequelize | null = null;
 let _svc: UserService | null = null;
-let _listUsers: ListUsersQuery | null = null;
-let _getUserById: GetUserByIdQuery | null = null;
-let _createUser: CreateUserCommand | null = null;
-let _updateUser: UpdateUserCommand | null = null;
-let _deleteUser: DeleteUserCommand | null = null;
+let _qList: ListUsersQuery | null = null;
+let _qGetById: GetUserByIdQuery | null = null;
+let _cCreate: CreateUserCommand | null = null;
+let _cUpdate: UpdateUserCommand | null = null;
+let _cDelete: DeleteUserCommand | null = null;
 
-type Core = { logger: SystemLogger; models: SequelizeModels; hasher?: { hash: (p: string) => Promise<string> } };
+//Repository
+export function makeUserRepository() {
+  if (_repo) return _repo;
+  let core = getCore();
+ 
+  const modelsSubset = {
+    User: core.models.User,
+    Teacher: core.models.Teacher,
+    Student: core.models.Student,
+  } as Pick<ReturnType<typeof getModels>, "User" | "Teacher" | "Student">;
 
-// Repository
-export function makeUserRepository(core: Core) {
-  return _repo ??= new UserRepositorySequelize({ models: core.models as any, logger: core.logger });
+  _repo = new UserRepositorySequelize({
+    models: modelsSubset as any, 
+    logger: core.logger,
+  });
+
+  return _repo;
 }
 
-// Service
-export function makeUserService(core: Core) {
-  return _svc ??= new UserService({ repo: makeUserRepository(core), logger: core.logger, hasher: core.hasher });
+//Service
+export function makeUserService() {
+  if (_svc) return _svc;
+  _svc = new UserService({
+    repo: makeUserRepository(),
+  });
+  return _svc;
 }
 
-// Queries
-export function makeListUsersQuery(core: Core) {
-  return _listUsers ??= new ListUsersQuery(makeUserRepository(core));
-}
-export function makeGetUserByIdQuery(core: Core) {
-  return _getUserById ??= new GetUserByIdQuery(makeUserRepository(core));
+//Queries
+export function makeListUsersQuery() {
+  if (_qList) return _qList;
+  _qList = new ListUsersQuery(makeUserRepository());
+  return _qList;
 }
 
-// Commands
-export function makeCreateUserCommand(core: Core) {
-  return _createUser ??= new CreateUserCommand(makeUserRepository(core), makeUserService(core));
+export function makeGetUserByIdQuery() {
+  if (_qGetById) return _qGetById;
+  
+  _qGetById = new GetUserByIdQuery(makeUserService);
+  return _qGetById;
 }
-export function makeUpdateUserCommand(core: Core) {
-  return _updateUser ??= new UpdateUserCommand(makeUserRepository(core));
+
+//Commands
+export function makeCreateUserCommand(core: Core = getCore()) {
+  if (_cCreate) return _cCreate;
+  // Create suele necesitar reglas (hash, validaciones), por eso inyectamos el service
+  _cCreate = new CreateUserCommand(makeUserRepository(core), makeUserService(core));
+  return _cCreate;
 }
-export function makeDeleteUserCommand(core: Core) {
-  return _deleteUser ??= new DeleteUserCommand(makeUserRepository(core));
+
+export function makeUpdateUserCommand(core: Core = getCore()) {
+  if (_cUpdate) return _cUpdate;
+  // Si Update tiene reglas (normalización, hash condicional), usa el service:
+  // _cUpdate = new UpdateUserCommand(makeUserService(core));
+  // Si es patch simple, repo basta:
+  _cUpdate = new UpdateUserCommand(makeUserRepository(core));
+  return _cUpdate;
+}
+
+export function makeDeleteUserCommand(core: Core = getCore()) {
+  if (_cDelete) return _cDelete;
+  _cDelete = new DeleteUserCommand(makeUserRepository(core));
+  return _cDelete;
 }

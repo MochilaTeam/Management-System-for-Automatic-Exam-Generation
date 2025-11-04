@@ -1,16 +1,24 @@
+import { sequelize } from '../../database/database';
+import { getModels } from '../../database/models';
 import { SystemLogger } from '../logging/logger';
+import { getHasher } from '../security/hasher';
 
-let cached_logger: SystemLogger | null = null;
+export type Hasher = ReturnType<typeof getHasher>;
+export type Core = {
+  models: ReturnType<typeof getModels>; 
+  hasher: Hasher;
+  sequelize: typeof sequelize;
+};
+
+let _logger: SystemLogger | null = null;
+let _hasher: Hasher | null = null;
 
 export function get_logger(): SystemLogger {
-    if (!cached_logger) {
-        cached_logger = new SystemLogger();
-    }
-    return cached_logger;
+  return (_logger ??= new SystemLogger());
 }
-export function getCore() {
-  return {
-    logger: /* tu logger singleton */,
-    models: { User: /* Sequelize User */, Teacher: /* ... */, Student: /* ... */ },
-    hasher: /* opcional */,
-  };
+
+export function getCore(): Core {
+  const models = getModels();           
+  const hasher = (_hasher ??= getHasher());
+  return { models, hasher, sequelize };
+}
