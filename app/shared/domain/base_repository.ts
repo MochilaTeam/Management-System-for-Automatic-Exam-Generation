@@ -8,10 +8,7 @@ import {
     UnexpectedError,
 } from '../exceptions/domainErrors';
 
-export class BaseRepository<
-    TModel extends Model, 
-    TRead
-> {
+export class BaseRepository<TModel extends Model, TRead> {
     protected readonly model: ModelStatic<TModel>;
     protected readonly toReadFn: (row: TModel) => TRead;
 
@@ -19,7 +16,7 @@ export class BaseRepository<
         this.model = model;
         this.toReadFn = toRead;
     }
-    
+
     /**
      * Busca una entidad por filtros.
      * - Si hay > 1 resultado ⇒ MultipleResultsFoundError
