@@ -41,6 +41,16 @@ export class BaseDatabaseError extends AppError {
         super({ statusCode: HttpStatus.INTERNAL_SERVER_ERROR, ...opts });
     }
 }
+export class TransactionError extends AppError {
+    constructor(opts: Omit<AppErrorOptions, 'statusCode'> & { statusCode?: HttpStatus }) {
+        super({ statusCode: HttpStatus.INTERNAL_SERVER_ERROR, ...opts });
+    }
+}
+export class UnexpectedError extends AppError {
+    constructor(opts: Omit<AppErrorOptions, 'statusCode'> & { statusCode?: HttpStatus }) {
+        super({ statusCode: HttpStatus.INTERNAL_SERVER_ERROR, ...opts });
+    }
+}
 
 //When client dont have valid authentication (problem with token)
 export class UnauthorizedError extends AppError {
