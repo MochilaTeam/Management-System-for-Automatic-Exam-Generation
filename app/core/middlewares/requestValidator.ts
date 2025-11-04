@@ -3,7 +3,6 @@ import { z } from 'zod';
 
 import { ValidationError } from '../../shared/exceptions/domainErrors';
 
-//TODO: ENTENDER BIEN ESTE ARCHIVO
 export type ValidatedReq<B> = Request<unknown, unknown, B, unknown>;
 
 // Middleware interno: valida con el schema y fija req.body como B
