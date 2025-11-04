@@ -1,7 +1,7 @@
 import { Model, STRING, DataTypes } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
-
+//TODO: USER NO DEBERIA TENER EMAIL?
 class User extends Model {
     public id!: string;
     public username!: string;
