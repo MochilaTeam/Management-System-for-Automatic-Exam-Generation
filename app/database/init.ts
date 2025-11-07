@@ -38,3 +38,4 @@ export const syncTables = async (): Promise<void> => {
     await ExamRegrades.sync({ alter: true });
     await ExamResponses.sync({ alter: true });
 };
+

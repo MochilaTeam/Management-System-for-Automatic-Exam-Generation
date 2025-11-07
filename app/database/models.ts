@@ -15,8 +15,38 @@ import Student from "../infrastructure/user/models/Student";
 import Teacher from "../infrastructure/user/models/Teacher";
 import User from "../infrastructure/user/models/User";
 
-let _models: any | null = null;
-export function getModels() {
+type SequelizeModels = {
+  // exam-application
+  ExamAssignments: typeof ExamAssignments;
+  ExamRegrades:    typeof ExamRegrades;
+  ExamResponses:   typeof ExamResponses;
+
+  // exam-generation
+  Exam:            typeof Exam;
+  ExamQuestion:    typeof ExamQuestion;
+
+  // question-bank
+  Question:        typeof Question;
+  QuestionSubtopic:typeof QuestionSubtopic;
+  QuestionType:    typeof QuestionType;
+  Subject:         typeof Subject;
+  SubjectTopic:    typeof SubjectTopic;
+  Subtopic:        typeof Subtopic;
+  TeacherSubject:  typeof TeacherSubject;
+  Topic:           typeof Topic;
+
+  // user
+  Student:         typeof Student;
+  Teacher:         typeof Teacher;
+  User:            typeof User;
+};
+
+type UserModelsSubset = Pick<SequelizeModels, "User" | "Teacher" | "Student">;
+
+let _models: SequelizeModels | null = null;
+let _userModels : UserModelsSubset | null = null;
+
+export function getModels():SequelizeModels{
   if (_models) return _models;
   _models = {
     // exam-application
@@ -30,4 +60,10 @@ export function getModels() {
     Student, Teacher, User,
   };
   return _models;
+}
+export function getUserModels(): UserModelsSubset {
+  if (_userModels) return _userModels;
+  const m = getModels();
+  _userModels = { User: m.User, Teacher: m.Teacher, Student: m.Student };
+  return _userModels;
 }

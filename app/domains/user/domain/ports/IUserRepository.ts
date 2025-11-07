@@ -1,26 +1,36 @@
-import type { Roles } from "../../../../shared/enums/rolesEnum";
-import { UserRead } from "../../schemas/userSchema";
+import { Roles } from "../../../../shared/enums/rolesEnum";
+import { UserCreate, UserRead, UserUpdate } from "../../schemas/userSchema";
+
+export type UserFilters = {
+  role?: Roles;
+  active?: boolean;
+  q?: string;        
+  email?: string;    
+};
+
+export type Sort = {
+  field: "createdAt" | "name" | "email";
+  dir: "asc" | "desc";
+};
 
 export type ListUsersCriteria = {
-  limit: number;
-  offset: number;
-  filters?: { role?: Roles; q?: string; active?: boolean };
-  sort?: { field: "createdAt" | "name" | "email"; dir: "asc" | "desc" };
+  offset?: number;      
+  limit?: number;       
+  filters?: UserFilters;
+  sort?: Sort;
 };
 
-export type UserEntity = {
-  id: string;
-  name: string;
-  email: string;
-  role: Roles;
-  active: boolean;
-};
+ //Resultado de paginación genérico
+export type Page<T> = { items: T[]; total: number };
 
 export interface IUserRepository {
-  get_multi(criteria: ListUsersCriteria): Promise<{ items: UserEntity[]; total: number }>;
+  paginate(criteria: ListUsersCriteria): Promise<Page<UserRead>>; 
+  list(criteria: ListUsersCriteria): Promise<UserRead[]>;         
+
   get_by_id(id: string): Promise<UserRead | null>;
-  exists(email: string): Promise<boolean>;
-  create(data: { id: string; name: string; email: string; role: Roles; passwordHash?: string; active?: boolean }): Promise<UserEntity>;
-  updatePartial(id: string, patch: Partial<Pick<UserEntity, "name" | "role" | "active">>): Promise<UserEntity>;
-  deleteById(id: string): Promise<void>; 
+  existsBy(filters: UserFilters): Promise<boolean>;
+
+  create(data: UserCreate): Promise<UserRead>;
+  update(id: string, data: UserUpdate): Promise<UserRead | null>;
+  deleteById(id: string): Promise<boolean>;
 }

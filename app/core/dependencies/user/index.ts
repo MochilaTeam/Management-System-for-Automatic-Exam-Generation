@@ -1,19 +1,12 @@
-import { getModels } from "../../../database/models";
+import { getUserModels } from "../../../database/models";
 import { CreateUserCommand } from "../../../domains/user/application/commands/createUser";
 import { DeleteUserCommand } from "../../../domains/user/application/commands/deleteUser";
 import { UpdateUserCommand } from "../../../domains/user/application/commands/updateUser";
 import { GetUserByIdQuery } from "../../../domains/user/application/queries/GetUserByIdQuery";
 import { ListUsersQuery } from "../../../domains/user/application/queries/ListUserQuery";
 import { UserService } from "../../../domains/user/domain/services/userService";
-import { UserRepositorySequelize } from "../../../infrastructure/user/repositories/UserRepositorySequelize";
-import { SystemLogger } from "../../logging/logger";
-import { getCore } from "../dependencies";
-
-type Core = {
-  logger: SystemLogger;
-  models: ReturnType<typeof getModels>;
-  hasher?: { hash(p: string): Promise<string>; compare?(p: string, h: string): Promise<boolean> };
-};
+import User from "../../../infrastructure/user/models/User";
+import { UserRepositorySequelize } from "../../../infrastructure/user/repositories/UserRepository";
 
 let _repo: UserRepositorySequelize | null = null;
 let _svc: UserService | null = null;
@@ -26,19 +19,7 @@ let _cDelete: DeleteUserCommand | null = null;
 //Repository
 export function makeUserRepository() {
   if (_repo) return _repo;
-  let core = getCore();
- 
-  const modelsSubset = {
-    User: core.models.User,
-    Teacher: core.models.Teacher,
-    Student: core.models.Student,
-  } as Pick<ReturnType<typeof getModels>, "User" | "Teacher" | "Student">;
-
-  _repo = new UserRepositorySequelize({
-    models: modelsSubset as any, 
-    logger: core.logger,
-  });
-
+  _repo = new UserRepositorySequelize(User);
   return _repo;
 }
 
@@ -49,19 +30,18 @@ export function makeUserService() {
     repo: makeUserRepository(),
   });
   return _svc;
-}
+} 
 
 //Queries
 export function makeListUsersQuery() {
   if (_qList) return _qList;
-  _qList = new ListUsersQuery(makeUserRepository());
+  _qList = new ListUsersQuery(makeUserService());
   return _qList;
 }
 
 export function makeGetUserByIdQuery() {
   if (_qGetById) return _qGetById;
-  
-  _qGetById = new GetUserByIdQuery(makeUserService);
+  _qGetById = new GetUserByIdQuery(makeUserService());
   return _qGetById;
 }
 

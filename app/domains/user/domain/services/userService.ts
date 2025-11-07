@@ -1,5 +1,5 @@
 import { BaseDomainService } from "../../../../shared/domain/base_service";
-import type { IUserRepository, UserEntity } from "../ports/IUserRepository";
+import type { IUserRepository} from "../ports/IUserRepository";
 
 type Deps = { repo: IUserRepository; hasher?: { hash: (p: string) => Promise<string> } };
 
@@ -19,7 +19,4 @@ export class UserService extends BaseDomainService {
     }
   }
 
-  async toPublic(u: UserEntity) {
-    return { id: u.id, name: u.name, email: u.email, role: u.role, active: u.active };
-  }
 }

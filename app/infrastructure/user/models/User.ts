@@ -1,11 +1,13 @@
 import { Model, STRING, DataTypes } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
-//TODO: USER NO DEBERIA TENER EMAIL?
+
 class User extends Model {
     public id!: string;
-    public username!: string;
+    public name!: string;
     public passwordHash!: string;
+    public email! : string;
+    public active! : boolean;
 }
 
 User.init(
@@ -16,7 +18,7 @@ User.init(
             primaryKey: true,
             allowNull: false,
         },
-        username: {
+        name: {
             type: STRING(100),
             allowNull: false,
             unique: true,
@@ -25,12 +27,22 @@ User.init(
             type: STRING(255),
             allowNull: false,
         },
+        email:{
+            type: STRING(255),
+            allowNull : false,
+            unique: true,
+        },
+        active:{
+            type: DataTypes.BOOLEAN,
+            defaultValue: 1,
+        }
+
     },
     {
         sequelize,
         tableName: 'Users',
         timestamps: true,
-        indexes: [{ unique: true, fields: ['username'] }],
+        indexes: [{ unique: true, fields: ['name'] }],
     },
 );
 

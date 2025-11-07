@@ -4,7 +4,6 @@ import { sequelize } from '../../../database/database';
 
 class Teacher extends Model {
     public id!: string;
-    public name!: string;
     public specialty!: string;
     public userId!: string;
     public hasRoleSubjectLeader!: boolean;
@@ -19,7 +18,6 @@ Teacher.init(
             primaryKey: true,
             allowNull: false,
         },
-        name: { type: STRING(200), allowNull: false },
         specialty: { type: STRING(200), allowNull: false },
         hasRoleSubjectLeader: {
             type: BOOLEAN,

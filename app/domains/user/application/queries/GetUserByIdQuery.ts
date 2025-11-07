@@ -4,7 +4,6 @@ import { NotFoundError } from "../../../../shared/exceptions/domainErrors";
 import { UserIdParams, UserRead } from "../../schemas/userSchema";
 import { RetrieveOneSchema } from "../../../../shared/domain/base_response";
 
-
 export class GetUserByIdQuery extends BaseQuery<UserIdParams, RetrieveOneSchema<UserRead>> {
   constructor(private readonly serv: UserService) { super(); }
 

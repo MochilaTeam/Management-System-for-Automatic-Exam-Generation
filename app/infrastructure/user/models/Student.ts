@@ -24,7 +24,7 @@ Student.init(
         userId: {
             type: DataTypes.UUID,
             allowNull: false,
-            unique: true, // one user ↔ one student
+            unique: true,
             references: { model: 'Users', key: 'id' },
         },
     },
