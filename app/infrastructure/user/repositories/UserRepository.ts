@@ -1,4 +1,4 @@
-import { ModelStatic } from "sequelize";
+import { ModelStatic, Transaction } from "sequelize";
 import { BaseRepository } from "../../../shared/domain/base_repository";
 
 import type {UserCreate,UserUpdate,UserRead,} from "../../../domains/user/schemas/userSchema";
@@ -8,11 +8,11 @@ import type {IUserRepository,ListUsersCriteria,UserFilters,} from "../../../doma
 import User from "../models/User";
 import { UserMapper } from "../mappers/userMapper";
 
-export class UserRepositorySequelize
+export class UserRepository
   extends BaseRepository<User, UserRead, UserCreate, UserUpdate>
   implements IUserRepository
 {
-    constructor(model: ModelStatic<User>) {
+    constructor(model: ModelStatic<User>,tx?:Transaction) {
         super(
         model,
         UserMapper.toRead,         
@@ -34,6 +34,9 @@ export class UserRepositorySequelize
     async existsBy(filters: UserFilters): Promise<boolean> {
     const where = UserMapper.toWhereFromFilters(filters);
     return this.exists(where);
-    }
-
+  }
+  
+  static withTx(model: ModelStatic<User>, tx: Transaction) {
+  return new UserRepository(model, tx);
+  }
 }

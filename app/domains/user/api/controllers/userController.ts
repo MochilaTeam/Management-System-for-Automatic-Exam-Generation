@@ -1,6 +1,6 @@
 import { NextFunction,Request,Response } from "express";
 import { createUserCommandSchema, listUsersQuerySchema, updateUserCommandSchema, userIdParamsSchema } from "../../schemas/userSchema";
-import { makeCreateUserCommand, makeDeleteUserCommand, makeGetUserByIdQuery, makeListUsersQuery, makeUpdateUserCommand } from "../../../../core/dependencies/user";
+import { makeCreateUserCommand, makeDeleteUserCommand, makeGetUserByIdQuery, makeListUsersQuery, makeUpdateUserCommand } from "../../../../core/dependencies/user/userDependencies";
 
 
 export async function listUsers(req: Request, res: Response, next: NextFunction) {

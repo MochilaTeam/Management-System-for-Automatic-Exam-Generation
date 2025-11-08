@@ -1,7 +1,5 @@
 // domains/user/application/commands/CreateUser/CreateUserCommand.ts
 import { BaseCommand } from "../../../../shared/domain/base_use_case";
-import type { IUserRepository } from "../../../domain/ports/IUserRepository";
-import { UserService } from "../../../domain/services/UserService";
 import { randomUUID } from "crypto";
 
 type Input  = { name: string; email: string; role: any; password?: string };

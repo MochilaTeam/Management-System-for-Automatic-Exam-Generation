@@ -1,4 +1,4 @@
-import { getUserModels } from "../../../database/models";
+import { Transaction } from "sequelize";
 import { CreateUserCommand } from "../../../domains/user/application/commands/createUser";
 import { DeleteUserCommand } from "../../../domains/user/application/commands/deleteUser";
 import { UpdateUserCommand } from "../../../domains/user/application/commands/updateUser";
@@ -6,9 +6,9 @@ import { GetUserByIdQuery } from "../../../domains/user/application/queries/GetU
 import { ListUsersQuery } from "../../../domains/user/application/queries/ListUserQuery";
 import { UserService } from "../../../domains/user/domain/services/userService";
 import User from "../../../infrastructure/user/models/User";
-import { UserRepositorySequelize } from "../../../infrastructure/user/repositories/UserRepository";
+import { UserRepository} from "../../../infrastructure/user/repositories/UserRepository";
 
-let _repo: UserRepositorySequelize | null = null;
+let _repo: UserRepository | null = null;
 let _svc: UserService | null = null;
 let _qList: ListUsersQuery | null = null;
 let _qGetById: GetUserByIdQuery | null = null;
@@ -16,10 +16,11 @@ let _cCreate: CreateUserCommand | null = null;
 let _cUpdate: UpdateUserCommand | null = null;
 let _cDelete: DeleteUserCommand | null = null;
 
+
 //Repository
 export function makeUserRepository() {
   if (_repo) return _repo;
-  _repo = new UserRepositorySequelize(User);
+  _repo = new UserRepository(User);
   return _repo;
 }
 
@@ -31,6 +32,10 @@ export function makeUserService() {
   });
   return _svc;
 } 
+export function makeUserServiceForTx(tx: Transaction) {
+  const repo = UserRepository.withTx(User, tx);
+  return new UserService({ repo });
+}
 
 //Queries
 export function makeListUsersQuery() {
@@ -46,24 +51,24 @@ export function makeGetUserByIdQuery() {
 }
 
 //Commands
-export function makeCreateUserCommand(core: Core = getCore()) {
+export function makeCreateUserCommand() {
   if (_cCreate) return _cCreate;
   // Create suele necesitar reglas (hash, validaciones), por eso inyectamos el service
-  _cCreate = new CreateUserCommand(makeUserRepository(core), makeUserService(core));
+  _cCreate = new CreateUserCommand(makeUserRepository(), makeUserService());
   return _cCreate;
 }
 
-export function makeUpdateUserCommand(core: Core = getCore()) {
+export function makeUpdateUserCommand() {
   if (_cUpdate) return _cUpdate;
   // Si Update tiene reglas (normalización, hash condicional), usa el service:
-  // _cUpdate = new UpdateUserCommand(makeUserService(core));
+  // _cUpdate = new UpdateUserCommand(makeUserService());
   // Si es patch simple, repo basta:
-  _cUpdate = new UpdateUserCommand(makeUserRepository(core));
+  _cUpdate = new UpdateUserCommand(makeUserRepository());
   return _cUpdate;
 }
 
-export function makeDeleteUserCommand(core: Core = getCore()) {
+export function makeDeleteUserCommand() {
   if (_cDelete) return _cDelete;
-  _cDelete = new DeleteUserCommand(makeUserRepository(core));
+  _cDelete = new DeleteUserCommand(makeUserRepository());
   return _cDelete;
 }

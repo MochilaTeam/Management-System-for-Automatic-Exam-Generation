@@ -1,10 +1,8 @@
 import { Model, STRING, INTEGER, DataTypes } from 'sequelize';
-
 import { sequelize } from '../../../database/database';
 
 class Student extends Model {
     public id!: string;
-    public name!: string;
     public age!: number;
     public course!: string;
     public userId!: string;
@@ -18,7 +16,6 @@ Student.init(
             primaryKey: true,
             allowNull: false,
         },
-        name: { type: STRING(200), allowNull: false },
         age: { type: INTEGER, allowNull: false },
         course: { type: STRING(100), allowNull: false },
         userId: {

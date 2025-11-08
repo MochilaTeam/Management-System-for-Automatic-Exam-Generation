@@ -10,14 +10,14 @@ let _hasher: Hasher | null = null;
 export function getHasher(): Hasher {
   if (_hasher) return _hasher;
 
-  const memoryCost = Number(process.env.ARGON2_MEMORY_COST ?? 19456); 
+  const memoryCost = Number(process.env.ARGON2_MEMORY_COST ?? 19456);
   const timeCost = Number(process.env.ARGON2_TIME_COST ?? 2);
   const parallelism = Number(process.env.ARGON2_PARALLELISM ?? 1);
 
   _hasher = {
     async hash(plain: string): Promise<string> {
       return argon2.hash(plain, {
-        type: argon2id,      
+        type: argon2id,
         memoryCost,
         timeCost,
         parallelism,
