@@ -60,7 +60,9 @@ export const UserMapper = {
 
         if (filters.q) {
             const like = `%${filters.q}%`;
-            (where as any)[Op.or] = [{ name: { [Op.like]: like } }, { email: { [Op.like]: like } }];
+            Object.assign(where, {
+                [Op.or]: [{ name: { [Op.like]: like } }, { email: { [Op.like]: like } }],
+            });
         }
         return where;
     },

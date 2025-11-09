@@ -75,7 +75,7 @@ export class UserService {
         const current = await this.repo.get_by_id(id);
         if (!current) return null;
 
-        const dto: UserUpdate = {} as any;
+        const dto: Partial<UserUpdate> = {};
 
         if (patch.name != null) dto.name = patch.name.trim();
         if (patch.email != null) {
@@ -89,7 +89,7 @@ export class UserService {
         if (patch.password != null) dto.passwordHash = await this.hasher.hash(patch.password);
         if (patch.role != null) dto.role = patch.role;
 
-        return this.repo.update(id, dto);
+        return this.repo.update(id, dto as UserUpdate);
     }
 
     async get_by_id(id: string): Promise<UserRead | null> {
@@ -112,7 +112,7 @@ export class UserService {
             throw new UnauthorizedError({ message: 'Invalid credentials' });
         }
 
-        const { passwordHash, active, ...safeUser } = user;
+        const safeUser = { id: user.id, role: user.role, email: user.email, name: user.name };
         const jwtConfig = get_jwt_config();
         const token = jwt.sign(
             {

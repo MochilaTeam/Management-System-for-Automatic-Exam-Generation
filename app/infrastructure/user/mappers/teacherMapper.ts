@@ -1,4 +1,5 @@
-import { Op, OrderItem, WhereOptions } from 'sequelize';
+import type { Attributes, OrderItem, WhereOptions } from 'sequelize';
+import { Op } from 'sequelize';
 
 import { ListTeachersCriteria } from '../../../domains/user/domain/ports/ITeacherRepository';
 import {
@@ -9,7 +10,7 @@ import {
     teacherReadSchema,
     teacherUpdateSchema,
 } from '../../../domains/user/schemas/teacherSchema';
-import type { Teacher } from '../models';
+import type { Teacher, User } from '../models';
 
 type TeacherQueryOptions = {
     where: WhereOptions;
@@ -19,9 +20,16 @@ type TeacherQueryOptions = {
     offset: number;
 };
 
+type TeacherWithUser = Teacher & {
+    user?: User;
+    User?: User;
+};
+
 export const TeacherMapper = {
     toRead(row: Teacher): TeacherRead {
-        const p: any = row.get ? row.get({ plain: true }) : row;
+        const p: TeacherWithUser = row.get
+            ? (row.get({ plain: true }) as TeacherWithUser)
+            : (row as TeacherWithUser);
         const user = p.user ?? p.User;
         if (!user) {
             throw new Error('TEACHER_USER_NOT_LOADED');
@@ -67,22 +75,21 @@ export const TeacherMapper = {
         filter?: string;
         subjectLeader?: boolean;
         examiner?: boolean;
-    }): { where: WhereOptions; userWhere?: WhereOptions } {
-        const where: WhereOptions = {};
-        const userWhere: WhereOptions = {};
+    }): { where: WhereOptions<Attributes<Teacher>>; userWhere?: WhereOptions<Attributes<User>> } {
+        const where: WhereOptions<Attributes<Teacher>> = {};
+        const userWhere: WhereOptions<Attributes<User>> = {};
 
-        if (filters.userId) (where as any).userId = filters.userId;
-        if (filters.subjectLeader !== undefined)
-            (where as any).hasRoleSubjectLeader = filters.subjectLeader;
-        if (filters.examiner !== undefined) (where as any).hasRoleExaminer = filters.examiner;
+        if (filters.userId) where.userId = filters.userId;
+        if (filters.subjectLeader !== undefined) where.hasRoleSubjectLeader = filters.subjectLeader;
+        if (filters.examiner !== undefined) where.hasRoleExaminer = filters.examiner;
 
-        if (filters.email) (userWhere as any).email = filters.email;
-        if (filters.active !== undefined) (userWhere as any).active = filters.active;
-        if (filters.role) (userWhere as any).role = filters.role;
+        if (filters.email) userWhere.email = filters.email;
+        if (filters.active !== undefined) userWhere.active = filters.active;
+        if (filters.role) userWhere.role = filters.role;
 
         if (filters.filter) {
             const like = `%${filters.filter}%`;
-            (userWhere as any).name = { [Op.like]: like };
+            userWhere.name = { [Op.like]: like };
         }
 
         return Object.keys(userWhere).length > 0 ? { where, userWhere } : { where };

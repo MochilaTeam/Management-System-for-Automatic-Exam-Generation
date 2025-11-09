@@ -1,6 +1,6 @@
 import { Page } from './IUserRepository';
 import { Roles } from '../../../../shared/enums/rolesEnum';
-import { StudentRead} from '../../schemas/studentSchema';
+import { StudentRead } from '../../schemas/studentSchema';
 
 export type StudentFilters = {
     userId?: string;

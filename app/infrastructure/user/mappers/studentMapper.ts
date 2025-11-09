@@ -1,4 +1,5 @@
-import { WhereOptions, OrderItem, Op } from 'sequelize';
+import type { Attributes, OrderItem, WhereOptions } from 'sequelize';
+import { Op } from 'sequelize';
 
 import { ListStudentsCriteria } from '../../../domains/user/domain/ports/IStudentRepository';
 import {
@@ -6,7 +7,7 @@ import {
     StudentUpdate,
     StudentRead,
 } from '../../../domains/user/schemas/studentSchema';
-import type { Student } from '../models';
+import type { Student, User } from '../models';
 
 type StudentQueryOptions = {
     where: WhereOptions;
@@ -18,7 +19,14 @@ type StudentQueryOptions = {
 
 export const StudentMapper = {
     toRead(row: Student): StudentRead {
-        const p: any = row.get ? row.get({ plain: true }) : (row as any);
+        const p = row.get({ plain: true }) as {
+            id: string;
+            userId: string;
+            age: number;
+            course: number;
+            user?: User;
+            User?: User;
+        };
         const user = p.user ?? p.User;
         if (!user) {
             throw new Error('STUDENT_USER_NOT_LOADED');
@@ -55,18 +63,18 @@ export const StudentMapper = {
         role?: string;
         active?: boolean;
         filter?: string;
-    }): { where: WhereOptions; userWhere?: WhereOptions } {
-        const where: WhereOptions = {};
-        const userWhere: WhereOptions = {};
+    }): { where: WhereOptions<Attributes<Student>>; userWhere?: WhereOptions<Attributes<User>> } {
+        const where: WhereOptions<Attributes<Student>> = {};
+        const userWhere: WhereOptions<Attributes<User>> = {};
 
-        if (filters.userId) (where as any).userId = filters.userId;
-        if (filters.email) (userWhere as any).email = filters.email;
-        if (filters.active !== undefined) (userWhere as any).active = filters.active;
-        if (filters.role) (userWhere as any).role = filters.role;
+        if (filters.userId) where.userId = filters.userId;
+        if (filters.email) userWhere.email = filters.email;
+        if (filters.active !== undefined) userWhere.active = filters.active;
+        if (filters.role) userWhere.role = filters.role;
 
         if (filters.filter) {
             // Búsqueda por nombre tipo LIKE %term%
-            (userWhere as any).name = { [Op.like]: `%${filters.filter}%` };
+            userWhere.name = { [Op.like]: `%${filters.filter}%` };
         }
 
         return Object.keys(userWhere).length > 0 ? { where, userWhere } : { where };
@@ -79,7 +87,8 @@ export const StudentMapper = {
 
         const order: OrderItem[] = [];
         if (criteria?.sort) {
-            order.push([criteria.sort.field, (criteria.sort.dir ?? 'desc').toUpperCase() as any]);
+            const dir = (criteria.sort.dir ?? 'desc').toUpperCase() as 'ASC' | 'DESC';
+            order.push([criteria.sort.field, dir]);
         }
 
         return {
