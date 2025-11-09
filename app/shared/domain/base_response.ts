@@ -1,4 +1,3 @@
-
 /** Contrato base que comparten todas las respuestas */
 export class BaseResponse {
     constructor(

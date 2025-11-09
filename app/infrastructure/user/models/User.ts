@@ -9,8 +9,8 @@ class User extends Model {
     public id!: string;
     public name!: string;
     public passwordHash!: string;
-    public email! : string;
-    public active! : boolean;
+    public email!: string;
+    public active!: boolean;
     public role!: Roles;
 }
 
@@ -31,12 +31,12 @@ User.init(
             type: STRING(255),
             allowNull: false,
         },
-        email:{
+        email: {
             type: STRING(255),
-            allowNull : false,
+            allowNull: false,
             unique: true,
         },
-        active:{
+        active: {
             type: DataTypes.BOOLEAN,
             defaultValue: 1,
         },
@@ -45,7 +45,6 @@ User.init(
             allowNull: false,
             defaultValue: Roles.STUDENT,
         },
-
     },
     {
         sequelize,

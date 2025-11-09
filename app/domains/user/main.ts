@@ -1,10 +1,10 @@
-import { Router } from "express";
+import { Router } from 'express';
 
-import { authenticate } from "../../core/middlewares/authenticate";
-import { loginRouter } from "./api/routes/loginRoutes";
-import studentRoutes from "./api/routes/studentRoutes";
-import teacherRoutes from "./api/routes/teacherRoutes";
-import userRoutes from "./api/routes/userRoutes";
+import { loginRouter } from './api/routes/loginRoutes';
+import studentRoutes from './api/routes/studentRoutes';
+import teacherRoutes from './api/routes/teacherRoutes';
+import userRoutes from './api/routes/userRoutes';
+import { authenticate } from '../../core/middlewares/authenticate';
 
 const userRouter = Router();
 

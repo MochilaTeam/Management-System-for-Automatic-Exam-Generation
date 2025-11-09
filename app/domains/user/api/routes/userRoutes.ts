@@ -1,5 +1,12 @@
-import { Router } from "express";
-import { createUser, deleteUser, getUserById, listUsers, updateUser } from "../controllers/userController";
+import { Router } from 'express';
+
+import {
+    createUser,
+    deleteUser,
+    getUserById,
+    listUsers,
+    updateUser,
+} from '../controllers/userController';
 
 const router = Router();
 
@@ -63,8 +70,8 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/User'
  */
-router.get("/users", listUsers);
-router.post("/users", createUser);
+router.get('/users', listUsers);
+router.post('/users', createUser);
 
 /**
  * @openapi
@@ -127,8 +134,8 @@ router.post("/users", createUser);
  *       204:
  *         description: Desactivado correctamente.
  */
-router.get("/users/:userId", getUserById);
-router.patch("/users/:userId", updateUser);
-router.delete("/users/:userId", deleteUser);
+router.get('/users/:userId', getUserById);
+router.patch('/users/:userId', updateUser);
+router.delete('/users/:userId', deleteUser);
 
 export default router;

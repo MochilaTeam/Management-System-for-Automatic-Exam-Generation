@@ -1,8 +1,8 @@
-import { Router } from "express";
+import { Router } from 'express';
 
-import { withValidatedBody } from "../../../../core/middlewares/requestValidator";
-import { loginBodySchema } from "../../schemas/login";
-import { login } from "../controllers/loginController";
+import { withValidatedBody } from '../../../../core/middlewares/requestValidator';
+import { loginBodySchema } from '../../schemas/login';
+import { login } from '../controllers/loginController';
 
 const loginRouter = Router();
 
@@ -30,5 +30,5 @@ const loginRouter = Router();
  *       401:
  *         description: Credenciales inválidas
  */
-loginRouter.post("/login", withValidatedBody(loginBodySchema, login));
+loginRouter.post('/login', withValidatedBody(loginBodySchema, login));
 export { loginRouter };

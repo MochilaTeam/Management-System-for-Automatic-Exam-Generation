@@ -1,11 +1,12 @@
-import { Router } from "express";
+import { Router } from 'express';
+
 import {
-  createStudent,
-  deleteStudent,
-  getStudentById,
-  listStudent,
-  updateStudent,
-} from "../controllers/studentController";
+    createStudent,
+    deleteStudent,
+    getStudentById,
+    listStudent,
+    updateStudent,
+} from '../controllers/studentController';
 
 const router = Router();
 
@@ -76,8 +77,8 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/Student'
  */
-router.get("/student", listStudent);
-router.post("/student", createStudent);
+router.get('/student', listStudent);
+router.post('/student', createStudent);
 
 /**
  * @openapi
@@ -140,8 +141,8 @@ router.post("/student", createStudent);
  *       204:
  *         description: Desactivado correctamente (sin contenido).
  */
-router.get("/student/:studentId", getStudentById);
-router.patch("/student/:studentId", updateStudent);
-router.delete("/student/:studentId", deleteStudent);
+router.get('/student/:studentId', getStudentById);
+router.patch('/student/:studentId', updateStudent);
+router.delete('/student/:studentId', deleteStudent);
 
 export default router;

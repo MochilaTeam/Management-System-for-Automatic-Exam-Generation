@@ -1,7 +1,7 @@
 import { sequelize } from './database';
+import { getHasher } from '../core/security/hasher';
 import { User } from '../infrastructure/user/models';
 import { Roles } from '../shared/enums/rolesEnum';
-import { getHasher } from '../core/security/hasher';
 
 async function seed() {
     await sequelize.authenticate();

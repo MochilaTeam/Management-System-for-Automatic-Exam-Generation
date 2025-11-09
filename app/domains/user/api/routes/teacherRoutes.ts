@@ -1,5 +1,12 @@
-import { Router } from "express";
-import { createTeacher, deleteTeacher, getTeacherById, listTeachers, updateTeacher } from "../controllers/teacherController";
+import { Router } from 'express';
+
+import {
+    createTeacher,
+    deleteTeacher,
+    getTeacherById,
+    listTeachers,
+    updateTeacher,
+} from '../controllers/teacherController';
 
 const router = Router();
 
@@ -77,8 +84,8 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/Teacher'
  */
-router.get("/teacher", listTeachers);
-router.post("/teacher", createTeacher);
+router.get('/teacher', listTeachers);
+router.post('/teacher', createTeacher);
 
 /**
  * @openapi
@@ -141,8 +148,8 @@ router.post("/teacher", createTeacher);
  *       204:
  *         description: Desactivado correctamente (sin contenido).
  */
-router.get("/teacher/:teacherId", getTeacherById);
-router.patch("/teacher/:teacherId", updateTeacher);
-router.delete("/teacher/:teacherId", deleteTeacher);
+router.get('/teacher/:teacherId', getTeacherById);
+router.patch('/teacher/:teacherId', updateTeacher);
+router.delete('/teacher/:teacherId', deleteTeacher);
 
 export default router;

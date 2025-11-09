@@ -1,23 +1,23 @@
-import { BaseCommand } from "../../../../shared/domain/base_use_case";
-import { NotFoundError } from "../../../../shared/exceptions/domainErrors";
-import { UserService } from "../../domain/services/userService";
-import { UpdateUserCommandSchema, UserRead } from "../../schemas/userSchema";
+import { BaseCommand } from '../../../../shared/domain/base_use_case';
+import { NotFoundError } from '../../../../shared/exceptions/domainErrors';
+import { UserService } from '../../domain/services/userService';
+import { UpdateUserCommandSchema, UserRead } from '../../schemas/userSchema';
 
 type UpdateUserInput = {
-  userId: string;
-  patch: UpdateUserCommandSchema;
+    userId: string;
+    patch: UpdateUserCommandSchema;
 };
 
 export class UpdateUserCommand extends BaseCommand<UpdateUserInput, UserRead> {
-  constructor(private readonly svc: UserService) {
-    super();
-  }
-
-  protected async executeBusinessLogic(input: UpdateUserInput): Promise<UserRead> {
-    const updated = await this.svc.update(input.userId, input.patch);
-    if (!updated) {
-      throw new NotFoundError({ message: "USER_NOT_FOUND" });
+    constructor(private readonly svc: UserService) {
+        super();
     }
-    return updated;
-  }
+
+    protected async executeBusinessLogic(input: UpdateUserInput): Promise<UserRead> {
+        const updated = await this.svc.update(input.userId, input.patch);
+        if (!updated) {
+            throw new NotFoundError({ message: 'USER_NOT_FOUND' });
+        }
+        return updated;
+    }
 }
