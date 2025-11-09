@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import swaggerUi from 'swagger-ui-express';
 
 import { get_logger } from './core/dependencies/dependencies';
 import { SystemLogger } from './core/logging/logger';
@@ -7,6 +8,7 @@ import { responseInterceptor } from './core/middlewares/responseInterceptor';
 import { createDatabaseIfNotExists } from './database/database';
 import { connect } from './database/database';
 import { syncTables } from './database/init';
+import { swaggerSpec } from './docs/swagger';
 import { userRouter } from './domains/user/main';
 
 const PORT = 5000;
@@ -15,6 +17,8 @@ const logger: SystemLogger = get_logger();
 const app = express();
 app.use(express.json());
 app.use(responseInterceptor);
+app.use('/API', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/API.json', (_req, res) => res.json(swaggerSpec));
 app.use(userRouter);
 
 const start = async () => {

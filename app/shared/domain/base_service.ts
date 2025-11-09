@@ -1,3 +1,4 @@
+import { get_logger } from '../../core/dependencies/dependencies';
 import { SystemLogger } from '../../core/logging/logger';
 import { BusinessRuleError, NotFoundError, ValidationError } from '../exceptions/domainErrors';
 
@@ -5,8 +6,8 @@ export abstract class BaseDomainService {
     protected readonly logger: SystemLogger;
     private readonly serviceName: string;
 
-    constructor(logger: SystemLogger) {
-        this.logger = logger;
+    constructor() {
+        this.logger = get_logger();
         this.serviceName = this.constructor.name;
     }
 

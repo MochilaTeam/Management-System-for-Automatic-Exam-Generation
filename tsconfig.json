@@ -8,6 +8,7 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "types": ["node"],
+        "typeRoots": ["./app/types", "./app/shared/types", "./node_modules/@types"],
         "lib": ["ES2020"],
         "moduleResolution": "node"
     },

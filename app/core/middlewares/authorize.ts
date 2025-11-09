@@ -1,8 +1,9 @@
-import type { Request, Response, NextFunction } from 'express';
+import type { Response, NextFunction } from 'express';
 
 import { HttpStatus } from '../../shared/enums/httpStatusEnum';
 import type { Roles } from '../../shared/enums/rolesEnum';
 import { AppError } from '../../shared/exceptions/appError';
+import { AuthenticatedRequest } from '../../shared/types/http/AuthenticatedRequest';
 
 function getAppError(message: string, statusCode: HttpStatus): AppError {
     return new AppError({
@@ -14,7 +15,7 @@ function getAppError(message: string, statusCode: HttpStatus): AppError {
 
 //Requiere que el usuario tenga AL MENOS uno de los roles indicados.
 export function requireRoles(...allowed: Roles[]) {
-    return (req: Request, _res: Response, next: NextFunction) => {
+    return (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
         const user = req.user;
         if (!user) {
             throw getAppError('Unauthenticated', HttpStatus.UNAUTHORIZED);
@@ -31,7 +32,7 @@ export function requireRoles(...allowed: Roles[]) {
 
 //Requiere que el usuario tenga TODOS los roles indicados.
 export function requireAllRoles(...required: Roles[]) {
-    return (req: Request, _res: Response, next: NextFunction) => {
+    return (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
         const user = req.user;
         if (!user) throw getAppError('Unauthenticated', HttpStatus.UNAUTHORIZED);
 

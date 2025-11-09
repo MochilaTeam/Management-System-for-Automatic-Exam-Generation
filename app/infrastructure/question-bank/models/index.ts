@@ -6,7 +6,7 @@ import SubjectTopic from './SubjectTopic';
 import Subtopic from './SubTopic';
 import TeacherSubject from './TeacherSubject';
 import Topic from './Topic';
-import Teacher from '../../user/models/Teacher';
+import { Teacher } from '../../user/models';
 
 Subject.belongsToMany(Topic, {
     through: SubjectTopic,

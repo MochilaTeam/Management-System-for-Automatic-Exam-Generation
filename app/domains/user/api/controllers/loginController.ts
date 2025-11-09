@@ -1,9 +1,9 @@
 import { Response } from 'express';
 
+import { makeLoginCommand } from '../../../../core/dependencies/user/userDependencies';
 import { ValidatedReq } from '../../../../core/middlewares/requestValidator';
 import { HttpStatus } from '../../../../shared/enums/httpStatusEnum';
-import { LoginBodySchema } from '../../schemas/loginSchemas';
-import { makeLoginCommand } from '../dependencies';
+import { LoginBodySchema } from '../../schemas/login';
 
 export async function login(req: ValidatedReq<LoginBodySchema>, res: Response) {
     const reqSchema: LoginBodySchema = req.body;
