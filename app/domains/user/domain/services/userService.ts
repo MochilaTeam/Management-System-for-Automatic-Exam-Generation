@@ -2,13 +2,13 @@ import jwt from 'jsonwebtoken';
 
 import { get_jwt_config } from '../../../../core/config/jwt';
 import { getHasher, type Hasher } from '../../../../core/security/hasher';
+import { PaginatedSchema } from '../../../../shared/domain/base_response';
 import { Roles } from '../../../../shared/enums/rolesEnum';
 import { UnauthorizedError } from '../../../../shared/exceptions/domainErrors';
 import { LoginBodySchema } from '../../schemas/login';
 import {
     CreateUserCommandSchema,
     type ListUsers,
-    type ListUsersResponse,
     type UserCreate,
     type UserRead,
     type UserUpdate,
@@ -46,7 +46,7 @@ export class UserService {
         return res;
     }
 
-    async paginate(criteria: ListUsers): Promise<ListUsersResponse> {
+    async paginate(criteria: ListUsers): Promise<PaginatedSchema<UserRead>> {
         const limit = criteria.limit ?? 20;
         const offset = criteria.offset ?? 0;
         const active = criteria.active ?? true;
@@ -62,10 +62,7 @@ export class UserService {
         };
 
         const { items, total } = await this.repo.paginate(repoCriteria);
-        return {
-            data: items,
-            meta: { limit, offset, total },
-        };
+        return new PaginatedSchema(items, { limit, offset, total });
     }
 
     async update(

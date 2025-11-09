@@ -1,4 +1,5 @@
 import { StudentModuleServices } from './createStudentCommand';
+import { RetrieveOneSchema } from '../../../../shared/domain/base_response';
 import { BaseCommand } from '../../../../shared/domain/base_use_case';
 import { Roles } from '../../../../shared/enums/rolesEnum';
 import { NotFoundError } from '../../../../shared/exceptions/domainErrors';
@@ -10,13 +11,18 @@ type UpdateStudentCommandInput = {
     patch: UpdateStudentPayload;
 };
 
-export class UpdateStudentCommand extends BaseCommand<UpdateStudentCommandInput, StudentRead> {
+export class UpdateStudentCommand extends BaseCommand<
+    UpdateStudentCommandInput,
+    RetrieveOneSchema<StudentRead>
+> {
     constructor(private readonly uow: IUnitOfWork<StudentModuleServices>) {
         super();
     }
 
-    protected async executeBusinessLogic(input: UpdateStudentCommandInput): Promise<StudentRead> {
-        return this.uow.withTransaction(async ({ users, students }) => {
+    protected async executeBusinessLogic(
+        input: UpdateStudentCommandInput,
+    ): Promise<RetrieveOneSchema<StudentRead>> {
+        const result = await this.uow.withTransaction(async ({ users, students }) => {
             const existing = await students.getById(input.id);
             if (!existing) {
                 throw new NotFoundError({ message: 'STUDENT_NOT_FOUND' });
@@ -49,5 +55,6 @@ export class UpdateStudentCommand extends BaseCommand<UpdateStudentCommandInput,
             const updated = await students.getById(input.id);
             return updated!;
         });
+        return new RetrieveOneSchema(result, 'Student updated', true);
     }
 }

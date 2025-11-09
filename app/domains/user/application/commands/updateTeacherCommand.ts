@@ -1,4 +1,5 @@
 import { TeacherModuleServices } from './createTeacherCommand';
+import { RetrieveOneSchema } from '../../../../shared/domain/base_response';
 import { BaseCommand } from '../../../../shared/domain/base_use_case';
 import { Roles } from '../../../../shared/enums/rolesEnum';
 import { NotFoundError } from '../../../../shared/exceptions/domainErrors';
@@ -10,13 +11,18 @@ type UpdateTeacherInput = {
     patch: UpdateTeacherDTO;
 };
 
-export class UpdateTeacherCommand extends BaseCommand<UpdateTeacherInput, TeacherRead> {
+export class UpdateTeacherCommand extends BaseCommand<
+    UpdateTeacherInput,
+    RetrieveOneSchema<TeacherRead>
+> {
     constructor(private readonly uow: IUnitOfWork<TeacherModuleServices>) {
         super();
     }
 
-    protected async executeBusinessLogic(input: UpdateTeacherInput): Promise<TeacherRead> {
-        return this.uow.withTransaction(async ({ users, teachers }) => {
+    protected async executeBusinessLogic(
+        input: UpdateTeacherInput,
+    ): Promise<RetrieveOneSchema<TeacherRead>> {
+        const updatedTeacher = await this.uow.withTransaction(async ({ users, teachers }) => {
             const existing = await teachers.getById(input.id);
             if (!existing) {
                 throw new NotFoundError({ message: 'TEACHER_NOT_FOUND' });
@@ -68,5 +74,6 @@ export class UpdateTeacherCommand extends BaseCommand<UpdateTeacherInput, Teache
             const updated = await teachers.getById(input.id);
             return updated!;
         });
+        return new RetrieveOneSchema(updatedTeacher, 'Teacher updated', true);
     }
 }

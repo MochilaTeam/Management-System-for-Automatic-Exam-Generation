@@ -1,3 +1,4 @@
+import { RetrieveOneSchema } from '../../../../shared/domain/base_response';
 import { BaseCommand } from '../../../../shared/domain/base_use_case';
 import { NotFoundError } from '../../../../shared/exceptions/domainErrors';
 import { UserService } from '../../domain/services/userService';
@@ -8,16 +9,18 @@ type UpdateUserInput = {
     patch: UpdateUserCommandSchema;
 };
 
-export class UpdateUserCommand extends BaseCommand<UpdateUserInput, UserRead> {
+export class UpdateUserCommand extends BaseCommand<UpdateUserInput, RetrieveOneSchema<UserRead>> {
     constructor(private readonly svc: UserService) {
         super();
     }
 
-    protected async executeBusinessLogic(input: UpdateUserInput): Promise<UserRead> {
+    protected async executeBusinessLogic(
+        input: UpdateUserInput,
+    ): Promise<RetrieveOneSchema<UserRead>> {
         const updated = await this.svc.update(input.userId, input.patch);
         if (!updated) {
             throw new NotFoundError({ message: 'USER_NOT_FOUND' });
         }
-        return updated;
+        return new RetrieveOneSchema(updated, 'User updated', true);
     }
 }

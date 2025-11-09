@@ -112,20 +112,6 @@ export const listTeachersQuerySchema = z
     })
     .strict();
 
-//Responses
-export const listTeachersResponseSchema = z
-    .object({
-        data: z.array(teacherReadSchema),
-        meta: z
-            .object({
-                limit: z.number().int().min(1),
-                offset: z.number().int().min(0),
-                total: z.number().int().min(0),
-            })
-            .strict(),
-    })
-    .strict();
-
 export type TeacherIdParams = z.infer<typeof teacherIdParamsSchema>;
 
 export type CreateTeacherCommand = z.infer<typeof createTeacherCommandSchema>;
@@ -136,4 +122,3 @@ export type TeacherUpdate = z.infer<typeof teacherUpdateSchema>;
 
 export type TeacherRead = z.infer<typeof teacherReadSchema>;
 export type ListTeachers = z.infer<typeof listTeachersQuerySchema>;
-export type ListTeachersResponse = z.infer<typeof listTeachersResponseSchema>;

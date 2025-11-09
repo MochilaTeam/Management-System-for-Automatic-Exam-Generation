@@ -1,4 +1,5 @@
-import { ListTeachers, ListTeachersResponse, TeacherRead } from '../../schemas/teacherSchema';
+import { PaginatedSchema } from '../../../../shared/domain/base_response';
+import { ListTeachers, TeacherRead } from '../../schemas/teacherSchema';
 import { ITeacherRepository, ListTeachersCriteria } from '../ports/ITeacherRepository';
 import { IUserRepository } from '../ports/IUserRepository';
 
@@ -34,7 +35,7 @@ export class TeacherService {
         return this.deps.teacherRepo.get_by_id(id);
     }
 
-    async paginate(criteria: ListTeachers): Promise<ListTeachersResponse> {
+    async paginate(criteria: ListTeachers): Promise<PaginatedSchema<TeacherRead>> {
         const limit = criteria.limit ?? 20;
         const offset = criteria.offset ?? 0;
         const active = criteria.active ?? true;
@@ -54,10 +55,7 @@ export class TeacherService {
         };
 
         const { items, total } = await this.deps.teacherRepo.paginate(repoCriteria);
-        return {
-            data: items,
-            meta: { limit, offset, total },
-        };
+        return new PaginatedSchema(items, { limit, offset, total });
     }
 
     async updateProfile(

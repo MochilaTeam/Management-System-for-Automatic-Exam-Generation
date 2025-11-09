@@ -110,19 +110,6 @@ export const listUsersQuerySchema = z
     .strict();
 
 //Responses
-export const listUsersResponseSchema = z
-    .object({
-        data: z.array(userReadSchema),
-        meta: z
-            .object({
-                limit: z.number().int().min(1),
-                offset: z.number().int().min(0),
-                total: z.number().int().min(0),
-            })
-            .strict(),
-    })
-    .strict();
-
 export type UserIdParams = z.infer<typeof userIdParamsSchema>;
 
 export type CreateUserCommandSchema = z.infer<typeof createUserCommandSchema>;
@@ -134,4 +121,3 @@ export type UserUpdate = z.infer<typeof userUpdateSchema>;
 export type UserRead = z.infer<typeof userReadSchema>;
 export type UserAuth = z.infer<typeof userAuthSchema>;
 export type ListUsers = z.infer<typeof listUsersQuerySchema>;
-export type ListUsersResponse = z.infer<typeof listUsersResponseSchema>;

@@ -1,3 +1,4 @@
+import { RetrieveOneSchema } from '../../../../shared/domain/base_response';
 import { BaseCommand } from '../../../../shared/domain/base_use_case';
 import { Roles } from '../../../../shared/enums/rolesEnum';
 import { IUnitOfWork } from '../../../../shared/UoW/IUnitOfWork';
@@ -11,13 +12,18 @@ export type StudentModuleServices = {
     students: StudentService;
 };
 
-export class CreateStudentCommand extends BaseCommand<CreateStudent, StudentRead> {
+export class CreateStudentCommand extends BaseCommand<
+    CreateStudent,
+    RetrieveOneSchema<StudentRead>
+> {
     constructor(private readonly uow: IUnitOfWork<StudentModuleServices>) {
         super();
     }
 
-    protected async executeBusinessLogic(input: CreateStudent): Promise<StudentRead> {
-        return this.uow.withTransaction(async ({ users, students }) => {
+    protected async executeBusinessLogic(
+        input: CreateStudent,
+    ): Promise<RetrieveOneSchema<StudentRead>> {
+        const result = await this.uow.withTransaction(async ({ users, students }) => {
             const newUser: UserRead = await users.create({
                 name: input.name,
                 email: input.email,
@@ -32,5 +38,6 @@ export class CreateStudentCommand extends BaseCommand<CreateStudent, StudentRead
 
             return created;
         });
+        return new RetrieveOneSchema(result, 'Student created', true);
     }
 }

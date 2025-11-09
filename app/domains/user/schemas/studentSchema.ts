@@ -92,19 +92,6 @@ export const listStudentsQuerySchema = z
     })
     .strict();
 
-export const listStudentsResponseSchema = z
-    .object({
-        data: z.array(studentReadSchema),
-        meta: z
-            .object({
-                limit: z.number().int().min(1),
-                offset: z.number().int().min(0),
-                total: z.number().int().min(0),
-            })
-            .strict(),
-    })
-    .strict();
-
 export type StudentIdParams = z.infer<typeof studentIdParamsSchema>;
 
 export type CreateStudent = z.infer<typeof createStudentCommandSchema>;
@@ -115,4 +102,3 @@ export type StudentUpdate = z.infer<typeof studentUpdateSchema>;
 
 export type StudentRead = z.infer<typeof studentReadSchema>;
 export type ListStudents = z.infer<typeof listStudentsQuerySchema>;
-export type ListStudentsResponse = z.infer<typeof listStudentsResponseSchema>;
