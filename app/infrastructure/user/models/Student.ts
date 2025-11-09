@@ -1,4 +1,4 @@
-import { Model, STRING, INTEGER, DataTypes } from 'sequelize';
+import { Model, INTEGER, DataTypes } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
 class Student extends Model {
@@ -17,7 +17,7 @@ Student.init(
             allowNull: false,
         },
         age: { type: INTEGER, allowNull: false },
-        course: { type: STRING(100), allowNull: false },
+        course: { type: INTEGER, allowNull: false },
         userId: {
             type: DataTypes.UUID,
             allowNull: false,

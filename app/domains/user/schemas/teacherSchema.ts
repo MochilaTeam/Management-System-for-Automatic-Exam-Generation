@@ -81,7 +81,7 @@ export const teacherReadSchema = z
 export const listTeachersQuerySchema = z
   .object({
     role: z.enum(Roles).optional(),
-    active: z.boolean().optional(),
+    active: z.coerce.boolean().optional(),
     email: z.email().optional(),
     userId: z.string().uuid().optional(),
     filter: z
@@ -89,8 +89,8 @@ export const listTeachersQuerySchema = z
       .transform((s) => s.trim())
       .pipe(z.string().min(1))
       .optional(),
-    subjectLeader: z.boolean().optional(),
-    examiner: z.boolean().optional(),
+    subjectLeader: z.coerce.boolean().optional(),
+    examiner: z.coerce.boolean().optional(),
     limit: z.coerce.number().int().min(1).max(100).default(20),
     offset: z.coerce.number().int().min(0).default(0),
   })

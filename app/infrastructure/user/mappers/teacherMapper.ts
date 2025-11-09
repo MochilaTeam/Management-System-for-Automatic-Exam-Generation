@@ -95,8 +95,6 @@ export const TeacherMapper = {
     if (criteria?.sort) {
       const dir = (criteria.sort.dir ?? "desc").toUpperCase() as "ASC" | "DESC";
       order.push([criteria.sort.field, dir]);
-    } else {
-      order.push(["createdAt", "DESC"]);
     }
 
     return {

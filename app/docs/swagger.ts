@@ -65,8 +65,44 @@ const swaggerDefinition = {
       description: "Servidor local",
     },
   ],
+  security: [
+    {
+      bearerAuth: [],
+    },
+  ],
   components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+      },
+    },
     schemas: {
+      LoginRequest: {
+        type: "object",
+        properties: {
+          email: { type: "string", format: "email", example: "user@example.com" },
+          password: { type: "string", minLength: 8, example: "mypassword123" },
+        },
+        required: ["email", "password"],
+      },
+      LoginResponse: {
+        type: "object",
+        properties: {
+          success: { type: "boolean", example: true },
+          message: { type: "string", example: "Login successful" },
+          data: {
+            type: "object",
+            properties: {
+              token: { type: "string", example: "eyJhbGciOi..." },
+              user: { $ref: "#/components/schemas/User" },
+            },
+            required: ["token", "user"],
+          },
+        },
+        required: ["success", "message", "data"],
+      },
       Student: studentSchema,
       User: userSchema,
       Teacher: teacherSchema,

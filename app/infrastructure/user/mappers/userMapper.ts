@@ -73,8 +73,6 @@ export const UserMapper = {
     if (criteria.sort) {
       const dir = (criteria.sort.dir ?? "DESC").toUpperCase() as "ASC" | "DESC";
       order.push([criteria.sort.field, dir]);
-    } else {
-      order.push(["createdAt", "DESC"]);
     }
 
     return { where, order, limit, offset };

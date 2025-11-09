@@ -79,8 +79,6 @@ export const StudentMapper = {
     const order: OrderItem[] = [];
     if (criteria?.sort) {
       order.push([criteria.sort.field, (criteria.sort.dir ?? "desc").toUpperCase() as any]);
-    } else {
-      order.push(["createdAt", "DESC"]);
     }
 
     return {

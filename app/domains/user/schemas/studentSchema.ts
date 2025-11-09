@@ -72,7 +72,7 @@ export const studentReadSchema = z
 export const listStudentsQuerySchema = z
   .object({
     role: z.enum(Roles).optional(),
-    active: z.boolean().optional(),
+    active: z.coerce.boolean().optional(),
     email: z.string().email().optional(),
     userId: z.string().uuid().optional(),
     filter: z

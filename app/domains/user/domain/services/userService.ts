@@ -11,6 +11,8 @@ import {
 import { getHasher, type Hasher } from "../../../../core/security/hasher";
 import { LoginBodySchema } from "../../schemas/login";
 import { UnauthorizedError } from "../../../../shared/exceptions/domainErrors";
+import jwt from "jsonwebtoken";
+import { get_jwt_config } from "../../../../core/config/jwt";
 
 type Deps = {
   repo: IUserRepository;
@@ -97,7 +99,7 @@ export class UserService {
     return this.repo.deleteById(id);
   }
 
-  async loginUser(input: LoginBodySchema): Promise<UserRead> {
+  async loginUser(input: LoginBodySchema): Promise<{ user: UserRead; token: string }> {
     const email = this.normEmail(input.email);
     const user = await this.repo.findByEmailWithPassword(email);
     if (!user || !user.active) {
@@ -110,6 +112,21 @@ export class UserService {
     }
 
     const { passwordHash, active, ...safeUser } = user;
-    return safeUser;
+    const jwtConfig = get_jwt_config();
+    const token = jwt.sign(
+      {
+        sub: safeUser.id,
+        roles: [safeUser.role],
+        email: safeUser.email,
+      },
+      jwtConfig.accessSecret,
+      {
+        issuer: jwtConfig.issuer,
+        audience: jwtConfig.audience,
+        expiresIn: jwtConfig.expiresIn,
+      }
+    );
+
+    return { user: safeUser, token };
   }
 }

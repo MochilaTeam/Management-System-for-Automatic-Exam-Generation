@@ -19,8 +19,7 @@ app.use(express.json());
 app.use(responseInterceptor);
 app.use('/API', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/API.json', (_req, res) => res.json(swaggerSpec));
-const API_PREFIX = '/v1';
-app.use(API_PREFIX, userRouter);
+app.use(userRouter);
 
 const start = async () => {
     await createDatabaseIfNotExists();

@@ -131,7 +131,6 @@ export class BaseRepository<
     }
   }
 
-  // Normaliza errores de Sequelize a errores de dominio. (Mantengo tu implementación)
   protected raiseError(error: unknown, entityName?: string): never {
     const maybe = error as { name?: string; message?: string };
     const name = maybe?.name ?? "";
