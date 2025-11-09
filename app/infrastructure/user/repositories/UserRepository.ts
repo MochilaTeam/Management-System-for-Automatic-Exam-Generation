@@ -4,6 +4,8 @@ import {
   type UserRead,
   type UserCreate,
   type UserUpdate,
+  type UserAuth,
+  userAuthSchema,
 } from "../../../domains/user/schemas/userSchema";
 import { IUserRepository, type ListUsersCriteria } from "../../../domains/user/domain/ports/IUserRepository";
 import { BaseRepository } from "../../../shared/domain/base_repository";
@@ -58,4 +60,46 @@ export class UserRepository
     return super.exists(where, tx);
   }
 
+  async findByEmailWithPassword(email: string, tx?: Transaction): Promise<UserAuth | null> {
+    try {
+      const row = await this.model.findOne({
+        where: { email },
+        transaction: this.effTx(tx),
+      });
+      if (!row) return null;
+      const plain = row.get({ plain: true }) as {
+        id: string;
+        name: string;
+        email: string;
+        role: string;
+        passwordHash: string;
+        active: boolean;
+      };
+      return userAuthSchema.parse({
+        id: plain.id,
+        name: plain.name,
+        email: plain.email,
+        role: plain.role,
+        passwordHash: plain.passwordHash,
+        active: Boolean(plain.active),
+      });
+    } catch (e) {
+      return this.raiseError(e, this.model.name);
+    }
+  }
+
+  async deleteById(id: string, tx?: Transaction): Promise<boolean> {
+    try {
+      const [updated] = await this.model.update(
+        { active: false },
+        {
+          where: { id, active: true },
+          transaction: this.effTx(tx),
+        }
+      );
+      return updated > 0;
+    } catch (e) {
+      return this.raiseError(e, this.model.name);
+    }
+  }
 }

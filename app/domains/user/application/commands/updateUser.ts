@@ -1,14 +1,23 @@
-// import { BaseCommand } from "../../../../shared/domain/base_use_case";
-// import type { IUserRepository } from "../../../domain/ports/IUserRepository";
+import { BaseCommand } from "../../../../shared/domain/base_use_case";
+import { NotFoundError } from "../../../../shared/exceptions/domainErrors";
+import { UserService } from "../../domain/services/userService";
+import { UpdateUserCommandSchema, UserRead } from "../../schemas/userSchema";
 
-// type Input  = { id: string; patch: { name?: string; role?: any; active?: boolean } };
-// type Output = { data: { id: string; name: string; email: string; role: string; active: boolean } };
+type UpdateUserInput = {
+  userId: string;
+  patch: UpdateUserCommandSchema;
+};
 
-// export class UpdateUserCommand extends BaseCommand<Input, Output> {
-//   constructor(private readonly repo: IUserRepository) { super(); }
+export class UpdateUserCommand extends BaseCommand<UpdateUserInput, UserRead> {
+  constructor(private readonly svc: UserService) {
+    super();
+  }
 
-//   protected async executeBusinessLogic(input: Input): Promise<Output> {
-//     const updated = await this.repo.updatePartial(input.id, input.patch);
-//     return { data: { id: updated.id, name: updated.name, email: updated.email, role: updated.role, active: updated.active } };
-//   }
-// }
+  protected async executeBusinessLogic(input: UpdateUserInput): Promise<UserRead> {
+    const updated = await this.svc.update(input.userId, input.patch);
+    if (!updated) {
+      throw new NotFoundError({ message: "USER_NOT_FOUND" });
+    }
+    return updated;
+  }
+}

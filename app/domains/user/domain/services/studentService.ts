@@ -33,13 +33,14 @@ export class StudentService {
   async paginate(criteria: ListStudents): Promise<ListStudentsResponse> {
     const limit = criteria.limit ?? 20;
     const offset = criteria.offset ?? 0;
+    const active = criteria.active ?? true;
     const repoCriteria: ListStudentsCriteria = {
       limit,
       offset,
       filters: {
         userId: criteria.userId,
         role: criteria.role,
-        active: criteria.active,
+        active,
         filter: criteria.filter,
         email: criteria.email,
       },

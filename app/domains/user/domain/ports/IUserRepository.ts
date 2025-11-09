@@ -1,5 +1,5 @@
 import { Roles } from "../../../../shared/enums/rolesEnum";
-import { UserCreate, UserRead, UserUpdate } from "../../schemas/userSchema";
+import { UserAuth, UserCreate, UserRead, UserUpdate } from "../../schemas/userSchema";
 
 export type UserFilters = {
   role?: Roles;
@@ -29,6 +29,7 @@ export interface IUserRepository {
 
   get_by_id(id: string): Promise<UserRead | null>;
   existsBy(filters: UserFilters): Promise<boolean>;
+  findByEmailWithPassword(email: string): Promise<UserAuth | null>;
 
   create(data: UserCreate): Promise<UserRead>;
   update(id: string, data: UserUpdate): Promise<UserRead | null>;

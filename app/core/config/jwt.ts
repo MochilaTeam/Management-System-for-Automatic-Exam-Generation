@@ -6,7 +6,7 @@ const JwtEnvSchema = z.object({
     JWT_ISSUER: z.string().min(1),
     JWT_AUDIENCE: z.string().min(1),
     JWT_EXPIRES_IN: z.string().min(1), // "15m", "1h", "7d"
-    ACCESS_SECRET: z.string().min(32),
+    JWT_ACCESS_SECRET: z.string().min(32),
 });
 
 export type JwtConfig = {
@@ -27,10 +27,10 @@ export function get_jwt_config(): JwtConfig {
         throw new Error(`JWT config inválida: ${msg}`);
     }
 
-    const { JWT_ISSUER, JWT_AUDIENCE, JWT_EXPIRES_IN, ACCESS_SECRET } = parsed.data;
+    const { JWT_ISSUER, JWT_AUDIENCE, JWT_EXPIRES_IN, JWT_ACCESS_SECRET } = parsed.data;
 
     cached = {
-        accessSecret: ACCESS_SECRET,
+        accessSecret: JWT_ACCESS_SECRET,
         issuer: JWT_ISSUER,
         audience: JWT_AUDIENCE,
         expiresIn: JWT_EXPIRES_IN as StringValue,

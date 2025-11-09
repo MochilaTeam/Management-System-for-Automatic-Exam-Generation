@@ -28,6 +28,10 @@ services:
       DB_NAME: ${DB_NAME}
       DB_PORT: ${DB_PORT}
       JWT_TOKEN: ${JWT_TOKEN}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_AUDIENCE: ${JWT_AUDIENCE}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
     depends_on:
       - db
     ports:
@@ -44,4 +48,3 @@ networks:
 
 volumes:
   mysql_data:
-

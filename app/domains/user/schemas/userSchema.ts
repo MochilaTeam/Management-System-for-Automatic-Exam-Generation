@@ -22,7 +22,7 @@ export const updateUserCommandSchema = z
     name: z.string().transform((s) => s.trim()).pipe(z.string().min(2)).optional(),
     email: z.email().transform((s) => s.trim().toLowerCase()).optional(),
     role: z.enum(Roles).optional(),
-    passwordHash: z.string().optional(),
+    password: z.string().min(8).optional(),
   })
   .strict()
   .refine((obj) => Object.keys(obj).length > 0, {
@@ -58,6 +58,17 @@ export const userReadSchema = z
     name: z.string(),
     email: z.email(),
     role: z.enum(Roles),
+  })
+  .strict();
+
+export const userAuthSchema = z
+  .object({
+    id: z.uuid(),
+    name: z.string(),
+    email: z.email(),
+    role: z.enum(Roles),
+    passwordHash: z.string(),
+    active: z.boolean(),
   })
   .strict();
 
@@ -97,5 +108,6 @@ export type UserCreate = z.infer<typeof userCreateSchema>;
 export type UserUpdate = z.infer<typeof userUpdateSchema>;
 
 export type UserRead = z.infer<typeof userReadSchema>;
+export type UserAuth = z.infer<typeof userAuthSchema>;
 export type ListUsers = z.infer<typeof listUsersQuerySchema>;
 export type ListUsersResponse = z.infer<typeof listUsersResponseSchema>;

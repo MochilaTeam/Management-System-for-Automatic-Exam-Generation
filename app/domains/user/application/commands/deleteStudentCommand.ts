@@ -16,8 +16,10 @@ export class DeleteStudentCommand extends BaseCommand<StudentIdParams, void> {
         throw new NotFoundError({ message: "STUDENT_NOT_FOUND" });
       }
 
-      await students.deleteById(input.studentId);
-      await users.deleteById(student.userId);
+      const deactivated = await users.deleteById(student.userId);
+      if (!deactivated) {
+        throw new NotFoundError({ message: "USER_NOT_FOUND" });
+      }
     });
   }
 }

@@ -1,7 +1,16 @@
-import { IUserRepository } from "../ports/IUserRepository";
+import { IUserRepository, ListUsersCriteria } from "../ports/IUserRepository";
 import { Roles } from "../../../../shared/enums/rolesEnum";
-import {CreateUserCommandSchema,type UserCreate,type UserRead,type UserUpdate} from "../../schemas/userSchema";
+import {
+  CreateUserCommandSchema,
+  type ListUsers,
+  type ListUsersResponse,
+  type UserCreate,
+  type UserRead,
+  type UserUpdate,
+} from "../../schemas/userSchema";
 import { getHasher, type Hasher } from "../../../../core/security/hasher";
+import { LoginBodySchema } from "../../schemas/login";
+import { UnauthorizedError } from "../../../../shared/exceptions/domainErrors";
 
 type Deps = {
   repo: IUserRepository;
@@ -34,7 +43,32 @@ export class UserService {
     return res;
   }
 
-  async update(id: string,patch: Partial<{ name: string; email: string; password: string; role: Roles; passwordHash?: string }>): Promise<UserRead | null> {
+  async paginate(criteria: ListUsers): Promise<ListUsersResponse> {
+    const limit = criteria.limit ?? 20;
+    const offset = criteria.offset ?? 0;
+    const active = criteria.active ?? true;
+    const repoCriteria: ListUsersCriteria = {
+      limit,
+      offset,
+      filters: {
+        role: criteria.role,
+        active,
+        email: criteria.email,
+        q: criteria.filter,
+      },
+    };
+
+    const { items, total } = await this.repo.paginate(repoCriteria);
+    return {
+      data: items,
+      meta: { limit, offset, total },
+    };
+  }
+
+  async update(
+    id: string,
+    patch: Partial<{ name: string; email: string; password: string; role: Roles }>
+  ): Promise<UserRead | null> {
     const current = await this.repo.get_by_id(id);
     if (!current) return null;
 
@@ -50,7 +84,6 @@ export class UserService {
       dto.email = newEmail;
     }
     if (patch.password != null) dto.passwordHash = await this.hasher.hash(patch.password);
-    else if (patch.passwordHash != null) dto.passwordHash = patch.passwordHash;
     if (patch.role != null) dto.role = patch.role;
 
     return this.repo.update(id, dto);
@@ -62,5 +95,21 @@ export class UserService {
 
   async deleteById(id: string): Promise<boolean> {
     return this.repo.deleteById(id);
+  }
+
+  async loginUser(input: LoginBodySchema): Promise<UserRead> {
+    const email = this.normEmail(input.email);
+    const user = await this.repo.findByEmailWithPassword(email);
+    if (!user || !user.active) {
+      throw new UnauthorizedError({ message: "Invalid credentials" });
+    }
+
+    const passwordMatch = await this.hasher.compare(input.password, user.passwordHash);
+    if (!passwordMatch) {
+      throw new UnauthorizedError({ message: "Invalid credentials" });
+    }
+
+    const { passwordHash, active, ...safeUser } = user;
+    return safeUser;
   }
 }

@@ -1,68 +1,76 @@
-// import { CreateTeacherCommand } from "../../../domains/user/application/commands/createTeacher";
-// import { DeleteTeacherCommand } from "../../../domains/user/application/commands/deleteTeacher";
-// import { UpdateTeacherCommand } from "../../../domains/user/application/commands/updateTeacher";
-// import { GetTeacherByIdQuery } from "../../../domains/user/application/queries/GetTeacherByIdQuery";
-// import { ListTeachersQuery } from "../../../domains/user/application/queries/ListTeacherQuery";
-// import { TeacherService } from "../../../domains/user/domain/services/userService";
-// import Teacher from "../../../infrastructure/user/models/Teacher";
-// import { TeacherRepository } from "../../../infrastructure/user/repositories/TeacherRepository";
+import { sequelize } from "../../../database/database";
+import { CreateTeacherCommand, TeacherModuleServices } from "../../../domains/user/application/commands/createTeacherCommand";
+import { UpdateTeacherCommand } from "../../../domains/user/application/commands/updateTeacherCommand";
+import { DeleteTeacherCommand } from "../../../domains/user/application/commands/deleteTeacherCommand";
+import { ListTeachersQuery } from "../../../domains/user/application/queries/ListTeachersQuery";
+import { GetTeacherByIdQuery } from "../../../domains/user/application/queries/GetTeacherByIdQuery";
+import { TeacherService } from "../../../domains/user/domain/services/teacherService";
+import { UserService } from "../../../domains/user/domain/services/userService";
+import { TeacherRepository } from "../../../infrastructure/user/repositories/TeacherRepository";
+import { UserRepository } from "../../../infrastructure/user/repositories/UserRepository";
+import { Teacher, User } from "../../../infrastructure/user/models";
+import type { Transaction } from "sequelize";
+import { IUnitOfWork } from "../../../shared/UoW/IUnitOfWork";
+import { SequelizeUnitOfWork } from "../../../shared/UoW/SequelizeUnitOfWork";
 
-// let _repo: TeacherRepository | null = null;
-// let _svc: TeacherService | null = null;
-// let _qList: ListTeachersQuery | null = null;
-// let _qGetById: GetTeacherByIdQuery | null = null;
-// let _cCreate: CreateTeacherCommand | null = null;
-// let _cUpdate: UpdateTeacherCommand | null = null;
-// let _cDelete: DeleteTeacherCommand | null = null;
+let _uow: IUnitOfWork<TeacherModuleServices> | null = null;
+let _teacherService: TeacherService | null = null;
+let _cCreate: CreateTeacherCommand | null = null;
+let _cUpdate: UpdateTeacherCommand | null = null;
+let _cDelete: DeleteTeacherCommand | null = null;
+let _qList: ListTeachersQuery | null = null;
+let _qGet: GetTeacherByIdQuery | null = null;
 
-// //Repository
-// export function makeTeacherRepository() {
-//   if (_repo) return _repo;
-//   _repo = new TeacherRepository(Teacher);
-//   return _repo;
-// }
+function makeTeacherService(): TeacherService {
+  if (_teacherService) return _teacherService;
+  _teacherService = new TeacherService({
+    teacherRepo: new TeacherRepository(Teacher),
+    userRepo: new UserRepository(User),
+  });
+  return _teacherService;
+}
 
-// //Service
-// export function makeTeacherService() {
-//   if (_svc) return _svc;
-//   _svc = new TeacherService({
-//     repo: makeTeacherRepository(),
-//   });
-//   return _svc;
-// } 
+export function makeTeacherUoW(): IUnitOfWork<TeacherModuleServices> {
+  if (_uow) return _uow;
 
-// //Queries
-// export function makeListTeachersQuery() {
-//   if (_qList) return _qList;
-//   _qList = new ListTeachersQuery(makeTeacherService());
-//   return _qList;
-// }
+  _uow = new SequelizeUnitOfWork<TeacherModuleServices>(sequelize, (tx: Transaction) => {
+    const users = new UserService({ repo: UserRepository.withTx(User, tx) });
+    const teachers = new TeacherService({
+      teacherRepo: TeacherRepository.withTx(Teacher, tx),
+      userRepo: UserRepository.withTx(User, tx),
+    });
+    return { users, teachers };
+  });
 
-// export function makeGetTeacherByIdQuery() {
-//   if (_qGetById) return _qGetById;
-//   _qGetById = new GetTeacherByIdQuery(makeTeacherService());
-//   return _qGetById;
-// }
+  return _uow;
+}
 
-// //Commands
-// export function makeCreateTeacherCommand() {
-//   if (_cCreate) return _cCreate;
-//   // Create suele necesitar reglas (hash, validaciones), por eso inyectamos el service
-//   _cCreate = new CreateTeacherCommand(makeTeacherRepository(), makeTeacherService());
-//   return _cCreate;
-// }
+export function makeCreateTeacherCommand() {
+  if (_cCreate) return _cCreate;
+  _cCreate = new CreateTeacherCommand(makeTeacherUoW());
+  return _cCreate;
+}
 
-// export function makeUpdateTeacherCommand() {
-//   if (_cUpdate) return _cUpdate;
-//   // Si Update tiene reglas (normalización, hash condicional), usa el service:
-//   // _cUpdate = new UpdateTeacherCommand(makeTeacherService());
-//   // Si es patch simple, repo basta:
-//   _cUpdate = new UpdateTeacherCommand(makeTeacherRepository());
-//   return _cUpdate;
-// }
+export function makeUpdateTeacherCommand() {
+  if (_cUpdate) return _cUpdate;
+  _cUpdate = new UpdateTeacherCommand(makeTeacherUoW());
+  return _cUpdate;
+}
 
-// export function makeDeleteTeacherCommand() {
-//   if (_cDelete) return _cDelete;
-//   _cDelete = new DeleteTeacherCommand(makeTeacherRepository());
-//   return _cDelete;
-// }
+export function makeDeleteTeacherCommand() {
+  if (_cDelete) return _cDelete;
+  _cDelete = new DeleteTeacherCommand(makeTeacherUoW());
+  return _cDelete;
+}
+
+export function makeListTeachersQuery() {
+  if (_qList) return _qList;
+  _qList = new ListTeachersQuery(makeTeacherService());
+  return _qList;
+}
+
+export function makeGetTeacherByIdQuery() {
+  if (_qGet) return _qGet;
+  _qGet = new GetTeacherByIdQuery(makeTeacherService());
+  return _qGet;
+}

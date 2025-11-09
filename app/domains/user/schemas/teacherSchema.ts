@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { Roles } from "../../../shared/enums/rolesEnum";
 
+const nameSchema = z.string().transform((s) => s.trim()).pipe(z.string().min(2));
+const emailSchema = z.email().transform((s) => s.trim().toLowerCase());
+const specialtySchema = z.string().transform((s) => s.trim()).pipe(z.string().min(2));
+const teacherRoles = [Roles.TEACHER, Roles.SUBJECT_LEADER, Roles.EXAMINER] as const;
+const teacherRoleEnum = z.enum(teacherRoles);
+
 //Params
 export const teacherIdParamsSchema = z
   .object({
@@ -8,41 +14,49 @@ export const teacherIdParamsSchema = z
   })
   .strict();
 
-//Comands
+//Commands (entrada HTTP)
 export const createTeacherCommandSchema = z
   .object({
-    name: z.string().transform((s) => s.trim()).pipe(z.string().min(2)),
-    email: z.email().transform((s) => s.trim().toLowerCase()),
-    role: z.enum(Roles),
+    name: nameSchema,
+    email: emailSchema,
+    role: teacherRoleEnum,
     password: z.string().min(8),
+    specialty: specialtySchema,
+    hasRoleSubjectLeader: z.boolean().optional(),
+    hasRoleExaminer: z.boolean().optional(),
   })
   .strict();
+
 export const updateTeacherCommandSchema = z
   .object({
-    name: z.string().transform((s) => s.trim()).pipe(z.string().min(2)).optional(),
-    email: z.email().transform((s) => s.trim().toLowerCase()).optional(),
-    role: z.enum(Roles).optional,
-    passwordHash: z.string().optional(),
+    name: nameSchema.optional(),
+    email: emailSchema.optional(),
+    role: teacherRoleEnum.optional(),
+    password: z.string().min(8).optional(),
+    specialty: specialtySchema.optional(),
+    hasRoleSubjectLeader: z.boolean().optional(),
+    hasRoleExaminer: z.boolean().optional(),
   })
   .strict()
   .refine((obj) => Object.keys(obj).length > 0, {
     message: "Debe enviar al menos un campo para actualizar.",
   });
 
-//PERSISTENCE DTOs (hacia repos desde el servicio)
+//Persistence DTOs (perfil Teacher)
 export const teacherCreateSchema = z
   .object({
-    name: z.string().transform((s) => s.trim()).pipe(z.string().min(2)),
-    email: z.email().transform((s) => s.trim().toLowerCase()),
-    passwordHash: z.string(),
+    userId: z.uuid(),
+    specialty: specialtySchema,
+    hasRoleSubjectLeader: z.boolean(),
+    hasRoleExaminer: z.boolean(),
   })
   .strict();
 
 export const teacherUpdateSchema = z
   .object({
-    name: z.string().transform((s) => s.trim()).pipe(z.string().min(2)).optional(),
-    email: z.email().transform((s) => s.trim().toLowerCase()).optional(),
-    passwordHash: z.string().optional(),
+    specialty: specialtySchema.optional(),
+    hasRoleSubjectLeader: z.boolean().optional(),
+    hasRoleExaminer: z.boolean().optional(),
   })
   .strict()
   .refine((obj) => Object.keys(obj).length > 0, {
@@ -53,14 +67,13 @@ export const teacherUpdateSchema = z
 export const teacherReadSchema = z
   .object({
     id: z.uuid(),
+    userId: z.uuid(),
     name: z.string(),
     email: z.email(),
-  })
-  .strict();
-
-export const readTeacherWithRoleSchema = teacherReadSchema
-  .extend({
     role: z.enum(Roles),
+    specialty: z.string(),
+    hasRoleSubjectLeader: z.boolean(),
+    hasRoleExaminer: z.boolean(),
   })
   .strict();
 
@@ -70,26 +83,32 @@ export const listTeachersQuerySchema = z
     role: z.enum(Roles).optional(),
     active: z.boolean().optional(),
     email: z.email().optional(),
+    userId: z.string().uuid().optional(),
     filter: z
       .string()
       .transform((s) => s.trim())
       .pipe(z.string().min(1))
       .optional(),
+    subjectLeader: z.boolean().optional(),
+    examiner: z.boolean().optional(),
     limit: z.coerce.number().int().min(1).max(100).default(20),
     offset: z.coerce.number().int().min(0).default(0),
   })
   .strict();
 
 //Responses
-export const listTeachersResponseSchema = z.object({
-  data: z.array(teacherReadSchema),
-  meta: z.object({
-    limit: z.number().int().min(1),
-    offset: z.number().int().min(0),
-    total: z.number().int().min(0),
-  }).strict(),
-}).strict();
-
+export const listTeachersResponseSchema = z
+  .object({
+    data: z.array(teacherReadSchema),
+    meta: z
+      .object({
+        limit: z.number().int().min(1),
+        offset: z.number().int().min(0),
+        total: z.number().int().min(0),
+      })
+      .strict(),
+  })
+  .strict();
 
 export type TeacherIdParams = z.infer<typeof teacherIdParamsSchema>;
 
@@ -100,6 +119,5 @@ export type TeacherCreate = z.infer<typeof teacherCreateSchema>;
 export type TeacherUpdate = z.infer<typeof teacherUpdateSchema>;
 
 export type TeacherRead = z.infer<typeof teacherReadSchema>;
-export type TeacherReadWithRole = z.infer<typeof readTeacherWithRoleSchema>;
 export type ListTeachers = z.infer<typeof listTeachersQuerySchema>;
 export type ListTeachersResponse = z.infer<typeof listTeachersResponseSchema>;

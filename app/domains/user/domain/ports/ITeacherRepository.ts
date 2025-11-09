@@ -2,10 +2,13 @@ import { Roles } from "../../../../shared/enums/rolesEnum";
 import { TeacherCreate, TeacherRead, TeacherUpdate } from "../../schemas/teacherSchema";
 
 export type TeacherFilters = {
+  userId?: string;
   role?: Roles;
   active?: boolean;
-  q?: string;        
-  email?: string;    
+  filter?: string;
+  email?: string;
+  subjectLeader?: boolean;
+  examiner?: boolean;
 };
 
 export type Sort = {
@@ -14,23 +17,22 @@ export type Sort = {
 };
 
 export type ListTeachersCriteria = {
-  offset?: number;      
-  limit?: number;       
+  offset?: number;
+  limit?: number;
   filters?: TeacherFilters;
   sort?: Sort;
 };
 
- //Resultado de paginación genérico
 export type Page<T> = { items: T[]; total: number };
 
 export interface ITeacherRepository {
-  paginate(criteria: ListTeachersCriteria): Promise<Page<TeacherRead>>; 
-  list(criteria: ListTeachersCriteria): Promise<TeacherRead[]>;         
-
   get_by_id(id: string): Promise<TeacherRead | null>;
-  existsBy(filters: TeacherFilters): Promise<boolean>;
+  list(criteria: ListTeachersCriteria): Promise<TeacherRead[]>;
+  paginate(criteria: ListTeachersCriteria): Promise<Page<TeacherRead>>;
 
-  create(data: TeacherCreate): Promise<TeacherRead>;
-  update(id: string, data: TeacherUpdate): Promise<TeacherRead | null>;
+  existsBy(filters: { userId?: string }): Promise<boolean>;
+
+  createProfile(input: TeacherCreate): Promise<TeacherRead>;
+  updateProfile(id: string, patch: TeacherUpdate): Promise<TeacherRead | null>;
   deleteById(id: string): Promise<boolean>;
 }
