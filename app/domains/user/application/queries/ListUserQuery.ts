@@ -9,6 +9,9 @@ export class ListUsersQuery extends BaseQuery<ListUsers, PaginatedSchema<UserRea
     }
 
     protected async executeBusinessLogic(input: ListUsers): Promise<PaginatedSchema<UserRead>> {
-        return this.serv.paginate(input);
+        const limit = input.limit ?? 20;
+        const offset = input.offset ?? 0;
+        const { list, total } = await this.serv.paginate(input);
+        return new PaginatedSchema(list, { limit, offset, total });
     }
 }

@@ -11,6 +11,9 @@ export class ListTeachersQuery extends BaseQuery<ListTeachers, PaginatedSchema<T
     protected async executeBusinessLogic(
         input: ListTeachers,
     ): Promise<PaginatedSchema<TeacherRead>> {
-        return this.service.paginate(input);
+        const limit = input.limit ?? 20;
+        const offset = input.offset ?? 0;
+        const { list, total } = await this.service.paginate(input);
+        return new PaginatedSchema(list, { limit, offset, total });
     }
 }

@@ -1,4 +1,3 @@
-import { PaginatedSchema } from '../../../../shared/domain/base_response';
 import { type StudentRead, type ListStudents } from '../../schemas/studentSchema';
 import { IStudentRepository } from '../ports/IStudentRepository';
 import { ListStudentsCriteria } from '../ports/IStudentRepository';
@@ -35,7 +34,7 @@ export class StudentService {
         return this.deps.studentRepo.get_by_id(id);
     }
 
-    async paginate(criteria: ListStudents): Promise<PaginatedSchema<StudentRead>> {
+    async paginate(criteria: ListStudents): Promise<{ list: StudentRead[]; total: number }> {
         const limit = criteria.limit ?? 20;
         const offset = criteria.offset ?? 0;
         const active = criteria.active ?? true;
@@ -51,7 +50,7 @@ export class StudentService {
             },
         };
         const { items, total } = await this.deps.studentRepo.paginate(repoCriteria);
-        return new PaginatedSchema(items, { limit, offset, total });
+        return { list: items, total };
     }
 
     //update al perfil de student

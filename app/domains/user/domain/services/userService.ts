@@ -2,7 +2,6 @@ import jwt from 'jsonwebtoken';
 
 import { get_jwt_config } from '../../../../core/config/jwt';
 import { getHasher, type Hasher } from '../../../../core/security/hasher';
-import { PaginatedSchema } from '../../../../shared/domain/base_response';
 import { Roles } from '../../../../shared/enums/rolesEnum';
 import { UnauthorizedError } from '../../../../shared/exceptions/domainErrors';
 import { LoginBodySchema } from '../../schemas/login';
@@ -46,7 +45,7 @@ export class UserService {
         return res;
     }
 
-    async paginate(criteria: ListUsers): Promise<PaginatedSchema<UserRead>> {
+    async paginate(criteria: ListUsers): Promise<{ list: UserRead[]; total: number }> {
         const limit = criteria.limit ?? 20;
         const offset = criteria.offset ?? 0;
         const active = criteria.active ?? true;
@@ -62,7 +61,7 @@ export class UserService {
         };
 
         const { items, total } = await this.repo.paginate(repoCriteria);
-        return new PaginatedSchema(items, { limit, offset, total });
+        return { list: items, total };
     }
 
     async update(
