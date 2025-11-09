@@ -1,6 +1,9 @@
 import { Model, STRING, DataTypes } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
+import { Roles } from '../../../shared/enums/rolesEnum';
+
+const roleValues = Object.values(Roles) as string[];
 
 class User extends Model {
     public id!: string;
@@ -8,6 +11,7 @@ class User extends Model {
     public passwordHash!: string;
     public email! : string;
     public active! : boolean;
+    public role!: Roles;
 }
 
 User.init(
@@ -35,7 +39,12 @@ User.init(
         active:{
             type: DataTypes.BOOLEAN,
             defaultValue: 1,
-        }
+        },
+        role: {
+            type: DataTypes.ENUM(...roleValues),
+            allowNull: false,
+            defaultValue: Roles.STUDENT,
+        },
 
     },
     {

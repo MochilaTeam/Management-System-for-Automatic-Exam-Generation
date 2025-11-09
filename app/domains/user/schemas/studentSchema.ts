@@ -63,14 +63,9 @@ export const studentReadSchema = z
     userId: z.uuid(),
     name: z.string(),
     email: z.string().email(),
+    role: z.enum(Roles),
     age: z.number().int().min(0),
     course: z.number().int().min(0),
-  })
-  .strict();
-
-export const readStudentWithRoleSchema = studentReadSchema
-  .extend({
-    role: z.enum(Roles),
   })
   .strict();
 
@@ -106,12 +101,11 @@ export const listStudentsResponseSchema = z
 export type StudentIdParams = z.infer<typeof studentIdParamsSchema>;
 
 export type CreateStudent = z.infer<typeof createStudentCommandSchema>;
-export type UpdateStudentCommand = z.infer<typeof updateStudentCommandSchema>;
+export type UpdateStudentPayload = z.infer<typeof updateStudentCommandSchema>;
 
 export type StudentCreate = z.infer<typeof studentCreateSchema>;
 export type StudentUpdate = z.infer<typeof studentUpdateSchema>;
 
 export type StudentRead = z.infer<typeof studentReadSchema>;
-export type StudentReadWithRole = z.infer<typeof readStudentWithRoleSchema>;
 export type ListStudents = z.infer<typeof listStudentsQuerySchema>;
 export type ListStudentsResponse = z.infer<typeof listStudentsResponseSchema>;

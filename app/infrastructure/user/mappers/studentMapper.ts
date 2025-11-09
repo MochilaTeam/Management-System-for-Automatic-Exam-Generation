@@ -1,4 +1,4 @@
-import type Student from "../models/Student";
+import type { Student } from "../models";
 import {
   StudentCreate,
   StudentUpdate,
@@ -18,13 +18,18 @@ type StudentQueryOptions = {
 export const StudentMapper = {
   toRead(row: Student): StudentRead {
     const p: any = row.get ? row.get({ plain: true }) : (row as any);
+    const user = p.user ?? p.User;
+    if (!user) {
+      throw new Error("STUDENT_USER_NOT_LOADED");
+    }
     return {
       id: p.id,
       userId: p.userId,
       age: p.age,
       course: p.course,
-      name: p.User?.name ?? p.name,
-      email: p.User?.email ?? p.email,
+      name: user.name,
+      email: user.email,
+      role: user.role,
     };
   },
 
@@ -47,6 +52,7 @@ export const StudentMapper = {
     userId?: string;
     email?: string;
     role?: string;
+    active?: boolean;
     filter?: string; 
   }): { where: WhereOptions; userWhere?: WhereOptions } {
     const where: WhereOptions = {};
@@ -54,6 +60,7 @@ export const StudentMapper = {
 
     if (filters.userId) (where as any).userId = filters.userId;
     if (filters.email) (userWhere as any).email = filters.email;
+    if (filters.active !== undefined) (userWhere as any).active = filters.active;
     if (filters.role) (userWhere as any).role = filters.role;
 
     if (filters.filter) {

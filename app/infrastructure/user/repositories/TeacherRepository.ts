@@ -1,7 +1,7 @@
 import { ModelStatic } from "sequelize";
 import { BaseRepository } from "../../../shared/domain/base_repository";
 
-import Teacher from "../models/Teacher";
+import { Teacher } from "../models";
 import { TeacherMapper } from "../mappers/teacherMapper";
 import { ITeacherRepository, ListTeachersCriteria, TeacherFilters } from "../../../domains/user/domain/ports/ITeacherRepository";
 import { TeacherCreate, TeacherRead, TeacherUpdate } from "../../../domains/user/schemas/teacherSchema";

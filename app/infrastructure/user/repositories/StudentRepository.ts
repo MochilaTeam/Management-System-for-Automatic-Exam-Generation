@@ -1,126 +1,108 @@
+import { ModelStatic, Transaction, Includeable } from "sequelize";
+import { Student as StudentModel, User as UserModel } from "../models";
 import {
-  ModelStatic,
-  Transaction,
-  WhereOptions,
-  FindOptions,
-  Includeable,
-} from "sequelize";
-import type StudentModel from "../models/Student";
-import UserModel from "../models/User";
-import {
-  StudentCreate,   
-  StudentUpdate,  
-  StudentRead,
-  ListStudents,   
+  type StudentRead,
+  type StudentCreate,
+  type StudentUpdate,
 } from "../../../domains/user/schemas/studentSchema";
-import { IStudentRepository } from "../../../domains/user/domain/ports/IStudentRepository";
+import { IStudentRepository, type ListStudentsCriteria } from "../../../domains/user/domain/ports/IStudentRepository";
 import { StudentMapper } from "../mappers/studentMapper";
+import { BaseRepository } from "../../../shared/domain/base_repository";
 
-type CreationAttrs = StudentModel["_creationAttributes"];
-type UpdateAttrs   = Partial<StudentModel["_attributes"]>;
-
-export class StudentRepository implements IStudentRepository {
-  constructor(
-    private readonly model: ModelStatic<StudentModel>,
-    private readonly tx?: Transaction
-  ) {}
+export class StudentRepository
+  extends BaseRepository<StudentModel, StudentRead, StudentCreate, StudentUpdate>
+  implements IStudentRepository
+{
+  constructor(model: ModelStatic<StudentModel>, defaultTx?: Transaction) {
+    super(
+      model,
+      StudentMapper.toRead.bind(StudentMapper),
+      StudentMapper.toCreateAttrs.bind(StudentMapper),
+      StudentMapper.toUpdateAttrs.bind(StudentMapper),
+      defaultTx
+    );
+  }
 
   static withTx(model: ModelStatic<StudentModel>, tx: Transaction) {
     return new StudentRepository(model, tx);
   }
 
-  async createProfile(input: StudentCreate): Promise<StudentRead> {
-    const attrs: CreationAttrs = StudentMapper.toCreateAttrs(input) as CreationAttrs;
-
-    const row = await this.model.create(attrs, { transaction: this.tx });
-
-    const reloaded = await this.model.findByPk(row.get("id") as string, {
-      include: [UserModel],
-      transaction: this.tx,
-    });
-
-    return StudentMapper.toRead(reloaded ?? row);
+  async createProfile(input: StudentCreate, tx?: Transaction): Promise<StudentRead> {
+    try {
+      const attrs = StudentMapper.toCreateAttrs(input);
+      const created = await this.model.create(attrs as StudentModel["_creationAttributes"], {
+        transaction: this.effTx(tx),
+      });
+      const read = await this.get_by_id(created.id, tx);
+      return read!;
+    } catch (e) {
+      return this.raiseError(e, this.model.name);
+    }
   }
 
-  async updateProfile(id: string, patch: StudentUpdate): Promise<StudentRead | null> {
-    const current = await this.model.findByPk(id, { transaction: this.tx });
-    if (!current) return null;
-
-    const attrs: UpdateAttrs = StudentMapper.toUpdateAttrs(patch) as UpdateAttrs;
-    await current.update(attrs, { transaction: this.tx });
-
-    const reloaded = await this.model.findByPk(id, {
-      include: [UserModel],
-      transaction: this.tx,
-    });
-
-    return reloaded ? StudentMapper.toRead(reloaded) : null;
+  async updateProfile(id: string, patch: StudentUpdate, tx?: Transaction): Promise<StudentRead | null> {
+    try {
+      const attrs = StudentMapper.toUpdateAttrs(patch);
+      const row = await this.model.findByPk(id, { transaction: this.effTx(tx) });
+      if (!row) return null;
+      await row.update(attrs, { transaction: this.effTx(tx) });
+      return this.get_by_id(id, tx);
+    } catch (e) {
+      return this.raiseError(e, this.model.name);
+    }
   }
 
-  async get_by_id(id: string): Promise<StudentRead | null> {
+  //Override para tener el join a user
+  async get_by_id(id: string, tx?: Transaction): Promise<StudentRead | null> {
     const row = await this.model.findByPk(id, {
-      include: [UserModel],
-      transaction: this.tx,
+      include: [{ model: UserModel, as: "user" }],
+      transaction: this.effTx(tx),
     });
     return row ? StudentMapper.toRead(row) : null;
   }
 
-  async list(criteria: ListStudents): Promise<StudentRead[]> {
+  async list(criteria: ListStudentsCriteria, tx?: Transaction): Promise<StudentRead[]> {
     const opts = StudentMapper.toOptions(criteria);
-
     const include: Includeable[] = opts.userWhere
-      ? [{ model: UserModel, where: opts.userWhere, required: true }]
-      : [{ model: UserModel }];
+      ? [{ model: UserModel, as: "user", where: opts.userWhere, required: true }]
+      : [{ model: UserModel, as: "user" }];
 
-    const options: FindOptions = {
-      where: opts.where,
-      order: opts.order,
-      limit: opts.limit,
-      offset: opts.offset,
-      include,
-      transaction: this.tx,
-    };
-
-    const rows = await this.model.findAll(options);
-    return rows.map(StudentMapper.toRead);
+    return this.listByOptions(
+      {
+        where: opts.where,
+        order: opts.order,
+        limit: opts.limit,
+        offset: opts.offset,
+        include,
+      },
+      tx
+    );
   }
 
-  async paginate(criteria: ListStudents) {
+  async paginate(criteria: ListStudentsCriteria, tx?: Transaction) {
     const opts = StudentMapper.toOptions(criteria);
-
     const include: Includeable[] = opts.userWhere
-      ? [{ model: UserModel, where: opts.userWhere, required: true }]
-      : [{ model: UserModel }];
+      ? [{ model: UserModel, as: "user", where: opts.userWhere, required: true }]
+      : [{ model: UserModel, as: "user" }];
 
-    const options: FindOptions = {
-      where: opts.where,
-      order: opts.order,
-      limit: opts.limit,
-      offset: opts.offset,
-      include,
-      transaction: this.tx,
-    };
-
-    const { rows, count } = await this.model.findAndCountAll(options);
-
-    return {
-      items: rows.map(StudentMapper.toRead),
-      total: count,
-      limit: opts.limit,
-      offset: opts.offset,
-    };
+    return this.paginateByOptions(
+      {
+        where: opts.where,
+        order: opts.order,
+        limit: opts.limit,
+        offset: opts.offset,
+        include,
+      },
+      tx
+    );
   }
 
-  async existsBy(filters: { userId?: string }): Promise<boolean> {
-    const where: WhereOptions = {};
-    if (filters.userId) (where as any).userId = filters.userId; 
-
-    const row = await this.model.findOne({ where, transaction: this.tx });
-    return !!row;
+  async existsBy(filters: { userId?: string }, tx?: Transaction): Promise<boolean> {
+    const where = StudentMapper.toWhereFromFilters({ userId: filters.userId }).where;
+    return super.exists(where, tx);
   }
 
-  async deleteById(id: string): Promise<boolean> {
-    const n = await this.model.destroy({ where: { id }, transaction: this.tx });
-    return n > 0;
+  async deleteById(id: string, tx?: Transaction): Promise<boolean> {
+    return super.deleteById(id, tx);
   }
 }

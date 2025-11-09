@@ -1,42 +1,61 @@
 import { ModelStatic, Transaction } from "sequelize";
+import { User as UserModel } from "../models";
+import {
+  type UserRead,
+  type UserCreate,
+  type UserUpdate,
+} from "../../../domains/user/schemas/userSchema";
+import { IUserRepository, type ListUsersCriteria } from "../../../domains/user/domain/ports/IUserRepository";
 import { BaseRepository } from "../../../shared/domain/base_repository";
-
-import type {UserCreate,UserUpdate,UserRead,} from "../../../domains/user/schemas/userSchema";
-
-import type {IUserRepository,ListUsersCriteria,UserFilters,} from "../../../domains/user/domain/ports/IUserRepository";
-
-import User from "../models/User";
 import { UserMapper } from "../mappers/userMapper";
 
 export class UserRepository
-  extends BaseRepository<User, UserRead, UserCreate, UserUpdate>
+  extends BaseRepository<UserModel, UserRead, UserCreate, UserUpdate>
   implements IUserRepository
 {
-    constructor(model: ModelStatic<User>,tx?:Transaction) {
-        super(
-        model,
-        UserMapper.toRead,         
-        UserMapper.toCreateAttrs,  
-        UserMapper.toUpdateAttrs,  
-        );
-    }   
+  constructor(model: ModelStatic<UserModel>, defaultTx?: Transaction) {
+    super(
+      model,
+      UserMapper.toRead.bind(UserMapper),
+      UserMapper.toCreateAttrs.bind(UserMapper),
+      UserMapper.toUpdateAttrs.bind(UserMapper),
+      defaultTx
+    );
+  }
 
-    async list(criteria: ListUsersCriteria): Promise<UserRead[]> {
-    const opts = UserMapper.toOptions(criteria);   
-    return this.listByOptions(opts);           
-    }
+  static withTx(model: ModelStatic<UserModel>, tx: Transaction) {
+    return new UserRepository(model, tx);
+  }
 
-    async paginate(criteria: ListUsersCriteria): Promise<{ items: UserRead[]; total: number }> {
+  async paginate(criteria: ListUsersCriteria, tx?: Transaction) {
     const opts = UserMapper.toOptions(criteria);
-    return this.paginateByOptions(opts);
-    }
+    return this.paginateByOptions(
+      {
+        where: opts.where,
+        order: opts.order,
+        limit: opts.limit,
+        offset: opts.offset,
+      },
+      tx
+    );
+  }
 
-    async existsBy(filters: UserFilters): Promise<boolean> {
+  async list(criteria: ListUsersCriteria, tx?: Transaction): Promise<UserRead[]> {
+    const opts = UserMapper.toOptions(criteria);
+    return this.listByOptions(
+      {
+        where: opts.where,
+        order: opts.order,
+        limit: opts.limit,
+        offset: opts.offset,
+      },
+      tx
+    );
+  }
+
+  async existsBy(filters: Parameters<typeof UserMapper.toWhereFromFilters>[0], tx?: Transaction): Promise<boolean> {
     const where = UserMapper.toWhereFromFilters(filters);
-    return this.exists(where);
+    return super.exists(where, tx);
   }
-  
-  static withTx(model: ModelStatic<User>, tx: Transaction) {
-  return new UserRepository(model, tx);
-  }
+
 }

@@ -1,11 +1,6 @@
 import { IUserRepository } from "../ports/IUserRepository";
 import { Roles } from "../../../../shared/enums/rolesEnum";
-import {
-  type CreateUserCommand,
-  type UserCreate,
-  type UserRead,
-  type UserUpdate,
-} from "../../schemas/userSchema";
+import {CreateUserCommandSchema,type UserCreate,type UserRead,type UserUpdate} from "../../schemas/userSchema";
 import { getHasher, type Hasher } from "../../../../core/security/hasher";
 
 type Deps = {
@@ -14,11 +9,11 @@ type Deps = {
 };
 
 export class UserService {
-  public readonly repo: IUserRepository; // 👈 visible para queries
+  public readonly repo: IUserRepository; 
   private readonly hasher: Hasher;
 
   constructor(deps: Deps) {
-    this.repo = deps.repo;                 // 👈 asigna la instancia
+    this.repo = deps.repo;                
     this.hasher = deps.hasher ?? getHasher();
   }
 
@@ -26,22 +21,20 @@ export class UserService {
     return email.trim().toLowerCase();
   }
 
-  async create(input: CreateUserCommand): Promise<UserRead> {
+  async create(input: CreateUserCommandSchema): Promise<UserRead> {
     const name = input.name.trim();
     const email = this.normEmail(input.email);
 
-    const taken = await this.repo.existsBy({ email }); // 👈 usa this.repo
+    const taken = await this.repo.existsBy({ email }); 
     if (taken) throw new Error("EMAIL_ALREADY_IN_USE");
 
     const passwordHash = await this.hasher.hash(input.password);
-    const dto: UserCreate = { name, email, passwordHash };
-    return this.repo.create(dto);
+    const dto: UserCreate = { name, email, passwordHash, role: input.role };
+    const res: UserRead = await this.repo.create(dto);
+    return res;
   }
 
-  async update(
-    id: string,
-    patch: Partial<{ name: string; email: string; password: string; role: Roles; passwordHash?: string }>
-  ): Promise<UserRead | null> {
+  async update(id: string,patch: Partial<{ name: string; email: string; password: string; role: Roles; passwordHash?: string }>): Promise<UserRead | null> {
     const current = await this.repo.get_by_id(id);
     if (!current) return null;
 
@@ -58,11 +51,16 @@ export class UserService {
     }
     if (patch.password != null) dto.passwordHash = await this.hasher.hash(patch.password);
     else if (patch.passwordHash != null) dto.passwordHash = patch.passwordHash;
+    if (patch.role != null) dto.role = patch.role;
 
     return this.repo.update(id, dto);
   }
 
   async get_by_id(id: string): Promise<UserRead | null> {
     return this.repo.get_by_id(id);
+  }
+
+  async deleteById(id: string): Promise<boolean> {
+    return this.repo.deleteById(id);
   }
 }

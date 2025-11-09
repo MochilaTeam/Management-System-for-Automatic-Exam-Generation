@@ -3,10 +3,11 @@ import { StudentCreate, StudentRead, StudentUpdate } from "../../schemas/student
 import { Page } from "./IUserRepository";
 
 export type StudentFilters = {
+  userId?: string;
   role?: Roles;
   active?: boolean;
-  q?: string;        
-  email?: string;    
+  filter?: string;
+  email?: string;
 };
 
 export type Sort = {

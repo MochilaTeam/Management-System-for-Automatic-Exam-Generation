@@ -11,9 +11,7 @@ import SubjectTopic from '../infrastructure/question-bank/models/SubjectTopic';
 import Subtopic from '../infrastructure/question-bank/models/SubTopic';
 import TeacherSubject from '../infrastructure/question-bank/models/TeacherSubject';
 import Topic from '../infrastructure/question-bank/models/Topic';
-import Student from '../infrastructure/user/models/Student';
-import Teacher from '../infrastructure/user/models/Teacher';
-import User from '../infrastructure/user/models/User';
+import { Student, Teacher, User } from '../infrastructure/user/models';
 
 export const syncTables = async (): Promise<void> => {
     //QuestionBank
@@ -38,4 +36,3 @@ export const syncTables = async (): Promise<void> => {
     await ExamRegrades.sync({ alter: true });
     await ExamResponses.sync({ alter: true });
 };
-

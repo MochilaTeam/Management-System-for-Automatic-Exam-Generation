@@ -1,6 +1,6 @@
 import { Model, STRING, INTEGER, DataTypes } from 'sequelize';
-import { sequelize } from '../../../database/database';
 
+import { sequelize } from '../../../database/database';
 class Student extends Model {
     public id!: string;
     public age!: number;
@@ -21,7 +21,7 @@ Student.init(
         userId: {
             type: DataTypes.UUID,
             allowNull: false,
-            unique: true,
+            unique: true, // one user ↔ one student
             references: { model: 'Users', key: 'id' },
         },
     },

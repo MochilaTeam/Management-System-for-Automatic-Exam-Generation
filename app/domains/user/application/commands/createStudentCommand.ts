@@ -18,15 +18,12 @@ export class CreateStudentCommand extends BaseCommand<CreateStudent, StudentRead
 
   protected async executeBusinessLogic(input: CreateStudent): Promise<StudentRead> {
     return this.uow.withTransaction(async ({ users, students }) => {
-      //crear el user
       const newUser: UserRead = await users.create({
         name: input.name,
         email: input.email,
-        password: input.password,
         role: Roles.STUDENT,
+        password: input.password,
       });
-
-      //crear estudiante y retornar con el join a user
       const created = await students.createProfile({
         userId: newUser.id,
         age: input.age,

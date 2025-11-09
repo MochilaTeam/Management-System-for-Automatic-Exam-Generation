@@ -1,5 +1,5 @@
 import { Op, WhereOptions, OrderItem, Attributes } from "sequelize";
-import type Teacher from "../models/Teacher";
+import type { Teacher } from "../models";
 
 import { ListTeachersCriteria, TeacherFilters } from "../../../domains/user/domain/ports/ITeacherRepository";
 import { TeacherCreate, teacherCreateSchema, TeacherRead, teacherReadSchema, TeacherUpdate, teacherUpdateSchema } from "../../../domains/user/schemas/teacherSchema";

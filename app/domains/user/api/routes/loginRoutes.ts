@@ -1,10 +1,10 @@
-import { Router } from 'express';
+// import { Router } from 'express';
 
-import { withValidatedBody } from '../../../../core/middlewares/requestValidator';
-import { loginBodySchema } from '../../schemas/login';
-import { login } from '../controllers/loginController';
+// import { withValidatedBody } from '../../../../core/middlewares/requestValidator';
+// import { loginBodySchema } from '../../schemas/login';
+// import { login } from '../controllers/loginController';
 
-const loginRouter = Router();
+// const loginRouter = Router();
 
-loginRouter.post('/login', withValidatedBody(loginBodySchema, login));
-export { loginRouter };
+// loginRouter.post('/login', withValidatedBody(loginBodySchema, login));
+// export { loginRouter };

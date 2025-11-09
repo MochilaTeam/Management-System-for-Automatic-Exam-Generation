@@ -1,20 +1,18 @@
 import { Transaction } from "sequelize";
-import { CreateUserCommand } from "../../../domains/user/application/commands/createUser";
-import { DeleteUserCommand } from "../../../domains/user/application/commands/deleteUser";
-import { UpdateUserCommand } from "../../../domains/user/application/commands/updateUser";
 import { GetUserByIdQuery } from "../../../domains/user/application/queries/GetUserByIdQuery";
 import { ListUsersQuery } from "../../../domains/user/application/queries/ListUserQuery";
 import { UserService } from "../../../domains/user/domain/services/userService";
-import User from "../../../infrastructure/user/models/User";
+import { User } from "../../../infrastructure/user/models";
 import { UserRepository} from "../../../infrastructure/user/repositories/UserRepository";
+import { CreateUserCommand } from "../../../domains/user/application/commands/createUser";
 
 let _repo: UserRepository | null = null;
 let _svc: UserService | null = null;
 let _qList: ListUsersQuery | null = null;
 let _qGetById: GetUserByIdQuery | null = null;
 let _cCreate: CreateUserCommand | null = null;
-let _cUpdate: UpdateUserCommand | null = null;
-let _cDelete: DeleteUserCommand | null = null;
+// let _cUpdate: UpdateUserCommand | null = null;
+// let _cDelete: DeleteUserCommand | null = null;
 
 
 //Repository
@@ -58,17 +56,17 @@ export function makeCreateUserCommand() {
   return _cCreate;
 }
 
-export function makeUpdateUserCommand() {
-  if (_cUpdate) return _cUpdate;
-  // Si Update tiene reglas (normalización, hash condicional), usa el service:
-  // _cUpdate = new UpdateUserCommand(makeUserService());
-  // Si es patch simple, repo basta:
-  _cUpdate = new UpdateUserCommand(makeUserRepository());
-  return _cUpdate;
-}
+// export function makeUpdateUserCommand() {
+//   if (_cUpdate) return _cUpdate;
+//   // Si Update tiene reglas (normalización, hash condicional), usa el service:
+//   // _cUpdate = new UpdateUserCommand(makeUserService());
+//   // Si es patch simple, repo basta:
+//   _cUpdate = new UpdateUserCommand(makeUserRepository());
+//   return _cUpdate;
+// }
 
-export function makeDeleteUserCommand() {
-  if (_cDelete) return _cDelete;
-  _cDelete = new DeleteUserCommand(makeUserRepository());
-  return _cDelete;
-}
+// export function makeDeleteUserCommand() {
+//   if (_cDelete) return _cDelete;
+//   _cDelete = new DeleteUserCommand(makeUserRepository());
+//   return _cDelete;
+// }

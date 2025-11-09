@@ -21,7 +21,7 @@ export const updateUserCommandSchema = z
   .object({
     name: z.string().transform((s) => s.trim()).pipe(z.string().min(2)).optional(),
     email: z.email().transform((s) => s.trim().toLowerCase()).optional(),
-    role: z.enum(Roles).optional,
+    role: z.enum(Roles).optional(),
     passwordHash: z.string().optional(),
   })
   .strict()
@@ -34,6 +34,7 @@ export const userCreateSchema = z
   .object({
     name: z.string().transform((s) => s.trim()).pipe(z.string().min(2)),
     email: z.email().transform((s) => s.trim().toLowerCase()),
+    role: z.enum(Roles),
     passwordHash: z.string(),
   })
   .strict();
@@ -42,6 +43,7 @@ export const userUpdateSchema = z
   .object({
     name: z.string().transform((s) => s.trim()).pipe(z.string().min(2)).optional(),
     email: z.email().transform((s) => s.trim().toLowerCase()).optional(),
+    role: z.enum(Roles).optional(),
     passwordHash: z.string().optional(),
   })
   .strict()
@@ -55,11 +57,6 @@ export const userReadSchema = z
     id: z.uuid(),
     name: z.string(),
     email: z.email(),
-  })
-  .strict();
-
-export const readUserWithRoleSchema = userReadSchema
-  .extend({
     role: z.enum(Roles),
   })
   .strict();
@@ -93,13 +90,12 @@ export const listUsersResponseSchema = z.object({
 
 export type UserIdParams = z.infer<typeof userIdParamsSchema>;
 
-export type CreateUserCommand = z.infer<typeof createUserCommandSchema>;
-export type UpdateUserCommand = z.infer<typeof updateUserCommandSchema>;
+export type CreateUserCommandSchema = z.infer<typeof createUserCommandSchema>;
+export type UpdateUserCommandSchema = z.infer<typeof updateUserCommandSchema>;
 
 export type UserCreate = z.infer<typeof userCreateSchema>;
 export type UserUpdate = z.infer<typeof userUpdateSchema>;
 
 export type UserRead = z.infer<typeof userReadSchema>;
-export type UserReadWithRole = z.infer<typeof readUserWithRoleSchema>;
 export type ListUsers = z.infer<typeof listUsersQuerySchema>;
 export type ListUsersResponse = z.infer<typeof listUsersResponseSchema>;

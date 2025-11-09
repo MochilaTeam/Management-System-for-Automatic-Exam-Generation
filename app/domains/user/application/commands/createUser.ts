@@ -1,18 +1,14 @@
-// domains/user/application/commands/CreateUser/CreateUserCommand.ts
 import { BaseCommand } from "../../../../shared/domain/base_use_case";
 import { randomUUID } from "crypto";
+import { IUserRepository } from "../../domain/ports/IUserRepository";
+import { UserService } from "../../domain/services/userService";
+import { CreateUserCommandSchema, UserRead } from "../../schemas/userSchema";
 
-type Input  = { name: string; email: string; role: any; password?: string };
-type Output = { data: { id: string; name: string; email: string; role: string; active: boolean } };
-
-export class CreateUserCommand extends BaseCommand<Input, Output> {
+export class CreateUserCommand extends BaseCommand<CreateUserCommandSchema, UserRead> {
   constructor(private readonly repo: IUserRepository, private readonly svc: UserService) { super(); }
 
-  protected async executeBusinessLogic(input: Input): Promise<Output> {
-    await this.svc.ensureEmailIsUnique(input.email);
-    const id = randomUUID();
-    const passwordHash = input.password ? "TODO_HASH" : undefined; // integra tu hasher
-    const u = await this.repo.create({ id, name: input.name, email: input.email, role: input.role, passwordHash, active: true });
-    return { data: await this.svc.toPublic(u) };
+  protected async executeBusinessLogic(input: CreateUserCommandSchema): Promise<UserRead> {
+    const resp = await this.svc.create(input)
+    return resp
   }
 }

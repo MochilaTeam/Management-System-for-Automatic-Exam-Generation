@@ -1,5 +1,5 @@
 import { Op, WhereOptions, OrderItem, Attributes } from "sequelize";
-import type User from "../models/User";
+import type { User } from "../models";
 
 import {userCreateSchema,userUpdateSchema,userReadSchema,type UserCreate,type UserUpdate,type UserRead,} from "../../../domains/user/schemas/userSchema";
 
@@ -11,11 +11,13 @@ export const UserMapper = {
       id: string;
       name: string;
       email: string;
+      role: string;
     };
     return userReadSchema.parse({
       id: p.id,
       name: p.name,
       email: p.email,
+      role: p.role,
     });
   },
 
@@ -25,6 +27,7 @@ export const UserMapper = {
       name: safe.name,
       email: safe.email,
       passwordHash: safe.passwordHash,
+      role: safe.role,
     };
   },
 
@@ -34,6 +37,7 @@ export const UserMapper = {
     if (safe.name !== undefined) attrs.name = safe.name;
     if (safe.email !== undefined) attrs.email = safe.email;
     if (safe.passwordHash !== undefined) attrs.passwordHash = safe.passwordHash;
+    if (safe.role !== undefined) attrs.role = safe.role;
     return attrs;
   },
 
