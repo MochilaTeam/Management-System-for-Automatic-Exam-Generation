@@ -1,12 +1,13 @@
 // app/domains/question-bank/api/routes/subjectRoutes.ts
-import { Router } from "express";
+import { Router } from 'express';
+
 import {
-  createSubject,
-  deleteSubject,
-  getSubjectById,
-  listSubjects,
-  updateSubject,
-} from "../controllers/subjectController";
+    createSubject,
+    deleteSubject,
+    getSubjectById,
+    listSubjects,
+    updateSubject,
+} from '../controllers/subjectController';
 
 const router = Router();
 
@@ -92,8 +93,8 @@ const router = Router();
  *                 success:
  *                   type: boolean
  */
-router.get("/subjects", listSubjects);
-router.post("/subjects", createSubject);
+router.get('/subjects', listSubjects);
+router.post('/subjects', createSubject);
 
 /**
  * @openapi
@@ -157,8 +158,8 @@ router.post("/subjects", createSubject);
  *       204:
  *         description: Eliminado correctamente.
  */
-router.get("/subjects/:subjectId", getSubjectById);
-router.patch("/subjects/:subjectId", updateSubject);
-router.delete("/subjects/:subjectId", deleteSubject);
+router.get('/subjects/:subjectId', getSubjectById);
+router.patch('/subjects/:subjectId', updateSubject);
+router.delete('/subjects/:subjectId', deleteSubject);
 
 export default router;

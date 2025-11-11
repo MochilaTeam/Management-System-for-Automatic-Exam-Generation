@@ -1,8 +1,9 @@
-import { Router } from "express";
-import subjectRoutes from "./api/routes/subjectRoutes";
-import { authenticate } from "../../core/middlewares/authenticate";
-import subtopicRoutes from "./api/routes/subtopicRoutes";
-import topicRoutes from "./api/routes/topicRoutes";
+import { Router } from 'express';
+
+import subjectRoutes from './api/routes/subjectRoutes';
+import subtopicRoutes from './api/routes/subtopicRoutes';
+import topicRoutes from './api/routes/topicRoutes';
+import { authenticate } from '../../core/middlewares/authenticate';
 
 const questionBankRouter = Router();
 

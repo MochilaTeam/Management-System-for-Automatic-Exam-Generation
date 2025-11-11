@@ -1,5 +1,12 @@
-import { Router } from "express";
-import { createTopic, deleteTopic, getTopicById, listTopics, updateTopic } from "../controllers/topicController";
+import { Router } from 'express';
+
+import {
+    createTopic,
+    deleteTopic,
+    getTopicById,
+    listTopics,
+    updateTopic,
+} from '../controllers/topicController';
 
 const router = Router();
 
@@ -66,8 +73,8 @@ const router = Router();
  *                 data: { $ref: '#/components/schemas/TopicDetail' }
  *                 success: { type: boolean }
  */
-router.get("/topics", listTopics);
-router.post("/topics", createTopic);
+router.get('/topics', listTopics);
+router.post('/topics', createTopic);
 
 /**
  * @openapi
@@ -128,8 +135,8 @@ router.post("/topics", createTopic);
  *       204:
  *         description: Eliminado correctamente.
  */
-router.get("/topics/:topicId", getTopicById);
-router.patch("/topics/:topicId", updateTopic);
-router.delete("/topics/:topicId", deleteTopic);
+router.get('/topics/:topicId', getTopicById);
+router.patch('/topics/:topicId', updateTopic);
+router.delete('/topics/:topicId', deleteTopic);
 
 export default router;

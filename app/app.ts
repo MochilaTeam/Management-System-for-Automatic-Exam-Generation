@@ -9,8 +9,8 @@ import { createDatabaseIfNotExists } from './database/database';
 import { connect } from './database/database';
 import { syncTables } from './database/init';
 import { swaggerSpec } from './docs/swagger';
-import { userRouter } from './domains/user/main';
 import { questionBankRouter } from './domains/question-bank/main';
+import { userRouter } from './domains/user/main';
 
 const PORT = 5000;
 const logger: SystemLogger = get_logger();

@@ -1,10 +1,11 @@
-import { Router } from "express";
+import { Router } from 'express';
+
 import {
-  createSubtopic,
-  deleteSubtopic,
-  getSubtopicById,
-  listSubtopics,
-} from "../controllers/subtopicController";
+    createSubtopic,
+    deleteSubtopic,
+    getSubtopicById,
+    listSubtopics,
+} from '../controllers/subtopicController';
 
 const router = Router();
 
@@ -71,8 +72,8 @@ const router = Router();
  *                 data: { $ref: '#/components/schemas/SubtopicDetail' }
  *                 success: { type: boolean }
  */
-router.get("/subtopics", listSubtopics);
-router.post("/subtopics", createSubtopic);
+router.get('/subtopics', listSubtopics);
+router.post('/subtopics', createSubtopic);
 
 /**
  * @openapi
@@ -107,7 +108,7 @@ router.post("/subtopics", createSubtopic);
  *       204:
  *         description: Eliminado correctamente.
  */
-router.get("/subtopics/:subtopicId", getSubtopicById);
-router.delete("/subtopics/:subtopicId", deleteSubtopic);
+router.get('/subtopics/:subtopicId', getSubtopicById);
+router.delete('/subtopics/:subtopicId', deleteSubtopic);
 
 export default router;
