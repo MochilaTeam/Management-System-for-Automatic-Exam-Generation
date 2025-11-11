@@ -13,7 +13,11 @@ import {
 import { BaseRepository } from '../../../shared/domain/base_repository';
 import { SubTopic as SubTopicModel, Topic as TopicModel } from '../models';
 
+type SubtopicPlain = { id: string; name: string; topicId: string };
+type TopicPlain = { title: string };
+
 export class SubtopicRepository
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     extends BaseRepository<SubTopicModel, any, any, any>
     implements ISubtopicRepository
 {
@@ -28,9 +32,9 @@ export class SubtopicRepository
     }
 
     private async rowToDetail(row: SubTopicModel, tx?: Transaction): Promise<SubtopicDetail> {
-        const p = row.get({ plain: true }) as { id: string; name: string; topicId: string };
+        const p = row.get({ plain: true }) as SubtopicPlain;
         const topic = await TopicModel.findByPk(p.topicId, { transaction: this.effTx(tx) });
-        const topicName = topic ? (topic.get({ plain: true }) as { title: string }).title : '';
+        const topicName = topic ? (topic.get({ plain: true }) as TopicPlain).title : '';
         return subtopicDetailSchema.parse({
             subtopic_id: p.id,
             subtopic_name: p.name,
@@ -56,7 +60,7 @@ export class SubtopicRepository
                 transaction: this.effTx(tx),
             });
 
-            const items = [];
+            const items: SubtopicDetail[] = [];
             for (const r of rows) items.push(await this.rowToDetail(r, tx));
             return { items, total: count };
         } catch (e) {

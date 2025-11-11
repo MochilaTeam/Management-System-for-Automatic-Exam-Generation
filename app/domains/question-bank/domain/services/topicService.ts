@@ -5,14 +5,11 @@ import {
     TopicCreate,
     TopicUpdate,
     TopicDetail,
-    listTopicsQuerySchema,
     topicCreateSchema,
     topicUpdateSchema,
     ListTopics,
 } from '../../schemas/topicSchema';
 import { ITopicRepository, ListTopicsCriteria } from '../ports/ITopicRepository';
-
-type Deps = { repo: ITopicRepository };
 
 export class TopicService {
     constructor(private readonly repo: ITopicRepository) {}

@@ -20,7 +20,13 @@ import {
     SubjectTopic as SubjectTopicModel,
 } from '../models';
 
+type TopicPlain = { id: string; title: string };
+type SubjectPlain = { id: string; name: string };
+type SubtopicPlain = { id: string; name: string };
+type SubjectTopicPlain = { subjectId: string; topicId: string };
+
 export class TopicRepository
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     extends BaseRepository<TopicModel, any, any, any>
     implements ITopicRepository
 {
@@ -35,19 +41,23 @@ export class TopicRepository
     }
 
     private async buildDetail(topicRow: TopicModel, tx?: Transaction): Promise<TopicDetail> {
-        const t = topicRow.get({ plain: true }) as { id: string; title: string };
+        const t = topicRow.get({ plain: true }) as TopicPlain;
 
         // subjects asociados (pivot)
         const pivots = await SubjectTopicModel.findAll({
             where: { topicId: t.id },
             transaction: this.effTx(tx),
         });
-        const subjectIds = pivots.map((p: any) => p.get('subjectId') as string);
+        const subjectIds = pivots.map(
+            (p) => (p.get({ plain: true }) as SubjectTopicPlain).subjectId,
+        );
+
         const subjects = subjectIds.length
             ? await SubjectModel.findAll({ where: { id: subjectIds }, transaction: this.effTx(tx) })
             : [];
+
         const subjectsArr = subjects.map((s) => {
-            const sp = s.get({ plain: true }) as { id: string; name: string };
+            const sp = s.get({ plain: true }) as SubjectPlain;
             return { subject_id: sp.id, subject_name: sp.name };
         });
 
@@ -57,7 +67,7 @@ export class TopicRepository
             transaction: this.effTx(tx),
         });
         const subArr = subs.map((s) => {
-            const sp = s.get({ plain: true }) as { id: string; name: string };
+            const sp = s.get({ plain: true }) as SubtopicPlain;
             return { subtopic_id: sp.id, subtopic_name: sp.name };
         });
 
@@ -76,15 +86,17 @@ export class TopicRepository
             const where: WhereOptions = {};
             if (criteria.filters?.q) where['title'] = { [Op.like]: `%${criteria.filters.q}%` };
 
-            // Filtrar por subject asociado (vía pivot): primero saco topicIds por subject
+            // Filtrar por subject asociado (vía pivot)
             if (criteria.filters?.subject_id) {
                 const pivots = await SubjectTopicModel.findAll({
                     where: { subjectId: criteria.filters.subject_id },
                     transaction: this.effTx(tx),
                     attributes: ['topicId'],
                 });
-                const topicIds = pivots.map((p: any) => p.get('topicId') as string);
-                Object.assign(where, { id: topicIds.length ? topicIds : '__none__' }); // evita traer todos si no hay
+                const topicIds = pivots.map(
+                    (p) => (p.get({ plain: true }) as SubjectTopicPlain).topicId,
+                );
+                Object.assign(where, { id: topicIds.length ? topicIds : '__none__' });
             }
 
             const limit = criteria.limit ?? 20;
@@ -154,7 +166,6 @@ export class TopicRepository
 
     async deleteById(id: string, tx?: Transaction) {
         try {
-            // borro primero asociaciones pivot y subtopics (según tu política de integridad)
             await SubjectTopicModel.destroy({
                 where: { topicId: id },
                 transaction: this.effTx(tx),

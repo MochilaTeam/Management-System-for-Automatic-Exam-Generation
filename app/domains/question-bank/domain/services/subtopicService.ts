@@ -8,8 +8,6 @@ import {
 } from '../../schemas/subtopicSchema';
 import { ISubtopicRepository, ListSubtopicsCriteria } from '../ports/ISubtopicRepository';
 
-type Deps = { repo: ISubtopicRepository };
-
 export class SubtopicService {
     constructor(private readonly repo: ISubtopicRepository) {}
 

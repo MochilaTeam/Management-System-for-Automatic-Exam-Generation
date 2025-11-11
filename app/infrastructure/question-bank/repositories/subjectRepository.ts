@@ -23,6 +23,17 @@ import {
     SubjectTopic as SubjectTopicModel,
 } from '../models';
 
+// Tipos planos para evitar `any`
+type TeacherPlain = { name?: string; firstName?: string; lastName?: string };
+type SubjectTopicPlain = { subjectId: string; topicId: string };
+type TopicPlain = { id: string; title: string };
+type SubtopicPlain = { id: string; name: string };
+type SubjectLeadPlain = { leadTeacherId: string | null };
+
+// Cuando listamos, `SubjectRead` no trae `leadTeacherId`,
+// así que definimos un tipo auxiliar con el campo opcional.
+type SubjectListItem = SubjectRead & { leadTeacherId?: string | null };
+
 export class SubjectRepository
     extends BaseRepository<SubjectModel, SubjectRead, SubjectCreate, SubjectUpdate>
     implements ISubjectRepository
@@ -54,11 +65,7 @@ export class SubjectRepository
                 transaction: this.effTx(tx),
             });
             if (teacher) {
-                const t = teacher.get({ plain: true }) as {
-                    name?: string;
-                    firstName?: string;
-                    lastName?: string;
-                };
+                const t = teacher.get({ plain: true }) as TeacherPlain;
                 leaderName = t.name ?? [t.firstName, t.lastName].filter(Boolean).join(' ') ?? '';
             }
         }
@@ -68,21 +75,25 @@ export class SubjectRepository
             where: { subjectId: subj.id },
             transaction: this.effTx(tx),
         });
-        const topicIds = subjectTopics.map((st: any) => st.get('topicId') as string);
+        const topicIds = subjectTopics.map(
+            (st) => (st.get({ plain: true }) as SubjectTopicPlain).topicId,
+        );
+
         const topics = topicIds.length
             ? await TopicModel.findAll({ where: { id: topicIds }, transaction: this.effTx(tx) })
             : [];
 
-        const topicDetails = [];
+        const topicDetails: Array<ReturnType<typeof topicDetailSchema.parse>> = [];
         for (const topic of topics) {
-            const t = topic.get({ plain: true }) as { id: string; title: string };
+            const t = topic.get({ plain: true }) as TopicPlain;
+
             const subs = await SubTopicModel.findAll({
                 where: { topicId: t.id },
                 transaction: this.effTx(tx),
             });
 
             const subDetails = subs.map((s) => {
-                const sp = s.get({ plain: true }) as { id: string; name: string };
+                const sp = s.get({ plain: true }) as SubtopicPlain;
                 return subTopicDetailSchema.parse({
                     subtopic_id: sp.id,
                     subtopic_name: sp.name,
@@ -110,7 +121,7 @@ export class SubjectRepository
         });
     }
 
-    // --- métodos públicos ya existentes (paginate/list/exists/delete) se mantienen ---
+    // --- métodos públicos existentes ---
 
     async paginate(criteria: ListSubjectsCriteria, tx?: Transaction) {
         const opts = SubjectMapper.toOptions(criteria);
@@ -141,7 +152,6 @@ export class SubjectRepository
         return deleted > 0;
     }
 
-    // detalle por id (ya lo teníamos)
     async get_detail_by_id(id: string, tx?: Transaction): Promise<SubjectDetail | null> {
         try {
             const subjectRow = await this.model.findByPk(id, { transaction: this.effTx(tx) });
@@ -158,24 +168,36 @@ export class SubjectRepository
         }
     }
 
-    // 👇 NUEVO: paginación con detalle
     async paginateDetail(
         criteria: ListSubjectsCriteria,
         tx?: Transaction,
     ): Promise<{ items: SubjectDetail[]; total: number }> {
         try {
-            // 1) paginamos subjects “simples” para respetar limit/offset/total
+            // 1) paginamos subjects “simples”
             const { items: subjects, total } = await this.paginate(criteria, tx);
 
-            // 2) para cada subject, construimos su detail
+            // 2) construimos el detail de cada uno
             const details: SubjectDetail[] = [];
             for (const s of subjects) {
-                // s viene validado por mapper → lo casteamos a los campos que necesitamos
+                const subjList = s as SubjectListItem;
+
+                // Si no tenemos leadTeacherId en el read, lo resolvemos consultando por id
+                let leadTeacherId: string | null = null;
+                if (subjList.leadTeacherId !== undefined) {
+                    leadTeacherId = subjList.leadTeacherId ?? null;
+                } else {
+                    const full = await this.model.findByPk(subjList.id, {
+                        transaction: this.effTx(tx),
+                    });
+                    const lead = full ? (full.get({ plain: true }) as SubjectLeadPlain) : null;
+                    leadTeacherId = lead ? lead.leadTeacherId : null;
+                }
+
                 const subj = {
                     id: s.id,
                     name: s.name,
                     program: s.program,
-                    leadTeacherId: (s as any).leadTeacherId ?? null,
+                    leadTeacherId,
                 };
                 const detail = await this.buildDetailForSubject(subj, tx);
                 details.push(detail);
