@@ -10,6 +10,7 @@ import { connect } from './database/database';
 import { syncTables } from './database/init';
 import { swaggerSpec } from './docs/swagger';
 import { userRouter } from './domains/user/main';
+import { questionBankRouter } from './domains/question-bank/main';
 
 const PORT = 5000;
 const logger: SystemLogger = get_logger();
@@ -20,6 +21,7 @@ app.use(responseInterceptor);
 app.use('/API', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/API.json', (_req, res) => res.json(swaggerSpec));
 app.use(userRouter);
+app.use(questionBankRouter);
 
 const start = async () => {
     await createDatabaseIfNotExists();

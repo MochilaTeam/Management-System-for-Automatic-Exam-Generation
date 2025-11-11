@@ -1,0 +1,22 @@
+import { Router } from "express";
+import subjectRoutes from "./api/routes/subjectRoutes";
+import { authenticate } from "../../core/middlewares/authenticate";
+import subtopicRoutes from "./api/routes/subtopicRoutes";
+import topicRoutes from "./api/routes/topicRoutes";
+
+const questionBankRouter = Router();
+
+// Si tienes endpoints públicos aquí, móntalos ANTES del authenticate.
+
+// Endpoints protegidos
+questionBankRouter.use(authenticate);
+questionBankRouter.use(subjectRoutes);
+questionBankRouter.use(subtopicRoutes);
+questionBankRouter.use(topicRoutes);
+// TODO: cuando agregues más rutas del dominio:
+// import topicRoutes from "./api/routes/topicRoutes";
+// import subtopicRoutes from "./api/routes/subtopicRoutes";
+// questionBankRouter.use(topicRoutes);
+// questionBankRouter.use(subtopicRoutes);
+
+export { questionBankRouter };

@@ -23,7 +23,7 @@ Subject.init(
 
         leadTeacherId: {
             type: DataTypes.UUID,
-            allowNull: false,
+            allowNull: true,
             references: { model: 'Teachers', key: 'id' },
             onUpdate: 'CASCADE',
             onDelete: 'RESTRICT',
