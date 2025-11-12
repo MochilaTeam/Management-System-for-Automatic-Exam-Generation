@@ -61,34 +61,109 @@ const teacherSchema = {
     ],
 };
 
+// ===== QUESTION-BANK (consistentes y sin duplicados) =====
+const subjectSchema = {
+    type: 'object',
+    properties: {
+        id: { type: 'string', format: 'uuid' },
+        name: { type: 'string' },
+        program: { type: 'string' },
+        leadTeacherId: { type: 'string', format: 'uuid', nullable: true },
+    },
+    required: ['id', 'name', 'program'],
+    additionalProperties: false,
+};
+
+// Canonizamos a "SubtopicDetail" (camel normal). Evita usar "SubTopicDetail".
+const subtopicDetailSchema = {
+    type: 'object',
+    properties: {
+        subtopic_id: { type: 'string', format: 'uuid' },
+        subtopic_name: { type: 'string' },
+    },
+    required: ['subtopic_id', 'subtopic_name'],
+    additionalProperties: false,
+};
+
+// Referencia compacta de Subject para TopicDetail.subjects[]
+const subjectRefSchema = {
+    type: 'object',
+    properties: {
+        subject_id: { type: 'string', format: 'uuid' },
+        subject_name: { type: 'string' },
+    },
+    required: ['subject_id', 'subject_name'],
+    additionalProperties: false,
+};
+
+// NUEVO TopicDetail correcto (M:N con subjects[])
+const topicDetailSchema_correct = {
+    type: 'object',
+    properties: {
+        topic_id: { type: 'string', format: 'uuid' },
+        topic_name: { type: 'string' },
+        subjects_amount: { type: 'number' },
+        subjects: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/SubjectRef' },
+        },
+        subtopics_amount: { type: 'number' },
+        subtopics: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/SubtopicDetail' },
+        },
+    },
+    required: [
+        'topic_id',
+        'topic_name',
+        'subjects_amount',
+        'subjects',
+        'subtopics_amount',
+        'subtopics',
+    ],
+    additionalProperties: false,
+};
+
+// SubjectDetail ahora referencia el TopicDetail NUEVO (sin subject_id único).
+const subjectDetailSchema = {
+    type: 'object',
+    properties: {
+        subject_id: { type: 'string', format: 'uuid' },
+        subject_name: { type: 'string' },
+        subject_program: { type: 'string' },
+        subject_leader_name: { type: 'string', description: 'Vacío si no hay líder' },
+        topics_amount: { type: 'number' },
+        topics: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/TopicDetail' },
+        },
+    },
+    required: [
+        'subject_id',
+        'subject_name',
+        'subject_program',
+        'subject_leader_name',
+        'topics_amount',
+        'topics',
+    ],
+    additionalProperties: false,
+};
+
 const swaggerDefinition = {
     openapi: '3.0.0',
     info: {
         title: 'Management System API',
         version: '1.0.0',
-        description:
-            'API para gestionar usuarios y estudiantes dentro del sistema de exámenes automáticos.',
+        description: 'API para gestionar usuarios y el banco de preguntas del sistema de exámenes.',
     },
-    servers: [
-        {
-            url: 'http://localhost:5000',
-            description: 'Servidor local',
-        },
-    ],
-    security: [
-        {
-            bearerAuth: [],
-        },
-    ],
+    servers: [{ url: 'http://localhost:5000', description: 'Servidor local' }],
+    security: [{ bearerAuth: [] }],
     components: {
         securitySchemes: {
-            bearerAuth: {
-                type: 'http',
-                scheme: 'bearer',
-                bearerFormat: 'JWT',
-            },
+            bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
         },
         schemas: {
+            // ===== AUTH / USER / TEACHER / STUDENT (ya existentes) =====
             LoginRequest: {
                 type: 'object',
                 properties: {
@@ -116,13 +191,11 @@ const swaggerDefinition = {
             Student: studentSchema,
             User: userSchema,
             Teacher: teacherSchema,
+
             ListStudentsResponse: {
                 type: 'object',
                 properties: {
-                    data: {
-                        type: 'array',
-                        items: { $ref: '#/components/schemas/Student' },
-                    },
+                    data: { type: 'array', items: { $ref: '#/components/schemas/Student' } },
                     meta: paginationMetaSchema,
                 },
                 required: ['data', 'meta'],
@@ -130,10 +203,7 @@ const swaggerDefinition = {
             ListUsersResponse: {
                 type: 'object',
                 properties: {
-                    data: {
-                        type: 'array',
-                        items: { $ref: '#/components/schemas/User' },
-                    },
+                    data: { type: 'array', items: { $ref: '#/components/schemas/User' } },
                     meta: paginationMetaSchema,
                 },
                 required: ['data', 'meta'],
@@ -141,14 +211,12 @@ const swaggerDefinition = {
             ListTeachersResponse: {
                 type: 'object',
                 properties: {
-                    data: {
-                        type: 'array',
-                        items: { $ref: '#/components/schemas/Teacher' },
-                    },
+                    data: { type: 'array', items: { $ref: '#/components/schemas/Teacher' } },
                     meta: paginationMetaSchema,
                 },
                 required: ['data', 'meta'],
             },
+
             CreateStudentInput: {
                 type: 'object',
                 properties: {
@@ -190,31 +258,54 @@ const swaggerDefinition = {
                     password: { type: 'string', minLength: 8 },
                 },
             },
-            CreateTeacherInput: {
+
+            // ===== QUESTION-BANK: componentes consistentes =====
+            Subject: subjectSchema,
+
+            // ÚNICOS válidos (no repitas estos nombres en otro lado):
+            SubtopicDetail: subtopicDetailSchema,
+            SubjectRef: subjectRefSchema,
+            TopicDetail: topicDetailSchema_correct,
+            SubjectDetail: subjectDetailSchema,
+
+            // Wrappers de Subjects
+            RetrieveOneSubjectDetailResponse: {
                 type: 'object',
                 properties: {
-                    name: { type: 'string' },
-                    email: { type: 'string', format: 'email' },
-                    password: { type: 'string', minLength: 8 },
-                    role: { type: 'string', enum: roleEnum },
-                    specialty: { type: 'string' },
-                    hasRoleSubjectLeader: { type: 'boolean' },
-                    hasRoleExaminer: { type: 'boolean' },
+                    data: { $ref: '#/components/schemas/SubjectDetail' },
+                    success: { type: 'boolean', example: true },
                 },
-                required: ['name', 'email', 'password', 'role', 'specialty'],
+                required: ['data'],
+                additionalProperties: false,
             },
-            UpdateTeacherInput: {
+            PaginatedSubjectDetailResponse: {
                 type: 'object',
                 properties: {
-                    name: { type: 'string' },
-                    email: { type: 'string', format: 'email' },
-                    password: { type: 'string', minLength: 8 },
-                    role: { type: 'string', enum: roleEnum },
-                    specialty: { type: 'string' },
-                    hasRoleSubjectLeader: { type: 'boolean' },
-                    hasRoleExaminer: { type: 'boolean' },
+                    data: { type: 'array', items: { $ref: '#/components/schemas/SubjectDetail' } },
+                    meta: paginationMetaSchema,
+                },
+                required: ['data', 'meta'],
+                additionalProperties: false,
+            },
+
+            // Inputs Subjects
+            CreateSubjectInput: {
+                type: 'object',
+                properties: {
+                    subject_name: { type: 'string' },
+                    subject_program: { type: 'string' },
+                },
+                required: ['subject_name', 'subject_program'],
+            },
+            UpdateSubjectInput: {
+                type: 'object',
+                properties: {
+                    subject_name: { type: 'string' },
+                    subject_program: { type: 'string' },
                 },
             },
+
+            // También puedes añadir wrappers de Topics/Subtopics si quieres
         },
     },
 };
