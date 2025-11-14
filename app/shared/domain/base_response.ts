@@ -6,6 +6,18 @@ export class BaseResponse {
     ) {}
 }
 
+export class BaseErrorResponse<TDetails = unknown> extends BaseResponse {
+    constructor(
+        message: string,
+        public code: string | null = null,
+        public statusCode: number | null = null,
+        public entity: string | null = null,
+        public details?: TDetails,
+    ) {
+        super(false, message);
+    }
+}
+
 /** Paginación con datos adicionales (metadatos, agregados, filtros aplicados, etc.) */
 export class PaginationWithAdditionalDataSchema<
     T,
