@@ -2,11 +2,14 @@ import { RetrieveOneSchema } from '../../../../shared/domain/base_response';
 import { BaseCommand } from '../../../../shared/domain/base_use_case';
 import { NotFoundError } from '../../../../shared/exceptions/domainErrors';
 import { SubjectService } from '../../domain/services/subjectService';
-import { UpdateSubjectBody, SubjectRead } from '../../schemas/subjectSchema';
+import { UpdateSubjectBody, SubjectDetail } from '../../schemas/subjectSchema';
 
 type UpdateInput = { subjectId: string; patch: UpdateSubjectBody };
 
-export class UpdateSubjectCommand extends BaseCommand<UpdateInput, RetrieveOneSchema<SubjectRead>> {
+export class UpdateSubjectCommand extends BaseCommand<
+    UpdateInput,
+    RetrieveOneSchema<SubjectDetail>
+> {
     constructor(private readonly svc: SubjectService) {
         super();
     }

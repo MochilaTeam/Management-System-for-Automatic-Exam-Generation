@@ -20,13 +20,16 @@ export class SubjectService {
         return s.trim();
     }
 
-    async create(input: CreateSubjectBody): Promise<SubjectRead> {
+    async create(input: CreateSubjectBody): Promise<SubjectDetail> {
         const name = this.norm(input.subject_name);
         const program = this.norm(input.subject_program);
         const taken = await this.repo.existsBy({ name });
         if (taken) throw new Error('SUBJECT_NAME_TAKEN');
         const dto: SubjectCreate = { name, program, leadTeacherId: null };
-        return this.repo.create(dto);
+        const subject = await this.repo.create(dto);
+        const detail = await this.repo.get_detail_by_id(subject.id);
+        if (!detail) throw new Error('SUBJECT_NOT_FOUND_AFTER_CREATE');
+        return detail;
     }
 
     async paginate(criteria: ListSubjects): Promise<{ list: SubjectRead[]; total: number }> {
@@ -63,7 +66,7 @@ export class SubjectService {
     async update(
         id: string,
         patch: Partial<{ subject_name: string; subject_program: string }>,
-    ): Promise<SubjectRead | null> {
+    ): Promise<SubjectDetail | null> {
         const current = await this.repo.get_by_id(id);
         if (!current) return null;
         const dto: Partial<SubjectUpdate> = {};
@@ -76,7 +79,11 @@ export class SubjectService {
             dto.name = newName;
         }
         if (patch.subject_program != null) dto.program = this.norm(patch.subject_program);
-        return this.repo.update(id, dto as SubjectUpdate);
+        const updated = await this.repo.update(id, dto as SubjectUpdate);
+        if (!updated) return null;
+        const detail = await this.repo.get_detail_by_id(updated.id);
+        if (!detail) throw new Error('SUBJECT_NOT_FOUND_AFTER_UPDATE');
+        return detail;
     }
 
     async get_detail_by_id(id: string): Promise<SubjectDetail | null> {

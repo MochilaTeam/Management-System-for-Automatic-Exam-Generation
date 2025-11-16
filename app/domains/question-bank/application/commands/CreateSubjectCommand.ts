@@ -1,11 +1,11 @@
 import { RetrieveOneSchema } from '../../../../shared/domain/base_response';
 import { BaseCommand } from '../../../../shared/domain/base_use_case';
 import { SubjectService } from '../../domain/services/subjectService';
-import { CreateSubjectBody, SubjectRead } from '../../schemas/subjectSchema';
+import { CreateSubjectBody, SubjectDetail } from '../../schemas/subjectSchema';
 
 type Input = { body: CreateSubjectBody };
 
-export class CreateSubjectCommand extends BaseCommand<Input, RetrieveOneSchema<SubjectRead>> {
+export class CreateSubjectCommand extends BaseCommand<Input, RetrieveOneSchema<SubjectDetail>> {
     constructor(private readonly svc: SubjectService) {
         super();
     }
