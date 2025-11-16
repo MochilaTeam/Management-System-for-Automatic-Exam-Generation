@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 
+import { BaseErrorResponse } from '../../shared/domain/base_response';
 import { HttpStatus } from '../../shared/enums/httpStatusEnum';
 import { AppError } from '../../shared/exceptions/appError';
-import { BaseErrorResponse } from '../../shared/domain/base_response';
 import { get_logger } from '../dependencies/dependencies';
 import { SystemLogger } from '../logging/logger';
 
@@ -19,11 +19,11 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
             method: req.method,
         });
         const response = new BaseErrorResponse(
-            err.message, 
-            err.code, 
-            err.statusCode, 
-            err.entity, 
-            err.details
+            err.message,
+            err.code,
+            err.statusCode,
+            err.entity,
+            err.details,
         );
         return res.status(err.statusCode).json(response);
     }
