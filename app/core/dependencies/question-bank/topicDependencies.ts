@@ -6,14 +6,18 @@ import { UpdateTopicCommand } from '../../../domains/question-bank/application/c
 import { GetTopicByIdQuery } from '../../../domains/question-bank/application/queries/GetTopicByIdQuery';
 import { ListTopicsQuery } from '../../../domains/question-bank/application/queries/ListTopicsQuery';
 import { TopicService } from '../../../domains/question-bank/domain/services/topicService';
-import { Topic } from '../../../infrastructure/question-bank/models';
+import { Subject, Topic } from '../../../infrastructure/question-bank/models';
+import { SubjectRepository } from '../../../infrastructure/question-bank/repositories/subjectRepository';
 import { TopicRepository } from '../../../infrastructure/question-bank/repositories/topicRepository';
 
-function getRepo() {
+function getTopicRepo() {
     return new TopicRepository(Topic);
 }
+function getSubjectRepo() {
+    return new SubjectRepository(Subject);
+}
 function getService() {
-    return new TopicService(getRepo());
+    return new TopicService({ repo: getTopicRepo(), subjectRepo: getSubjectRepo() });
 }
 
 export const makeCreateTopicCommand = () => new CreateTopicCommand(getService());

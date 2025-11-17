@@ -152,6 +152,26 @@ export class SubjectRepository
         return deleted > 0;
     }
 
+    async existsSubjectTopic(subjectId: string, topicId: string, tx?: Transaction) {
+        const found = await SubjectTopicModel.findOne({
+            where: { subjectId, topicId },
+            transaction: this.effTx(tx),
+        });
+        return Boolean(found);
+    }
+
+    async createSubjectTopic(subjectId: string, topicId: string, tx?: Transaction) {
+        await SubjectTopicModel.create({ subjectId, topicId }, { transaction: this.effTx(tx) });
+    }
+
+    async deleteSubjectTopic(subjectId: string, topicId: string, tx?: Transaction) {
+        const deleted = await SubjectTopicModel.destroy({
+            where: { subjectId, topicId },
+            transaction: this.effTx(tx),
+        });
+        return deleted > 0;
+    }
+
     async get_detail_by_id(id: string, tx?: Transaction): Promise<SubjectDetail | null> {
         try {
             const subjectRow = await this.model.findByPk(id, { transaction: this.effTx(tx) });

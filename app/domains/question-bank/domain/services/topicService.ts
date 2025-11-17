@@ -10,11 +10,22 @@ import {
     topicUpdateSchema,
     UpdateTopicBody,
 } from '../../schemas/topicSchema';
+import { ISubjectRepository } from '../ports/ISubjectRepository';
 import { ITopicRepository, ListTopicsCriteria } from '../ports/ITopicRepository';
 
+type Deps = {
+    repo: ITopicRepository;
+    subjectRepo: ISubjectRepository;
+};
+
 export class TopicService extends BaseDomainService {
-    constructor(private readonly repo: ITopicRepository) {
+    public readonly repo: ITopicRepository;
+    private readonly subjectRepo: ISubjectRepository;
+
+    constructor(deps: Deps) {
         super();
+        this.repo = deps.repo;
+        this.subjectRepo = deps.subjectRepo;
     }
 
     private norm(s: string) {
@@ -56,21 +67,24 @@ export class TopicService extends BaseDomainService {
     }
 
     async createSubjectTopic(body: CreateSubjectTopicBody): Promise<TopicDetail> {
-        const subject = await Subject.findByPk(body.subject_id);
-        if (!subject) this.raiseNotFoundError('create-subject-topic', 'No existe la asignatura');
-        const topic = await Topic.findByPk(body.topic_id);
-        if (!topic) this.raiseNotFoundError('create-subject-topic', 'No existe el tema');
+        const subject = await this.subjectRepo.get_by_id(body.subject_id);
+        if (!subject) {
+            this.raiseNotFoundError('create-subject-topic', 'No existe la asignatura');
+        }
 
-        const existing = await SubjectTopic.findOne({
-            where: { subjectId: body.subject_id, topicId: body.topic_id },
-        });
+        const topicDetail = await this.repo.get_detail_by_id(body.topic_id);
+        if (!topicDetail) {
+            this.raiseNotFoundError('create-subject-topic', 'No existe el tema');
+        }
+
+        const existing = await this.subjectRepo.existsSubjectTopic(body.subject_id, body.topic_id);
         if (existing) {
             this.raiseBusinessRuleError('create-subject-topic', 'La relación ya existe', {
                 entity: 'SubjectTopic',
             });
         }
 
-        await SubjectTopic.create({ subjectId: body.subject_id, topicId: body.topic_id });
+        await this.subjectRepo.createSubjectTopic(body.subject_id, body.topic_id);
 
         const detail = await this.repo.get_detail_by_id(body.topic_id);
         if (!detail) {
@@ -80,10 +94,7 @@ export class TopicService extends BaseDomainService {
     }
 
     async deleteSubjectTopic(body: CreateSubjectTopicBody): Promise<boolean> {
-        const deleted = await SubjectTopic.destroy({
-            where: { subjectId: body.subject_id, topicId: body.topic_id },
-        });
-        return deleted > 0;
+        return this.subjectRepo.deleteSubjectTopic(body.subject_id, body.topic_id);
     }
 
     async get_detail_by_id(id: string) {
