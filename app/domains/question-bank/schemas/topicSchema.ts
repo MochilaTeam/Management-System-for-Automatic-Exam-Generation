@@ -35,7 +35,6 @@ export type SubjectRef = z.infer<typeof subjectRefSchema>;
 // ===== Create / Update (payload del front) =====
 export const createTopicBodySchema = z
     .object({
-        subject_associated_id: z.string().uuid(), // se asocia al menos a 1 subject al crear
         topic_name: z
             .string()
             .transform((s) => s.trim())
@@ -76,7 +75,6 @@ export type ListTopics = z.infer<typeof listTopicsQuerySchema>;
 export const topicCreateSchema = z
     .object({
         title: z.string().min(2),
-        firstSubjectId: z.string().uuid(), // para crear y asociar en la pivot
     })
     .strict();
 

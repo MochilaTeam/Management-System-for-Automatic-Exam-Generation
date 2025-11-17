@@ -133,12 +133,9 @@ export class TopicRepository
             const safe = topicCreateSchema.parse(dto);
             const topic = await this.model.create(
                 { title: safe.title },
-                { transaction: this.effTx(tx) },
-            );
-            // crear asociación inicial en pivot
-            await SubjectTopicModel.create(
-                { subjectId: safe.firstSubjectId, topicId: topic.get('id') as string },
-                { transaction: this.effTx(tx) },
+                {
+                    transaction: this.effTx(tx),
+                },
             );
             return this.buildDetail(topic, tx);
         } catch (e) {

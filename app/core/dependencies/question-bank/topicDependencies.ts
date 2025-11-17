@@ -1,3 +1,4 @@
+import { CreateSubjectTopicCommand } from '../../../domains/question-bank/application/commands/CreateSubjectTopicCommand';
 import { CreateTopicCommand } from '../../../domains/question-bank/application/commands/CreateTopicCommand';
 import { DeleteTopicCommand } from '../../../domains/question-bank/application/commands/DeleteTopicCommand';
 import { UpdateTopicCommand } from '../../../domains/question-bank/application/commands/UpdateTopicCommand';
@@ -15,6 +16,7 @@ function getService() {
 }
 
 export const makeCreateTopicCommand = () => new CreateTopicCommand(getService());
+export const makeCreateSubjectTopicCommand = () => new CreateSubjectTopicCommand(getService());
 export const makeUpdateTopicCommand = () => new UpdateTopicCommand(getService());
 export const makeDeleteTopicCommand = () => new DeleteTopicCommand(getService());
 export const makeGetTopicByIdQuery = () => new GetTopicByIdQuery(getService());
