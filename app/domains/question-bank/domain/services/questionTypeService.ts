@@ -11,15 +11,17 @@ import {
     IQuestionTypeRepository,
     ListQuestionTypesCriteria,
 } from '../ports/IQuestionTypeRepository';
+import {BaseDomainService} from "../../../../shared/domain/base_service"
 
 type Deps = {
     repo: IQuestionTypeRepository;
 };
 
-export class QuestionTypeService {
+export class QuestionTypeService extends BaseDomainService{
     public readonly repo: IQuestionTypeRepository;
 
     constructor(deps: Deps) {
+        super(); 
         this.repo = deps.repo;
     }
 
