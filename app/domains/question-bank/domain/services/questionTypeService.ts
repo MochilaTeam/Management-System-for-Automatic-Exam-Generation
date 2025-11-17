@@ -43,11 +43,14 @@ export class QuestionTypeService extends BaseDomainService {
     ): Promise<{ list: QuestionTypeRead[]; total: number }> {
         const limit = criteria.limit ?? 20;
         const offset = criteria.offset ?? 0;
+        const name = criteria.name;
 
         const repoCriteria: ListQuestionTypesCriteria = {
             limit,
             offset,
-            filters: {},
+            filters: {
+                name,
+            },
         };
 
         const { items, total } = await this.repo.paginate(repoCriteria);
