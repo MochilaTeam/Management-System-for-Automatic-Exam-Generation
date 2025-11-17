@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import {
     makeCreateSubjectTopicCommand,
     makeCreateTopicCommand,
+    makeDeleteSubjectTopicCommand,
     makeDeleteTopicCommand,
     makeGetTopicByIdQuery,
     makeListTopicsQuery,
@@ -50,6 +51,16 @@ export async function createSubjectTopic(req: Request, res: Response, next: Next
         const body = createSubjectTopicBodySchema.parse(req.body);
         const result = await makeCreateSubjectTopicCommand().execute(body);
         res.status(201).json(result);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function deleteSubjectTopic(req: Request, res: Response, next: NextFunction) {
+    try {
+        const body = createSubjectTopicBodySchema.parse(req.body);
+        await makeDeleteSubjectTopicCommand().execute(body);
+        res.status(204).send();
     } catch (err) {
         next(err);
     }

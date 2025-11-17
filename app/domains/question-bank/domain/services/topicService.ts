@@ -1,4 +1,3 @@
-import { Subject, SubjectTopic, Topic } from '../../../../infrastructure/question-bank/models';
 import { BaseDomainService } from '../../../../shared/domain/base_service';
 import { CreateSubjectTopicBody } from '../../schemas/subjectTopicSchema';
 import {
@@ -15,7 +14,7 @@ import { ITopicRepository, ListTopicsCriteria } from '../ports/ITopicRepository'
 
 export class TopicService extends BaseDomainService {
     constructor(private readonly repo: ITopicRepository) {
-        super()
+        super();
     }
 
     private norm(s: string) {
@@ -58,36 +57,33 @@ export class TopicService extends BaseDomainService {
 
     async createSubjectTopic(body: CreateSubjectTopicBody): Promise<TopicDetail> {
         const subject = await Subject.findByPk(body.subject_id);
-        if (!subject) this.raiseNotFoundError(
-            "create-subject-topic",
-            "No existe la asignatura"
-        )
-
+        if (!subject) this.raiseNotFoundError('create-subject-topic', 'No existe la asignatura');
         const topic = await Topic.findByPk(body.topic_id);
-        if (!topic) this.raiseNotFoundError(
-            "create-subject-topic",
-            "No existe el tema"
-        )
+        if (!topic) this.raiseNotFoundError('create-subject-topic', 'No existe el tema');
 
         const existing = await SubjectTopic.findOne({
             where: { subjectId: body.subject_id, topicId: body.topic_id },
         });
         if (existing) {
-            this.raiseBusinessRuleError(
-                "create-subject-topic",
-                "La relación ya existe",
-                { entity: "SubjectTopic" }
-            )
+            this.raiseBusinessRuleError('create-subject-topic', 'La relación ya existe', {
+                entity: 'SubjectTopic',
+            });
         }
 
         await SubjectTopic.create({ subjectId: body.subject_id, topicId: body.topic_id });
 
         const detail = await this.repo.get_detail_by_id(body.topic_id);
-        if (!detail) this.raiseNotFoundError(
-            "create-subject-topic",
-            "No se obtuvo el link creado"
-        )
+        if (!detail) {
+            this.raiseNotFoundError('create-subject-topic', 'No se obtuvo el link creado');
+        }
         return detail;
+    }
+
+    async deleteSubjectTopic(body: CreateSubjectTopicBody): Promise<boolean> {
+        const deleted = await SubjectTopic.destroy({
+            where: { subjectId: body.subject_id, topicId: body.topic_id },
+        });
+        return deleted > 0;
     }
 
     async get_detail_by_id(id: string) {

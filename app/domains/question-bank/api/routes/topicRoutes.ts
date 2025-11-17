@@ -1,8 +1,9 @@
 import { Router } from 'express';
 
 import {
-    createTopic,
     createSubjectTopic,
+    createTopic,
+    deleteSubjectTopic,
     deleteTopic,
     getTopicById,
     listTopics,
@@ -104,6 +105,27 @@ router.post('/topics', createTopic);
  *                 success: { type: boolean }
  */
 router.post('/subject-topics', createSubjectTopic);
+/**
+ * @openapi
+ * /subject-topics:
+ *   delete:
+ *     tags: [Topics]
+ *     summary: Eliminar relación entre subject y topic
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               subject_id: { type: string, format: uuid }
+ *               topic_id: { type: string, format: uuid }
+ *             required: [subject_id, topic_id]
+ *     responses:
+ *       204:
+ *         description: Relación eliminada.
+ */
+router.delete('/subject-topics', deleteSubjectTopic);
 
 /**
  * @openapi
