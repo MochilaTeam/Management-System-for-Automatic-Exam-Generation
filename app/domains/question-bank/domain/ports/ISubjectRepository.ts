@@ -37,4 +37,8 @@ export interface ISubjectRepository {
     create(data: SubjectCreate): Promise<SubjectRead>;
     update(id: string, data: SubjectUpdate): Promise<SubjectRead | null>;
     deleteById(id: string): Promise<boolean>;
+
+    existsSubjectTopic(subjectId: string, topicId: string): Promise<boolean>;
+    createSubjectTopic(subjectId: string, topicId: string): Promise<void>;
+    deleteSubjectTopic(subjectId: string, topicId: string): Promise<boolean>;
 }

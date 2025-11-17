@@ -1,7 +1,9 @@
 import { Router } from 'express';
 
 import {
+    createSubjectTopic,
     createTopic,
+    deleteSubjectTopic,
     deleteTopic,
     getTopicById,
     listTopics,
@@ -51,7 +53,7 @@ const router = Router();
  *                     total: { type: integer }
  *   post:
  *     tags: [Topics]
- *     summary: Crear tópico (asociado inicialmente a un subject)
+ *     summary: Crear tópico
  *     requestBody:
  *       required: true
  *       content:
@@ -59,9 +61,8 @@ const router = Router();
  *           schema:
  *             type: object
  *             properties:
- *               subject_associated_id: { type: string, format: uuid }
  *               topic_name: { type: string }
- *             required: [subject_associated_id, topic_name]
+ *             required: [topic_name]
  *     responses:
  *       201:
  *         description: Tópico creado.
@@ -75,6 +76,56 @@ const router = Router();
  */
 router.get('/topics', listTopics);
 router.post('/topics', createTopic);
+
+/**
+ * @openapi
+ * /subject-topics:
+ *   post:
+ *     tags: [Topics]
+ *     summary: Asociar un subject a un topic
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               subject_id: { type: string, format: uuid }
+ *               topic_id: { type: string, format: uuid }
+ *             required: [subject_id, topic_id]
+ *     responses:
+ *       201:
+ *         description: Relación creada.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data: { $ref: '#/components/schemas/TopicDetail' }
+ *                 success: { type: boolean }
+ */
+router.post('/subject-topics', createSubjectTopic);
+/**
+ * @openapi
+ * /subject-topics:
+ *   delete:
+ *     tags: [Topics]
+ *     summary: Eliminar relación entre subject y topic
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               subject_id: { type: string, format: uuid }
+ *               topic_id: { type: string, format: uuid }
+ *             required: [subject_id, topic_id]
+ *     responses:
+ *       204:
+ *         description: Relación eliminada.
+ */
+router.delete('/subject-topics', deleteSubjectTopic);
 
 /**
  * @openapi

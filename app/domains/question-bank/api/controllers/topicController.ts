@@ -1,12 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
 
 import {
+    makeCreateSubjectTopicCommand,
     makeCreateTopicCommand,
+    makeDeleteSubjectTopicCommand,
     makeDeleteTopicCommand,
     makeGetTopicByIdQuery,
     makeListTopicsQuery,
     makeUpdateTopicCommand,
 } from '../../../../core/dependencies/question-bank/topicDependencies';
+import { createSubjectTopicBodySchema } from '../../schemas/subjectTopicSchema';
 import {
     createTopicBodySchema,
     listTopicsQuerySchema,
@@ -38,6 +41,26 @@ export async function createTopic(req: Request, res: Response, next: NextFunctio
         const body = createTopicBodySchema.parse(req.body);
         const result = await makeCreateTopicCommand().execute(body);
         res.status(201).json(result);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function createSubjectTopic(req: Request, res: Response, next: NextFunction) {
+    try {
+        const body = createSubjectTopicBodySchema.parse(req.body);
+        const result = await makeCreateSubjectTopicCommand().execute(body);
+        res.status(201).json(result);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function deleteSubjectTopic(req: Request, res: Response, next: NextFunction) {
+    try {
+        const body = createSubjectTopicBodySchema.parse(req.body);
+        await makeDeleteSubjectTopicCommand().execute(body);
+        res.status(204).send();
     } catch (err) {
         next(err);
     }
