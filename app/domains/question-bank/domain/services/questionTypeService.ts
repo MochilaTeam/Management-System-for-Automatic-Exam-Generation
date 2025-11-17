@@ -1,3 +1,4 @@
+import { BaseDomainService } from '../../../../shared/domain/base_service';
 import { ConflictError } from '../../../../shared/exceptions/domainErrors';
 import { QuestionTypeEnum } from '../../entities/enums/QuestionType';
 import {
@@ -11,17 +12,16 @@ import {
     IQuestionTypeRepository,
     ListQuestionTypesCriteria,
 } from '../ports/IQuestionTypeRepository';
-import {BaseDomainService} from "../../../../shared/domain/base_service"
 
 type Deps = {
     repo: IQuestionTypeRepository;
 };
 
-export class QuestionTypeService extends BaseDomainService{
+export class QuestionTypeService extends BaseDomainService {
     public readonly repo: IQuestionTypeRepository;
 
     constructor(deps: Deps) {
-        super(); 
+        super();
         this.repo = deps.repo;
     }
 
