@@ -29,10 +29,14 @@ export class StudentService extends BaseDomainService {
 
         const duplicated = await this.deps.studentRepo.existsBy({ userId: input.userId });
         if (duplicated) {
-            this.raiseBusinessRuleError('createProfile', 'Student profile already exists for user', {
-                entity: 'Student',
-                code: 'STUDENT_ALREADY_EXISTS_FOR_USER',
-            });
+            this.raiseBusinessRuleError(
+                'createProfile',
+                'Student profile already exists for user',
+                {
+                    entity: 'Student',
+                    code: 'STUDENT_ALREADY_EXISTS_FOR_USER',
+                },
+            );
         }
         const created = await this.deps.studentRepo.createProfile({
             userId: input.userId,

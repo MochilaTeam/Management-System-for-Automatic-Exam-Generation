@@ -29,10 +29,14 @@ export class TeacherService extends BaseDomainService {
 
         const duplicated = await this.deps.teacherRepo.existsBy({ userId: input.userId });
         if (duplicated) {
-            this.raiseBusinessRuleError('createProfile', 'Teacher profile already exists for user', {
-                entity: 'Teacher',
-                code: 'TEACHER_ALREADY_EXISTS_FOR_USER',
-            });
+            this.raiseBusinessRuleError(
+                'createProfile',
+                'Teacher profile already exists for user',
+                {
+                    entity: 'Teacher',
+                    code: 'TEACHER_ALREADY_EXISTS_FOR_USER',
+                },
+            );
         }
 
         return this.deps.teacherRepo.createProfile({
