@@ -149,6 +149,23 @@ const subjectDetailSchema = {
     additionalProperties: false,
 };
 
+// ===== QUESTION-TYPE =====
+// No ponemos enum aquí porque depende de tu QuestionTypeEnum en código.
+// Lo dejamos como string con descripción clara.
+const questionTypeSchema = {
+    type: 'object',
+    properties: {
+        id: { type: 'string', format: 'uuid' },
+        name: {
+            type: 'string',
+            description: 'Valor del QuestionTypeEnum definido en el dominio',
+            example: 'MULTIPLE_CHOICE',
+        },
+    },
+    required: ['id', 'name'],
+    additionalProperties: false,
+};
+
 const swaggerDefinition = {
     openapi: '3.0.0',
     info: {
@@ -305,7 +322,53 @@ const swaggerDefinition = {
                 },
             },
 
-            // También puedes añadir wrappers de Topics/Subtopics si quieres
+            // ===== QUESTION-TYPES =====
+            QuestionType: questionTypeSchema,
+
+            RetrieveOneQuestionTypeResponse: {
+                type: 'object',
+                properties: {
+                    data: { $ref: '#/components/schemas/QuestionType' },
+                    success: { type: 'boolean', example: true },
+                },
+                required: ['data'],
+                additionalProperties: false,
+            },
+
+            ListQuestionTypesResponse: {
+                type: 'object',
+                properties: {
+                    data: { type: 'array', items: { $ref: '#/components/schemas/QuestionType' } },
+                    meta: paginationMetaSchema,
+                },
+                required: ['data', 'meta'],
+                additionalProperties: false,
+            },
+
+            CreateQuestionTypeInput: {
+                type: 'object',
+                properties: {
+                    name: {
+                        type: 'string',
+                        description: 'Valor del QuestionTypeEnum definido en el backend',
+                        example: 'MULTIPLE_CHOICE',
+                    },
+                },
+                required: ['name'],
+                additionalProperties: false,
+            },
+
+            UpdateQuestionTypeInput: {
+                type: 'object',
+                properties: {
+                    name: {
+                        type: 'string',
+                        description: 'Nuevo valor del QuestionTypeEnum',
+                        example: 'TRUE_FALSE',
+                    },
+                },
+                additionalProperties: false,
+            },
         },
     },
 };

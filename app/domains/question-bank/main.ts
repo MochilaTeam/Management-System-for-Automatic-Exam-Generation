@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import questionTypeRoutes from './api/routes/questionTypeRoutes';
 import subjectRoutes from './api/routes/subjectRoutes';
 import subtopicRoutes from './api/routes/subtopicRoutes';
 import topicRoutes from './api/routes/topicRoutes';
@@ -14,6 +15,8 @@ questionBankRouter.use(authenticate);
 questionBankRouter.use(subjectRoutes);
 questionBankRouter.use(subtopicRoutes);
 questionBankRouter.use(topicRoutes);
+questionBankRouter.use(questionTypeRoutes);
+
 // TODO: cuando agregues más rutas del dominio:
 // import topicRoutes from "./api/routes/topicRoutes";
 // import subtopicRoutes from "./api/routes/subtopicRoutes";
