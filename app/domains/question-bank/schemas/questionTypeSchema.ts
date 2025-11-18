@@ -52,6 +52,7 @@ export const questionTypeReadSchema = z
 // Queries
 export const listQuestionTypesQuerySchema = z
     .object({
+        name: z.nativeEnum(QuestionTypeEnum).optional(),
         limit: z.coerce.number().int().min(1).max(100).default(20),
         offset: z.coerce.number().int().min(0).default(0),
     })
