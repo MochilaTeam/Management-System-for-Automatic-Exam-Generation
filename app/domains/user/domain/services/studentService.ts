@@ -1,3 +1,4 @@
+import { BaseDomainService } from '../../../../shared/domain/base_service';
 import { type StudentRead, type ListStudents } from '../../schemas/studentSchema';
 import { IStudentRepository } from '../ports/IStudentRepository';
 import { ListStudentsCriteria } from '../ports/IStudentRepository';
@@ -8,8 +9,10 @@ type Deps = {
     userRepo: IUserRepository;
 };
 
-export class StudentService {
-    constructor(private readonly deps: Deps) {}
+export class StudentService extends BaseDomainService {
+    constructor(private readonly deps: Deps) {
+        super();
+    }
 
     async createProfile(input: {
         userId: string;
@@ -17,10 +20,24 @@ export class StudentService {
         course: number;
     }): Promise<StudentRead> {
         const user = await this.deps.userRepo.get_by_id(input.userId);
-        if (!user) throw new Error('USER_NOT_FOUND');
+        if (!user) {
+            this.raiseNotFoundError('createProfile', 'User not found', {
+                entity: 'User',
+                code: 'USER_NOT_FOUND',
+            });
+        }
 
         const duplicated = await this.deps.studentRepo.existsBy({ userId: input.userId });
-        if (duplicated) throw new Error('STUDENT_ALREADY_EXISTS_FOR_USER');
+        if (duplicated) {
+            this.raiseBusinessRuleError(
+                'createProfile',
+                'Student profile already exists for user',
+                {
+                    entity: 'Student',
+                    code: 'STUDENT_ALREADY_EXISTS_FOR_USER',
+                },
+            );
+        }
         const created = await this.deps.studentRepo.createProfile({
             userId: input.userId,
             age: input.age,
