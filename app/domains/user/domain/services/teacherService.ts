@@ -1,3 +1,4 @@
+import { BaseDomainService } from '../../../../shared/domain/base_service';
 import { ListTeachers, TeacherRead } from '../../schemas/teacherSchema';
 import { ITeacherRepository, ListTeachersCriteria } from '../ports/ITeacherRepository';
 import { IUserRepository } from '../ports/IUserRepository';
@@ -7,8 +8,10 @@ type Deps = {
     userRepo: IUserRepository;
 };
 
-export class TeacherService {
-    constructor(private readonly deps: Deps) {}
+export class TeacherService extends BaseDomainService {
+    constructor(private readonly deps: Deps) {
+        super();
+    }
 
     async createProfile(input: {
         userId: string;
@@ -17,10 +20,20 @@ export class TeacherService {
         hasRoleExaminer: boolean;
     }): Promise<TeacherRead> {
         const user = await this.deps.userRepo.get_by_id(input.userId);
-        if (!user) throw new Error('USER_NOT_FOUND');
+        if (!user) {
+            this.raiseNotFoundError('createProfile', 'User not found', {
+                entity: 'User',
+                code: 'USER_NOT_FOUND',
+            });
+        }
 
         const duplicated = await this.deps.teacherRepo.existsBy({ userId: input.userId });
-        if (duplicated) throw new Error('TEACHER_ALREADY_EXISTS_FOR_USER');
+        if (duplicated) {
+            this.raiseBusinessRuleError('createProfile', 'Teacher profile already exists for user', {
+                entity: 'Teacher',
+                code: 'TEACHER_ALREADY_EXISTS_FOR_USER',
+            });
+        }
 
         return this.deps.teacherRepo.createProfile({
             userId: input.userId,

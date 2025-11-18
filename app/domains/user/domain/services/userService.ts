@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 
 import { get_jwt_config } from '../../../../core/config/jwt';
 import { getHasher, type Hasher } from '../../../../core/security/hasher';
+import { BaseDomainService } from '../../../../shared/domain/base_service';
 import { Roles } from '../../../../shared/enums/rolesEnum';
 import { UnauthorizedError } from '../../../../shared/exceptions/domainErrors';
 import { LoginBodySchema } from '../../schemas/login';
@@ -19,11 +20,12 @@ type Deps = {
     hasher?: Hasher;
 };
 
-export class UserService {
+export class UserService extends BaseDomainService {
     public readonly repo: IUserRepository;
     private readonly hasher: Hasher;
 
     constructor(deps: Deps) {
+        super();
         this.repo = deps.repo;
         this.hasher = deps.hasher ?? getHasher();
     }
@@ -37,7 +39,12 @@ export class UserService {
         const email = this.normEmail(input.email);
 
         const taken = await this.repo.existsBy({ email });
-        if (taken) throw new Error('EMAIL_ALREADY_IN_USE');
+        if (taken) {
+            this.raiseBusinessRuleError('create', 'Email already in use', {
+                entity: 'User',
+                code: 'EMAIL_ALREADY_IN_USE',
+            });
+        }
 
         const passwordHash = await this.hasher.hash(input.password);
         const dto: UserCreate = { name, email, passwordHash, role: input.role };
@@ -78,7 +85,12 @@ export class UserService {
             const newEmail = this.normEmail(patch.email);
             if (newEmail !== current.email) {
                 const taken = await this.repo.existsBy({ email: newEmail });
-                if (taken) throw new Error('EMAIL_ALREADY_IN_USE');
+                if (taken) {
+                    this.raiseBusinessRuleError('update', 'Email already in use', {
+                        entity: 'User',
+                        code: 'EMAIL_ALREADY_IN_USE',
+                    });
+                }
             }
             dto.email = newEmail;
         }
