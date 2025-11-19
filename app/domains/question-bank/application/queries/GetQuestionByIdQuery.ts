@@ -4,8 +4,10 @@ import { NotFoundError } from '../../../../shared/exceptions/domainErrors';
 import { QuestionService } from '../../domain/services/questionService';
 import { QuestionDetail, QuestionIdParams } from '../../schemas/questionSchema';
 
+type GetQuestionByIdInput = QuestionIdParams & { currentUserId: string };
+
 export class GetQuestionByIdQuery extends BaseQuery<
-    QuestionIdParams,
+    GetQuestionByIdInput,
     RetrieveOneSchema<QuestionDetail>
 > {
     constructor(private readonly svc: QuestionService) {
@@ -13,9 +15,9 @@ export class GetQuestionByIdQuery extends BaseQuery<
     }
 
     protected async executeBusinessLogic(
-        input: QuestionIdParams,
+        input: GetQuestionByIdInput,
     ): Promise<RetrieveOneSchema<QuestionDetail>> {
-        const question = await this.svc.get_detail_by_id(input.questionId);
+        const question = await this.svc.get_detail_by_id(input.questionId, input.currentUserId);
         if (!question) {
             throw new NotFoundError({ message: 'QUESTION_NOT_FOUND' });
         }
