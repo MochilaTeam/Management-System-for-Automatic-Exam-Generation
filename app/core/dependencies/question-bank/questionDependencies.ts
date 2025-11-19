@@ -35,4 +35,3 @@ export const makeUpdateQuestionCommand = () => new UpdateQuestionCommand(getServ
 export const makeDeleteQuestionCommand = () => new DeleteQuestionCommand(getService());
 export const makeGetQuestionByIdQuery = () => new GetQuestionByIdQuery(getService());
 export const makeListQuestionsQuery = () => new ListQuestionsQuery(getService());
-

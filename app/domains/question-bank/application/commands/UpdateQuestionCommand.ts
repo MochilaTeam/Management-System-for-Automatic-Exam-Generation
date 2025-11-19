@@ -24,4 +24,3 @@ export class UpdateQuestionCommand extends BaseCommand<
         return new RetrieveOneSchema(item, 'Question updated', true);
     }
 }
-

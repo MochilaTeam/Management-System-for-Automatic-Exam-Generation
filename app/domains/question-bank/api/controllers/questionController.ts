@@ -18,7 +18,11 @@ import {
 export async function listQuestions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         const dto = listQuestionsQuerySchema.parse(req.query);
-        const result = await makeListQuestionsQuery().execute(dto);
+        const currentUserId = req.user?.id;
+        if (!currentUserId) {
+            throw new Error('AUTH_USER_ID_MISSING');
+        }
+        const result = await makeListQuestionsQuery().execute({ ...dto, currentUserId });
         res.status(200).json(result);
     } catch (err) {
         next(err);
@@ -32,18 +36,18 @@ export async function getQuestionById(
 ) {
     try {
         const { questionId } = questionIdParamsSchema.parse(req.params);
-        const result = await makeGetQuestionByIdQuery().execute({ questionId });
+        const currentUserId = req.user?.id;
+        if (!currentUserId) {
+            throw new Error('AUTH_USER_ID_MISSING');
+        }
+        const result = await makeGetQuestionByIdQuery().execute({ questionId, currentUserId });
         res.status(200).json(result);
     } catch (err) {
         next(err);
     }
 }
 
-export async function createQuestion(
-    req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction,
-) {
+export async function createQuestion(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         const body = createQuestionBodySchema.parse(req.body);
         const currentUserId = req.user?.id;
@@ -57,11 +61,7 @@ export async function createQuestion(
     }
 }
 
-export async function updateQuestion(
-    req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction,
-) {
+export async function updateQuestion(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         const { questionId } = questionIdParamsSchema.parse(req.params);
         const patch = updateQuestionBodySchema.parse(req.body);
@@ -80,11 +80,7 @@ export async function updateQuestion(
     }
 }
 
-export async function deleteQuestion(
-    req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction,
-) {
+export async function deleteQuestion(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         const { questionId } = questionIdParamsSchema.parse(req.params);
         const currentUserId = req.user?.id;
@@ -97,4 +93,3 @@ export async function deleteQuestion(
         next(err);
     }
 }
-

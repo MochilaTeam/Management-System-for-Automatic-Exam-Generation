@@ -1,10 +1,10 @@
 import { Router } from 'express';
 
+import questionRoutes from './api/routes/questionRoutes';
 import questionTypeRoutes from './api/routes/questionTypeRoutes';
 import subjectRoutes from './api/routes/subjectRoutes';
 import subtopicRoutes from './api/routes/subtopicRoutes';
 import topicRoutes from './api/routes/topicRoutes';
-import questionRoutes from './api/routes/questionRoutes';
 import { authenticate } from '../../core/middlewares/authenticate';
 
 const questionBankRouter = Router();

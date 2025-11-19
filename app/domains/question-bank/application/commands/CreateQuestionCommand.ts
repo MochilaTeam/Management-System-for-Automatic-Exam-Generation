@@ -23,4 +23,3 @@ export class CreateQuestionCommand extends BaseCommand<
         return new RetrieveOneSchema(item, 'Question created', true);
     }
 }
-

@@ -1,9 +1,10 @@
-import { QuestionCreate, QuestionDetail, QuestionUpdate } from '../../schemas/questionSchema';
 import { DifficultyLevelEnum } from '../../entities/enums/DifficultyLevels';
+import { QuestionCreate, QuestionDetail, QuestionUpdate } from '../../schemas/questionSchema';
 
 export type QuestionFilters = {
     q?: string;
     subtopicId?: string;
+    subtopicIds?: string[];
     authorId?: string;
     difficulty?: DifficultyLevelEnum;
     questionTypeId?: string;

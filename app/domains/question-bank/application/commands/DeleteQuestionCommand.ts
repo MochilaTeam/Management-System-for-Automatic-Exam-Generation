@@ -15,4 +15,3 @@ export class DeleteQuestionCommand extends BaseCommand<DeleteQuestionInput, void
         await this.svc.deleteById(input);
     }
 }
-
