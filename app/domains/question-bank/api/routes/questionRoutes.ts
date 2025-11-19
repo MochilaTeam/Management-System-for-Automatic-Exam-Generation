@@ -160,4 +160,3 @@ router.patch('/questions/:questionId', updateQuestion);
 router.delete('/questions/:questionId', deleteQuestion);
 
 export default router;
-

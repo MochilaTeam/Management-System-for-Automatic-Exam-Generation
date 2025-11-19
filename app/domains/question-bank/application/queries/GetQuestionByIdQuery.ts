@@ -22,4 +22,3 @@ export class GetQuestionByIdQuery extends BaseQuery<
         return new RetrieveOneSchema(question);
     }
 }
-

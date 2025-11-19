@@ -1,10 +1,15 @@
 import { sequelize } from './database';
 import { getHasher } from '../core/security/hasher';
-import { User, Teacher } from '../infrastructure/user/models';
-import { Subject, Topic, SubTopic as Subtopic, SubjectTopic } from '../infrastructure/question-bank/models';
-import TeacherSubject from '../infrastructure/question-bank/models/TeacherSubject';
-import QuestionType from '../infrastructure/question-bank/models/QuestionType';
 import { QuestionTypeEnum } from '../domains/question-bank/entities/enums/QuestionType';
+import {
+    Subject,
+    Topic,
+    SubTopic as Subtopic,
+    SubjectTopic,
+} from '../infrastructure/question-bank/models';
+import QuestionType from '../infrastructure/question-bank/models/QuestionType';
+import TeacherSubject from '../infrastructure/question-bank/models/TeacherSubject';
+import { User, Teacher } from '../infrastructure/user/models';
 import { Roles } from '../shared/enums/rolesEnum';
 
 async function seed() {

@@ -3,10 +3,7 @@ import { BaseQuery } from '../../../../shared/domain/base_use_case';
 import { QuestionService } from '../../domain/services/questionService';
 import { ListQuestions, QuestionDetail } from '../../schemas/questionSchema';
 
-export class ListQuestionsQuery extends BaseQuery<
-    ListQuestions,
-    PaginatedSchema<QuestionDetail>
-> {
+export class ListQuestionsQuery extends BaseQuery<ListQuestions, PaginatedSchema<QuestionDetail>> {
     constructor(private readonly svc: QuestionService) {
         super();
     }
@@ -20,4 +17,3 @@ export class ListQuestionsQuery extends BaseQuery<
         return new PaginatedSchema(list, { limit, offset, total });
     }
 }
-

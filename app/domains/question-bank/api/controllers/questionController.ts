@@ -39,11 +39,7 @@ export async function getQuestionById(
     }
 }
 
-export async function createQuestion(
-    req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction,
-) {
+export async function createQuestion(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         const body = createQuestionBodySchema.parse(req.body);
         const currentUserId = req.user?.id;
@@ -57,11 +53,7 @@ export async function createQuestion(
     }
 }
 
-export async function updateQuestion(
-    req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction,
-) {
+export async function updateQuestion(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         const { questionId } = questionIdParamsSchema.parse(req.params);
         const patch = updateQuestionBodySchema.parse(req.body);
@@ -80,11 +72,7 @@ export async function updateQuestion(
     }
 }
 
-export async function deleteQuestion(
-    req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction,
-) {
+export async function deleteQuestion(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         const { questionId } = questionIdParamsSchema.parse(req.params);
         const currentUserId = req.user?.id;
@@ -97,4 +85,3 @@ export async function deleteQuestion(
         next(err);
     }
 }
-

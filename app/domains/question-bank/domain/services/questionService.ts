@@ -1,3 +1,10 @@
+import ExamQuestionModel from '../../../../infrastructure/exam-generation/models/ExamQuestion';
+import QuestionTypeModel from '../../../../infrastructure/question-bank/models/QuestionType';
+import SubjectModel from '../../../../infrastructure/question-bank/models/Subject';
+import SubjectTopicModel from '../../../../infrastructure/question-bank/models/SubjectTopic';
+import SubtopicModel from '../../../../infrastructure/question-bank/models/SubTopic';
+import TeacherSubjectModel from '../../../../infrastructure/question-bank/models/TeacherSubject';
+import { Teacher } from '../../../../infrastructure/user/models';
 import { BaseDomainService } from '../../../../shared/domain/base_service';
 import { DifficultyLevelEnum } from '../../entities/enums/DifficultyLevels';
 import { QuestionTypeEnum } from '../../entities/enums/QuestionType';
@@ -12,17 +19,8 @@ import {
     questionUpdateSchema,
 } from '../../schemas/questionSchema';
 import { IQuestionRepository, ListQuestionsCriteria } from '../ports/IQuestionRepository';
-import { ISubtopicRepository } from '../ports/ISubtopicRepository';
 import { ISubjectRepository } from '../ports/ISubjectRepository';
-
-// Infra models para reglas de permisos y uso en exámenes
-import SubtopicModel from '../../../../infrastructure/question-bank/models/SubTopic';
-import SubjectTopicModel from '../../../../infrastructure/question-bank/models/SubjectTopic';
-import SubjectModel from '../../../../infrastructure/question-bank/models/Subject';
-import TeacherSubjectModel from '../../../../infrastructure/question-bank/models/TeacherSubject';
-import ExamQuestionModel from '../../../../infrastructure/exam-generation/models/ExamQuestion';
-import { Teacher } from '../../../../infrastructure/user/models';
-import QuestionTypeModel from '../../../../infrastructure/question-bank/models/QuestionType';
+import { ISubtopicRepository } from '../ports/ISubtopicRepository';
 
 type Deps = {
     questionRepo: IQuestionRepository;
@@ -40,7 +38,6 @@ type SubtopicPlain = { id: string; topicId: string };
 type SubjectTopicPlain = { subjectId: string; topicId: string };
 type SubjectPlain = { id: string; leadTeacherId: string | null };
 type TeacherSubjectPlain = { teacherId: string; subjectId: string };
-type ExamQuestionPlain = { id: string };
 
 export class QuestionService extends BaseDomainService {
     public readonly repo: IQuestionRepository;
@@ -83,9 +80,7 @@ export class QuestionService extends BaseDomainService {
         const sp = sub.get({ plain: true }) as SubtopicPlain;
 
         const subjectTopics = await SubjectTopicModel.findAll({ where: { topicId: sp.topicId } });
-        const stPlain = subjectTopics.map(
-            (st) => st.get({ plain: true }) as SubjectTopicPlain,
-        );
+        const stPlain = subjectTopics.map((st) => st.get({ plain: true }) as SubjectTopicPlain);
         return stPlain.map((st) => st.subjectId);
     }
 
@@ -130,14 +125,9 @@ export class QuestionService extends BaseDomainService {
         const teacher = await this.getTeacherByUserId(operation, currentUserId);
 
         // Debe impartir al menos una de las asignaturas asociadas al subtema
-        const subjectIds = await this.getSubjectIdsForSubtopic(
-            operation,
-            question.subtopicId,
-        );
+        const subjectIds = await this.getSubjectIdsForSubtopic(operation, question.subtopicId);
         const teacherSubjectIds = await this.getTeacherSubjectIds(teacher.id);
-        const allowedSubjectIds = subjectIds.filter((id) =>
-            teacherSubjectIds.includes(id),
-        );
+        const allowedSubjectIds = subjectIds.filter((id) => teacherSubjectIds.includes(id));
 
         if (allowedSubjectIds.length === 0) {
             this.raiseBusinessRuleError(operation, 'TEACHER_NOT_ASSIGNED_TO_SUBJECT', {
@@ -183,11 +173,10 @@ export class QuestionService extends BaseDomainService {
     ) {
         if (typeName === QuestionTypeEnum.ESSAY) {
             if (options !== null && options !== undefined) {
-                this.raiseBusinessRuleError(
-                    operation,
-                    'ESSAY_CANNOT_HAVE_OPTIONS',
-                    { entity: 'Question', code: 'ESSAY_WITH_OPTIONS' },
-                );
+                this.raiseBusinessRuleError(operation, 'ESSAY_CANNOT_HAVE_OPTIONS', {
+                    entity: 'Question',
+                    code: 'ESSAY_WITH_OPTIONS',
+                });
             }
             return;
         }
@@ -429,10 +418,7 @@ export class QuestionService extends BaseDomainService {
         return updated;
     }
 
-    async deleteById(input: {
-        questionId: string;
-        currentUserId: string;
-    }): Promise<boolean> {
+    async deleteById(input: { questionId: string; currentUserId: string }): Promise<boolean> {
         const operation = 'delete-question';
         const { questionId, currentUserId } = input;
 
