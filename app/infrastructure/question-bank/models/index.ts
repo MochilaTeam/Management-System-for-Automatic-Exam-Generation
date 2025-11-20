@@ -85,6 +85,16 @@ Subtopic.belongsToMany(Question, {
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE',
 });
+Question.belongsTo(Subtopic, {
+    as: 'primarySubtopic',
+    foreignKey: 'subTopicId',
+    targetKey: 'id',
+});
+Subtopic.hasMany(Question, {
+    as: 'primaryQuestions',
+    foreignKey: 'subTopicId',
+    sourceKey: 'id',
+});
 export { default as Subject } from './Subject';
 export { default as Topic } from './Topic';
 export { default as SubTopic } from './SubTopic';

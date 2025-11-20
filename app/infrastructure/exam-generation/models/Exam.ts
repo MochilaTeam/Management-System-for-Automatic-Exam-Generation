@@ -6,6 +6,7 @@ import { DifficultyLevelEnum } from '../../../domains/question-bank/entities/enu
 
 class Exam extends Model {
     public id!: string;
+    public title!: string;
 
     public difficulty!: DifficultyLevelEnum;
     public examStatus!: ExamStatusEnum;
@@ -32,6 +33,10 @@ Exam.init(
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV4,
             primaryKey: true,
+            allowNull: false,
+        },
+        title: {
+            type: DataTypes.STRING(255),
             allowNull: false,
         },
 

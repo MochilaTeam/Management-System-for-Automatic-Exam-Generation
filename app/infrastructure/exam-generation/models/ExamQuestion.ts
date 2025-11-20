@@ -6,6 +6,7 @@ class ExamQuestion extends Model {
     public id!: string;
     public examId!: string;
     public questionId!: string;
+    public questionIndex!: number;
 }
 ExamQuestion.init(
     {
@@ -29,12 +30,17 @@ ExamQuestion.init(
             onUpdate: 'CASCADE',
             onDelete: 'RESTRICT',
         },
+        questionIndex: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
     },
     {
         sequelize,
         tableName: 'ExamQuestions',
         indexes: [
             { unique: true, fields: ['examId', 'questionId'] },
+             { unique: true, fields: ['examId', 'questionIndex'] },
             { fields: ['examId'] },
             { fields: ['questionId'] },
         ],
