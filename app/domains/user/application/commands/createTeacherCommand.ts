@@ -40,6 +40,8 @@ export class CreateTeacherCommand extends BaseCommand<
                 specialty: input.specialty,
                 hasRoleSubjectLeader,
                 hasRoleExaminer,
+                subjects_ids: input.subjects_ids ?? [],
+                teaching_subjects_ids: input.teaching_subjects_ids ?? [],
             });
         });
         return new RetrieveOneSchema(teacher, 'Teacher created', true);
