@@ -18,7 +18,11 @@ import {
 export async function listQuestions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         const dto = listQuestionsQuerySchema.parse(req.query);
-        const result = await makeListQuestionsQuery().execute(dto);
+        const currentUserId = req.user?.id;
+        if (!currentUserId) {
+            throw new Error('AUTH_USER_ID_MISSING');
+        }
+        const result = await makeListQuestionsQuery().execute({ ...dto, currentUserId });
         res.status(200).json(result);
     } catch (err) {
         next(err);
@@ -32,7 +36,11 @@ export async function getQuestionById(
 ) {
     try {
         const { questionId } = questionIdParamsSchema.parse(req.params);
-        const result = await makeGetQuestionByIdQuery().execute({ questionId });
+        const currentUserId = req.user?.id;
+        if (!currentUserId) {
+            throw new Error('AUTH_USER_ID_MISSING');
+        }
+        const result = await makeGetQuestionByIdQuery().execute({ questionId, currentUserId });
         res.status(200).json(result);
     } catch (err) {
         next(err);

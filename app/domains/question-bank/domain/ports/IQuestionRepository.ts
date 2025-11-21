@@ -4,6 +4,7 @@ import { QuestionCreate, QuestionDetail, QuestionUpdate } from '../../schemas/qu
 export type QuestionFilters = {
     q?: string;
     subtopicId?: string;
+    subtopicIds?: string[];
     authorId?: string;
     difficulty?: DifficultyLevelEnum;
     questionTypeId?: string;

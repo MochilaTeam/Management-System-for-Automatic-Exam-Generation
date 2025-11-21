@@ -95,7 +95,9 @@ export class QuestionRepository
             if (criteria.filters?.q) {
                 where['body'] = { [Op.like]: `%${criteria.filters.q}%` };
             }
-            if (criteria.filters?.subtopicId) {
+            if (criteria.filters?.subtopicIds && criteria.filters.subtopicIds.length > 0) {
+                where['subTopicId'] = { [Op.in]: criteria.filters.subtopicIds };
+            } else if (criteria.filters?.subtopicId) {
                 where['subTopicId'] = criteria.filters.subtopicId;
             }
             if (criteria.filters?.authorId) {
