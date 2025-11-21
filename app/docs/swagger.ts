@@ -48,6 +48,26 @@ const teacherSchema = {
         specialty: { type: 'string', example: 'Bases de datos' },
         hasRoleSubjectLeader: { type: 'boolean' },
         hasRoleExaminer: { type: 'boolean' },
+        subjects_ids: {
+            type: 'array',
+            items: { type: 'string', format: 'uuid' },
+            description: 'Asignaturas lideradas',
+        },
+        subjects_names: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Nombres de las asignaturas lideradas',
+        },
+        teaching_subjects_ids: {
+            type: 'array',
+            items: { type: 'string', format: 'uuid' },
+            description: 'Asignaturas impartidas',
+        },
+        teaching_subjects_names: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Nombres de las asignaturas impartidas',
+        },
     },
     required: [
         'id',
@@ -254,6 +274,51 @@ const swaggerDefinition = {
                     password: { type: 'string', minLength: 8 },
                     age: { type: 'integer' },
                     course: { type: 'integer' },
+                },
+            },
+            CreateTeacherInput: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    email: { type: 'string', format: 'email' },
+                    role: { type: 'string', enum: roleEnum },
+                    password: { type: 'string', minLength: 8 },
+                    specialty: { type: 'string' },
+                    hasRoleSubjectLeader: { type: 'boolean' },
+                    hasRoleExaminer: { type: 'boolean' },
+                    subjects_ids: {
+                        type: 'array',
+                        items: { type: 'string', format: 'uuid' },
+                        description: 'Asignaturas donde será líder',
+                    },
+                    teaching_subjects_ids: {
+                        type: 'array',
+                        items: { type: 'string', format: 'uuid' },
+                        description: 'Asignaturas que impartirá',
+                    },
+                },
+                required: ['name', 'email', 'role', 'password', 'specialty'],
+            },
+            UpdateTeacherInput: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    email: { type: 'string', format: 'email' },
+                    role: { type: 'string', enum: roleEnum },
+                    password: { type: 'string', minLength: 8 },
+                    specialty: { type: 'string' },
+                    hasRoleSubjectLeader: { type: 'boolean' },
+                    hasRoleExaminer: { type: 'boolean' },
+                    subjects_ids: {
+                        type: 'array',
+                        items: { type: 'string', format: 'uuid' },
+                        description: 'Asignaturas donde será líder',
+                    },
+                    teaching_subjects_ids: {
+                        type: 'array',
+                        items: { type: 'string', format: 'uuid' },
+                        description: 'Asignaturas que impartirá',
+                    },
                 },
             },
             CreateUserInput: {

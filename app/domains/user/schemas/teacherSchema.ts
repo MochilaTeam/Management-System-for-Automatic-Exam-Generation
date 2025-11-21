@@ -40,6 +40,8 @@ export const createTeacherCommandSchema = z
         specialty: specialtySchema,
         hasRoleSubjectLeader: z.boolean().optional(),
         hasRoleExaminer: z.boolean().optional(),
+        subjects_ids: z.array(z.uuid()).optional().default([]),
+        teaching_subjects_ids: z.array(z.uuid()).optional().default([]),
     })
     .strict();
 
@@ -52,6 +54,8 @@ export const updateTeacherCommandSchema = z
         specialty: specialtySchema.optional(),
         hasRoleSubjectLeader: z.boolean().optional(),
         hasRoleExaminer: z.boolean().optional(),
+        subjects_ids: z.array(z.uuid()).optional(),
+        teaching_subjects_ids: z.array(z.uuid()).optional(),
     })
     .strict()
     .refine((obj) => Object.keys(obj).length > 0, {
@@ -90,6 +94,10 @@ export const teacherReadSchema = z
         specialty: z.string(),
         hasRoleSubjectLeader: z.boolean(),
         hasRoleExaminer: z.boolean(),
+        subjects_ids: z.array(z.uuid()).optional(),
+        subjects_names: z.array(z.string()).optional(),
+        teaching_subjects_ids: z.array(z.uuid()).optional(),
+        teaching_subjects_names: z.array(z.string()).optional(),
     })
     .strict();
 
