@@ -1,4 +1,4 @@
-import { Model, STRING, JSON, TEXT, DataTypes } from 'sequelize';
+import { Model, STRING, JSON, TEXT, DataTypes, BOOLEAN } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
 import { DifficultyLevelEnum } from '../../../domains/question-bank/entities/enums/DifficultyLevels';
@@ -12,6 +12,7 @@ class Question extends Model {
     public questionTypeId!: string;
     public options!: Array<{ text: string; isCorrect: boolean }> | null; //TODO: CHEQUEAR BIEN EL TIPO DE ESTO
     public response!: string | null;
+    public active!: boolean;
 }
 
 Question.init(
@@ -59,12 +60,17 @@ Question.init(
         body: { type: STRING(1024), allowNull: false },
         options: { type: JSON, allowNull: true },
         response: { type: TEXT, allowNull: true },
+        active: {
+            type: BOOLEAN,
+            allowNull: false,
+            defaultValue: true,
+        },
     },
     {
         sequelize,
         tableName: 'Questions',
         indexes: [
-            { name: 'q_subject_difficulty', fields: ['subtopicId', 'difficulty'] },
+            { name: 'q_subject_difficulty', fields: ['subTopicId', 'difficulty'] },
             { name: 'q_question_type', fields: ['questionTypeId'] },
             { name: 'q_author', fields: ['authorId'] },
         ],

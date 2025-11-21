@@ -1,11 +1,16 @@
 import { BaseDomainService } from '../../../../shared/domain/base_service';
 import { ListTeachers, TeacherRead } from '../../schemas/teacherSchema';
 import { ITeacherRepository, ListTeachersCriteria } from '../ports/ITeacherRepository';
+import {
+    ITeacherSubjectLinkRepository,
+    TeacherSubjectAssignments,
+} from '../ports/ITeacherSubjectLinkRepository';
 import { IUserRepository } from '../ports/IUserRepository';
 
 type Deps = {
     teacherRepo: ITeacherRepository;
     userRepo: IUserRepository;
+    subjectLinkRepo: ITeacherSubjectLinkRepository;
 };
 
 export class TeacherService extends BaseDomainService {
@@ -18,6 +23,8 @@ export class TeacherService extends BaseDomainService {
         specialty: string;
         hasRoleSubjectLeader: boolean;
         hasRoleExaminer: boolean;
+        subjects_ids?: string[];
+        teaching_subjects_ids?: string[];
     }): Promise<TeacherRead> {
         const user = await this.deps.userRepo.get_by_id(input.userId);
         if (!user) {
@@ -39,16 +46,27 @@ export class TeacherService extends BaseDomainService {
             );
         }
 
-        return this.deps.teacherRepo.createProfile({
+        const leadSubjectIds = input.subjects_ids ?? [];
+        const teachingSubjectIds = input.teaching_subjects_ids ?? [];
+        await this.ensureSubjectsExist([...leadSubjectIds, ...teachingSubjectIds], 'createProfile');
+
+        const teacher = await this.deps.teacherRepo.createProfile({
             userId: input.userId,
             specialty: input.specialty,
             hasRoleSubjectLeader: input.hasRoleSubjectLeader,
             hasRoleExaminer: input.hasRoleExaminer,
         });
+        await this.deps.subjectLinkRepo.syncTeachingSubjects(teacher.id, teachingSubjectIds);
+        await this.deps.subjectLinkRepo.syncLeadSubjects(teacher.id, leadSubjectIds);
+        const assignments = await this.deps.subjectLinkRepo.getAssignments(teacher.id);
+        return this.mergeWithAssignments(teacher, assignments);
     }
 
     async getById(id: string): Promise<TeacherRead | null> {
-        return this.deps.teacherRepo.get_by_id(id);
+        const teacher = await this.deps.teacherRepo.get_by_id(id);
+        if (!teacher) return null;
+        const assignments = await this.deps.subjectLinkRepo.getAssignments(id);
+        return this.mergeWithAssignments(teacher, assignments);
     }
 
     async paginate(criteria: ListTeachers): Promise<{ list: TeacherRead[]; total: number }> {
@@ -71,7 +89,13 @@ export class TeacherService extends BaseDomainService {
         };
 
         const { items, total } = await this.deps.teacherRepo.paginate(repoCriteria);
-        return { list: items, total };
+        const assignmentMap = await this.deps.subjectLinkRepo.getAssignmentsForTeachers(
+            items.map((item) => item.id),
+        );
+        const list = items.map((teacher) =>
+            this.mergeWithAssignments(teacher, assignmentMap.get(teacher.id)),
+        );
+        return { list, total };
     }
 
     async updateProfile(
@@ -80,12 +104,75 @@ export class TeacherService extends BaseDomainService {
             specialty: string;
             hasRoleSubjectLeader: boolean;
             hasRoleExaminer: boolean;
+            subjects_ids: string[];
+            teaching_subjects_ids: string[];
         }>,
     ): Promise<TeacherRead | null> {
-        return this.deps.teacherRepo.updateProfile(id, patch);
+        const teacherFields: Partial<{
+            specialty: string;
+            hasRoleSubjectLeader: boolean;
+            hasRoleExaminer: boolean;
+        }> = {};
+        if (patch.specialty !== undefined) teacherFields.specialty = patch.specialty;
+        if (patch.hasRoleSubjectLeader !== undefined)
+            teacherFields.hasRoleSubjectLeader = patch.hasRoleSubjectLeader;
+        if (patch.hasRoleExaminer !== undefined)
+            teacherFields.hasRoleExaminer = patch.hasRoleExaminer;
+
+        let updated = Object.keys(teacherFields).length
+            ? await this.deps.teacherRepo.updateProfile(id, teacherFields)
+            : await this.deps.teacherRepo.get_by_id(id);
+        if (!updated) return null;
+
+        if (patch.teaching_subjects_ids !== undefined) {
+            await this.ensureSubjectsExist(patch.teaching_subjects_ids, 'updateProfile');
+            await this.deps.subjectLinkRepo.syncTeachingSubjects(id, patch.teaching_subjects_ids);
+        }
+
+        if (patch.subjects_ids !== undefined) {
+            await this.ensureSubjectsExist(patch.subjects_ids, 'updateProfile');
+            await this.deps.subjectLinkRepo.syncLeadSubjects(id, patch.subjects_ids);
+        }
+
+        const assignments = await this.deps.subjectLinkRepo.getAssignments(id);
+        return this.mergeWithAssignments(updated, assignments);
     }
 
     async deleteById(id: string): Promise<boolean> {
+        await this.deps.subjectLinkRepo.syncTeachingSubjects(id, []);
+        await this.deps.subjectLinkRepo.syncLeadSubjects(id, []);
         return this.deps.teacherRepo.deleteById(id);
+    }
+
+    private async ensureSubjectsExist(subjectIds: string[], operation: string) {
+        const uniqueIds = Array.from(new Set(subjectIds));
+        if (uniqueIds.length === 0) return;
+        const missing = await this.deps.subjectLinkRepo.findMissingSubjectIds(uniqueIds);
+        if (missing.length > 0) {
+            this.raiseNotFoundError(operation, 'Subject not found', {
+                entity: 'Subject',
+                code: 'SUBJECT_NOT_FOUND',
+                details: { ids: missing },
+            });
+        }
+    }
+
+    private mergeWithAssignments(
+        teacher: TeacherRead,
+        assignments?: TeacherSubjectAssignments,
+    ): TeacherRead {
+        const lists = assignments ?? {
+            leadSubjectIds: [],
+            leadSubjectNames: [],
+            teachingSubjectIds: [],
+            teachingSubjectNames: [],
+        };
+        return {
+            ...teacher,
+            subjects_ids: lists.leadSubjectIds,
+            subjects_names: lists.leadSubjectNames,
+            teaching_subjects_ids: lists.teachingSubjectIds,
+            teaching_subjects_names: lists.teachingSubjectNames,
+        };
     }
 }
