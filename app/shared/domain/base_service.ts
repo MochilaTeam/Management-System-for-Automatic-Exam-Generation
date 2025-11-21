@@ -29,12 +29,13 @@ export abstract class BaseDomainService {
     protected raiseBusinessRuleError(
         operation: string,
         message: string,
-        opts?: { entity?: string | null; code?: string | null },
+        opts?: { entity?: string | null; code?: string | null; details?: unknown },
     ): never {
         const error = new BusinessRuleError({
             message,
             entity: opts?.entity ?? null,
             code: opts?.code ?? null,
+            details: opts?.details,
         });
         this.logOperationError(operation, error);
         throw error;
@@ -43,12 +44,13 @@ export abstract class BaseDomainService {
     protected raiseValidationError(
         operation: string,
         message: string,
-        opts?: { entity?: string | null; code?: string | null },
+        opts?: { entity?: string | null; code?: string | null; details?: unknown },
     ): never {
         const error = new ValidationError({
             message,
             entity: opts?.entity ?? null,
             code: opts?.code ?? null,
+            details: opts?.details,
         });
         this.logOperationError(operation, error);
         throw error;
@@ -57,12 +59,13 @@ export abstract class BaseDomainService {
     protected raiseNotFoundError(
         operation: string,
         message: string,
-        opts?: { entity?: string | null; code?: string | null },
+        opts?: { entity?: string | null; code?: string | null; details?: unknown },
     ): never {
         const error = new NotFoundError({
             message,
             entity: opts?.entity ?? null,
             code: opts?.code ?? null,
+            details: opts?.details,
         });
         this.logOperationError(operation, error);
         throw error;

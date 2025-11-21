@@ -48,6 +48,8 @@ export class UpdateTeacherCommand extends BaseCommand<
                 specialty?: string;
                 hasRoleSubjectLeader?: boolean;
                 hasRoleExaminer?: boolean;
+                subjects_ids?: string[];
+                teaching_subjects_ids?: string[];
             } = {};
 
             if (input.patch.specialty !== undefined) teacherPatch.specialty = input.patch.specialty;
@@ -67,11 +69,14 @@ export class UpdateTeacherCommand extends BaseCommand<
                 teacherPatch.hasRoleExaminer = nextExaminer;
             }
 
-            if (Object.keys(teacherPatch).length > 0) {
-                await teachers.updateProfile(input.id, teacherPatch);
+            if (input.patch.subjects_ids !== undefined) {
+                teacherPatch.subjects_ids = input.patch.subjects_ids;
+            }
+            if (input.patch.teaching_subjects_ids !== undefined) {
+                teacherPatch.teaching_subjects_ids = input.patch.teaching_subjects_ids;
             }
 
-            const updated = await teachers.getById(input.id);
+            const updated = await teachers.updateProfile(input.id, teacherPatch);
             return updated!;
         });
         return new RetrieveOneSchema(updatedTeacher, 'Teacher updated', true);

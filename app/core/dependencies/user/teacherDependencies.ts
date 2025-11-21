@@ -11,6 +11,7 @@ import { GetTeacherByIdQuery } from '../../../domains/user/application/queries/G
 import { ListTeachersQuery } from '../../../domains/user/application/queries/ListTeachersQuery';
 import { TeacherService } from '../../../domains/user/domain/services/teacherService';
 import { UserService } from '../../../domains/user/domain/services/userService';
+import { TeacherSubjectLinkRepository } from '../../../infrastructure/question-bank/repositories/teacherSubjectLinkRepository';
 import { Teacher, User } from '../../../infrastructure/user/models';
 import { TeacherRepository } from '../../../infrastructure/user/repositories/TeacherRepository';
 import { UserRepository } from '../../../infrastructure/user/repositories/UserRepository';
@@ -30,6 +31,7 @@ function makeTeacherService(): TeacherService {
     _teacherService = new TeacherService({
         teacherRepo: new TeacherRepository(Teacher),
         userRepo: new UserRepository(User),
+        subjectLinkRepo: new TeacherSubjectLinkRepository(),
     });
     return _teacherService;
 }
@@ -39,9 +41,11 @@ export function makeTeacherUoW(): IUnitOfWork<TeacherModuleServices> {
 
     _uow = new SequelizeUnitOfWork<TeacherModuleServices>(sequelize, (tx: Transaction) => {
         const users = new UserService({ repo: UserRepository.withTx(User, tx) });
+        const subjectLinks = TeacherSubjectLinkRepository.withTx(tx);
         const teachers = new TeacherService({
             teacherRepo: TeacherRepository.withTx(Teacher, tx),
             userRepo: UserRepository.withTx(User, tx),
+            subjectLinkRepo: subjectLinks,
         });
         return { users, teachers };
     });
