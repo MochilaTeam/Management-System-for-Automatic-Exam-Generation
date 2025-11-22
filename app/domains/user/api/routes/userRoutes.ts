@@ -80,14 +80,14 @@ router.post('/users', createUser);
  *   get:
  *     tags:
  *       - Users
- *     summary: Obtener el ID del usuario autenticado
+ *     summary: Obtener la información del usuario autenticado
  *     responses:
  *       200:
- *         description: ID del usuario autenticado obtenido correctamente.
+ *         description: Usuario autenticado obtenido correctamente.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/CurrentUserIdResponse'
+ *               $ref: '#/components/schemas/User'
  */
 router.get('/users/me', getCurrentUser);
 

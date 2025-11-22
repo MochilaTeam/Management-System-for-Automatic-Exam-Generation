@@ -115,6 +115,7 @@ export class SubjectRepository
             subject_id: subj.id,
             subject_name: subj.name,
             subject_program: subj.program,
+            subject_leader_id: subj.leadTeacherId,
             subject_leader_name: leaderName,
             topics_amount: topicDetails.length,
             topics: topicDetails,
