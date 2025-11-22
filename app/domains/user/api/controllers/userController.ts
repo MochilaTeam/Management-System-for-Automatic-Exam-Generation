@@ -7,6 +7,9 @@ import {
     makeListUsersQuery,
     makeUpdateUserCommand,
 } from '../../../../core/dependencies/user/userDependencies';
+import { HttpStatus } from '../../../../shared/enums/httpStatusEnum';
+import { AppError } from '../../../../shared/exceptions/appError';
+import { AuthenticatedRequest } from '../../../../shared/types/http/AuthenticatedRequest';
 import {
     createUserCommandSchema,
     listUsersQuerySchema,
@@ -60,6 +63,23 @@ export async function deleteUser(req: Request, res: Response, next: NextFunction
         const { userId } = userIdParamsSchema.parse(req.params);
         await makeDeleteUserCommand().execute({ userId });
         res.status(204).send();
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function getCurrentUser(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+        const userId = req.user?.id;
+
+        if (!userId) {
+            throw new AppError({
+                message: 'Authenticated user not found in context',
+                statusCode: HttpStatus.UNAUTHORIZED,
+            });
+        }
+
+        res.status(200).json({ userId });
     } catch (err) {
         next(err);
     }
