@@ -1,11 +1,16 @@
 import { DifficultyLevelEnum } from '../../../question-bank/entities/enums/DifficultyLevels';
 
+export type QuestionOption = { text: string; isCorrect: boolean };
+
 export type QuestionForExam = {
     id: string;
     difficulty: DifficultyLevelEnum;
     questionTypeId: string;
     subTopicId: string | null;
     topicId: string | null;
+    body: string;
+    options: QuestionOption[] | null;
+    response: string | null;
 };
 
 export type QuestionSearchCriteria = {

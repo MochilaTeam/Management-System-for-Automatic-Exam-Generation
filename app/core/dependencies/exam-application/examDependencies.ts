@@ -1,10 +1,10 @@
-import { CreateAutomaticExamCommand } from '../../../domains/exam-application/application/commands/CreateAutomaticExamCommand';
-import { CreateManualExamCommand } from '../../../domains/exam-application/application/commands/CreateManualExamCommand';
-import { DeleteExamCommand } from '../../../domains/exam-application/application/commands/DeleteExamCommand';
-import { UpdateExamCommand } from '../../../domains/exam-application/application/commands/UpdateExamCommand';
-import { GetExamByIdQuery } from '../../../domains/exam-application/application/queries/GetExamByIdQuery';
-import { ListExamsQuery } from '../../../domains/exam-application/application/queries/ListExamsQuery';
-import { ExamService } from '../../../domains/exam-application/domain/services/examService';
+import { CreateAutomaticExamCommand } from '../../../domains/exam-generation/application/commands/CreateAutomaticExamCommand';
+import { CreateManualExamCommand } from '../../../domains/exam-generation/application/commands/CreateManualExamCommand';
+import { DeleteExamCommand } from '../../../domains/exam-generation/application/commands/DeleteExamCommand';
+import { UpdateExamCommand } from '../../../domains/exam-generation/application/commands/UpdateExamCommand';
+import { GetExamByIdQuery } from '../../../domains/exam-generation/application/queries/GetExamByIdQuery';
+import { ListExamsQuery } from '../../../domains/exam-generation/application/queries/ListExamsQuery';
+import { ExamService } from '../../../domains/exam-generation/domain/services/examService';
 import Exam from '../../../infrastructure/exam-generation/models/Exam';
 import ExamQuestion from '../../../infrastructure/exam-generation/models/ExamQuestion';
 import { ExamQuestionRepository } from '../../../infrastructure/exam-generation/repositories/ExamQuestionRepository';

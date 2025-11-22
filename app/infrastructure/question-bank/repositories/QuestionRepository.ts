@@ -239,7 +239,7 @@ export class QuestionRepository
         }
     }
 
-    // ===== Funciones adicionales para generación de exámenes =====
+    //Funciones adicionales para generación de exámenes
 
     private static toQuestionForExam(row: QuestionModel): QuestionForExam {
         const plain = row.get({ plain: true }) as QuestionPlain & {
@@ -254,6 +254,9 @@ export class QuestionRepository
             questionTypeId: plain.questionTypeId,
             subTopicId,
             topicId,
+            body: plain.body,
+            options: plain.options ?? null,
+            response: plain.response ?? null,
         };
     }
 

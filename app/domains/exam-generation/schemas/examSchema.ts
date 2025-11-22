@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { ExamStatusEnum } from '../../exam-generation/entities/enums/ExamStatusEnum';
 import { DifficultyLevelEnum } from '../../question-bank/entities/enums/DifficultyLevels';
+import { ExamStatusEnum } from '../../exam-application/entities/enums/ExamStatusEnum';
 
 const uuid = () => z.string().uuid();
 
@@ -25,25 +25,26 @@ export const examQuestionReadSchema = examQuestionInputSchema
     })
     .strict();
 
-export const questionTypeDistributionSchema = z
+export const questionTypeCountSchema = z
     .array(
         z
             .object({
                 questionTypeId: uuid(),
-                percentage: z.number().min(0),
+                count: z.number().int().min(0),
             })
             .strict(),
     )
     .refine((items) => items.length > 0, {
         message: 'Debe definir al menos un tipo de pregunta.',
+    });
+
+const difficultyCountSchema = z
+    .object({
+        [DifficultyLevelEnum.EASY]: z.number().int().min(0),
+        [DifficultyLevelEnum.MEDIUM]: z.number().int().min(0),
+        [DifficultyLevelEnum.HARD]: z.number().int().min(0),
     })
-    .refine(
-        (items) => {
-            const total = items.reduce((acc, item) => acc + item.percentage, 0);
-            return Math.abs(total - 100) <= 0.5;
-        },
-        { message: 'La suma de los porcentajes debe ser 100.' },
-    );
+    .strict();
 
 export const examAutomaticFiltersSchema = z
     .object({
@@ -79,10 +80,49 @@ export const createManualExamCommandSchema = baseExamCommandSchema
 
 export const createAutomaticExamCommandSchema = baseExamCommandSchema
     .extend({
-        questionTypeDistribution: questionTypeDistributionSchema,
+        questionTypeCounts: questionTypeCountSchema,
+        difficultyCounts: difficultyCountSchema,
         filters: examAutomaticFiltersSchema.optional(),
+        topicIds: z.array(uuid()).min(1).optional(),
         topicProportion: z.record(z.string(), z.number().min(0)).optional(),
         topicCoverage: z.record(z.string(), z.any()).optional(),
+    })
+    .strict()
+    .refine(
+        (obj) =>
+            obj.questionTypeCounts.reduce((acc, entry) => acc + entry.count, 0) === obj.questionCount,
+        {
+            message: 'La suma de las cantidades por tipo debe coincidir con la cantidad total.',
+            path: ['questionTypeCounts'],
+        },
+    )
+    .refine(
+        (obj) =>
+            Object.values(obj.difficultyCounts).reduce((acc, n) => acc + n, 0) ===
+            obj.questionCount,
+        {
+            message:
+                'La suma de las cantidades por dificultad debe coincidir con la cantidad total.',
+            path: ['difficultyCounts'],
+        },
+    );
+
+const examPreviewOptionSchema = z
+    .object({
+        text: z.string(),
+        isCorrect: z.boolean(),
+    })
+    .strict();
+
+export const automaticExamPreviewQuestionSchema = examQuestionInputSchema
+    .extend({
+        body: z.string(),
+        difficulty: z.nativeEnum(DifficultyLevelEnum),
+        questionTypeId: uuid(),
+        subTopicId: uuid().nullable(),
+        topicId: uuid().nullable(),
+        options: z.array(examPreviewOptionSchema).nullable(),
+        response: z.string().nullable(),
     })
     .strict();
 
@@ -98,7 +138,7 @@ export const automaticExamPreviewSchema = z
         questionCount: z.number().int().min(1),
         topicProportion: z.record(z.string(), z.number().min(0)),
         topicCoverage: z.record(z.string(), z.any()),
-        questions: z.array(examQuestionInputSchema),
+        questions: z.array(automaticExamPreviewQuestionSchema),
     })
     .strict();
 
@@ -186,13 +226,15 @@ export const examDetailSchema = examReadSchema.extend({
 export type ExamIdParams = z.infer<typeof examIdParamsSchema>;
 export type ExamQuestionInput = z.infer<typeof examQuestionInputSchema>;
 export type ExamQuestionRead = z.infer<typeof examQuestionReadSchema>;
-export type QuestionTypeDistributionEntry = z.infer<typeof questionTypeDistributionSchema>[number];
+export type QuestionTypeDistributionEntry = z.infer<typeof questionTypeCountSchema>[number];
 export type ExamAutomaticFilters = z.infer<typeof examAutomaticFiltersSchema>;
+export type DifficultyCountMap = z.infer<typeof difficultyCountSchema>;
 
 export type CreateManualExamCommandSchema = z.infer<typeof createManualExamCommandSchema>;
 export type CreateAutomaticExamCommandSchema = z.infer<typeof createAutomaticExamCommandSchema>;
 export type UpdateExamCommandSchema = z.infer<typeof updateExamCommandSchema>;
 export type AutomaticExamPreview = z.infer<typeof automaticExamPreviewSchema>;
+export type AutomaticExamPreviewQuestion = z.infer<typeof automaticExamPreviewQuestionSchema>;
 
 export type ListExamsQuerySchema = z.infer<typeof listExamsQuerySchema>;
 export type ExamCreate = z.infer<typeof examCreateSchema>;

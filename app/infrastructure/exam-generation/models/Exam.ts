@@ -1,8 +1,8 @@
 import { Model, DATE, INTEGER, TEXT, JSON, DataTypes } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
-import { ExamStatusEnum } from '../../../domains/exam-generation/entities/enums/ExamStatusEnum';
 import { DifficultyLevelEnum } from '../../../domains/question-bank/entities/enums/DifficultyLevels';
+import { ExamStatusEnum } from '../../../domains/exam-application/entities/enums/ExamStatusEnum';
 
 class Exam extends Model {
     public id!: string;

@@ -1,13 +1,11 @@
 import { ModelStatic, Transaction } from 'sequelize';
 
-import { IExamQuestionRepository } from '../../../domains/exam-application/domain/ports/IExamQuestionRepository';
-import {
-    ExamQuestionInput,
-    ExamQuestionRead,
-} from '../../../domains/exam-application/schemas/examSchema';
+
 import { BaseRepository } from '../../../shared/domain/base_repository';
 import { ExamQuestionMapper } from '../mappers/ExamQuestionMapper';
 import type ExamQuestion from '../models/ExamQuestion';
+import { ExamQuestionInput, ExamQuestionRead } from '../../../domains/exam-generation/schemas/examSchema';
+import { IExamQuestionRepository } from '../../../domains/exam-generation/domain/ports/IExamQuestionRepository';
 
 export class ExamQuestionRepository
     extends BaseRepository<

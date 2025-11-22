@@ -1,8 +1,5 @@
-import {
-    examQuestionReadSchema,
-    ExamQuestionInput,
-    ExamQuestionRead,
-} from '../../../domains/exam-application/schemas/examSchema';
+
+import { ExamQuestionInput, ExamQuestionRead, examQuestionReadSchema } from '../../../domains/exam-generation/schemas/examSchema';
 import type ExamQuestion from '../models/ExamQuestion';
 
 export const ExamQuestionMapper = {

@@ -1,4 +1,4 @@
-import { ExamStatusEnum } from '../../../exam-generation/entities/enums/ExamStatusEnum';
+import { ExamStatusEnum } from '../../../exam-application/entities/enums/ExamStatusEnum';
 import { DifficultyLevelEnum } from '../../../question-bank/entities/enums/DifficultyLevels';
 import { ExamCreate, ExamRead, ExamUpdate, ListExamsQuerySchema } from '../../schemas/examSchema';
 

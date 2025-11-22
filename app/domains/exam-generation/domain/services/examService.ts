@@ -1,6 +1,4 @@
 import { BaseDomainService } from '../../../../shared/domain/base_service';
-import { ExamStatusEnum } from '../../../exam-generation/entities/enums/ExamStatusEnum';
-import { DifficultyLevelEnum } from '../../../question-bank/entities/enums/DifficultyLevels';
 import { IExamRepository, ListExamsCriteria } from '../ports/IExamRepository';
 import { IExamQuestionRepository } from '../ports/IExamQuestionRepository';
 import {
@@ -12,23 +10,22 @@ import {
     AutomaticExamPreview,
     CreateAutomaticExamCommandSchema,
     CreateManualExamCommandSchema,
+    DifficultyCountMap,
     ExamDetailRead,
     ExamQuestionInput,
     ExamRead,
     ExamUpdate,
     ListExamsQuerySchema,
+    QuestionTypeDistributionEntry,
     UpdateExamCommandSchema,
 } from '../../schemas/examSchema';
+import { ExamStatusEnum } from '../../../exam-application/entities/enums/ExamStatusEnum';
+import { DifficultyLevelEnum } from '../../../question-bank/entities/enums/DifficultyLevels';
 
 type Deps = {
     examRepo: IExamRepository;
     examQuestionRepo: IExamQuestionRepository;
     questionRepo: IQuestionRepository;
-};
-
-type DistributionSlot = {
-    questionTypeId: string;
-    count: number;
 };
 
 export class ExamService extends BaseDomainService {
@@ -119,49 +116,82 @@ export class ExamService extends BaseDomainService {
         );
     }
 
-    private buildCoverageFromAutomatic(
-        input: CreateAutomaticExamCommandSchema,
-    ): Record<string, unknown> {
+    private buildCoverageFromAutomatic(input: CreateAutomaticExamCommandSchema): Record<string, unknown> {
         return (
             input.topicCoverage ?? {
                 mode: 'automatic',
                 subjectId: input.subjectId,
                 difficulty: input.difficulty,
-                distribution: input.questionTypeDistribution,
+                typeCounts: input.questionTypeCounts,
+                difficultyCounts: input.difficultyCounts,
+                topicIds: input.topicIds ?? [],
                 filters: input.filters ?? {},
             }
         );
     }
 
-    private buildDistribution(
+    private buildSelectionPlan(
+        operation: string,
         questionCount: number,
-        distribution: CreateAutomaticExamCommandSchema['questionTypeDistribution'],
-    ): DistributionSlot[] {
-        const base = distribution.map((entry) => {
-            const raw = (entry.percentage * questionCount) / 100;
-            const floor = Math.floor(raw);
-            return {
-                questionTypeId: entry.questionTypeId,
-                count: floor,
-                remainder: raw - floor,
-            };
+        typeEntries: QuestionTypeDistributionEntry[],
+        difficultyCounts: DifficultyCountMap,
+    ) {
+        const typeMap = new Map<string, number>();
+        typeEntries.forEach((entry) => {
+            if (entry.count <= 0) return;
+            typeMap.set(entry.questionTypeId, (typeMap.get(entry.questionTypeId) ?? 0) + entry.count);
         });
 
-        let assigned = base.reduce((acc, item) => acc + item.count, 0);
-        let remaining = questionCount - assigned;
+        const difficultyMap = new Map<DifficultyLevelEnum, number>();
+        (Object.keys(difficultyCounts) as Array<keyof DifficultyCountMap>).forEach((key) => {
+            const value = difficultyCounts[key];
+            if (value > 0) {
+                difficultyMap.set(key as DifficultyLevelEnum, value);
+            }
+        });
 
-        const sortedByRemainder = [...base].sort((a, b) => b.remainder - a.remainder);
-        let idx = 0;
-        while (remaining > 0 && sortedByRemainder.length > 0) {
-            sortedByRemainder[idx % sortedByRemainder.length].count += 1;
-            remaining -= 1;
-            idx += 1;
+        const entries: Array<{ questionTypeId: string; difficulty: DifficultyLevelEnum; count: number }> = [];
+
+        for (const [typeId, typeCount] of typeMap.entries()) {
+            let remainingType = typeCount;
+            for (const diffKey of Array.from(difficultyMap.keys())) {
+                if (remainingType <= 0) break;
+                const diffRemaining = difficultyMap.get(diffKey) ?? 0;
+                if (diffRemaining <= 0) continue;
+                const allocation = Math.min(remainingType, diffRemaining);
+                entries.push({ questionTypeId: typeId, difficulty: diffKey, count: allocation });
+                remainingType -= allocation;
+                difficultyMap.set(diffKey, diffRemaining - allocation);
+            }
+
+            if (remainingType > 0) {
+                this.raiseValidationError(
+                    operation,
+                    'No se puede cumplir la combinación de tipos y dificultades solicitada.',
+                    { entity: 'Exam' },
+                );
+            }
         }
 
-        return base.map((item) => ({
-            questionTypeId: item.questionTypeId,
-            count: item.count,
-        }));
+        const remainingDifficulty = Array.from(difficultyMap.values()).reduce((acc, value) => acc + value, 0);
+        if (remainingDifficulty > 0) {
+            this.raiseValidationError(
+                operation,
+                'No se puede cumplir la combinación de tipos y dificultades solicitada.',
+                { entity: 'Exam' },
+            );
+        }
+
+        const totalAllocated = entries.reduce((acc, entry) => acc + entry.count, 0);
+        if (totalAllocated !== questionCount) {
+            this.raiseValidationError(
+                operation,
+                'La parametrización de tipos y dificultades no coincide con la cantidad solicitada.',
+                { entity: 'Exam' },
+            );
+        }
+
+        return entries;
     }
 
     private async fetchQuestionsOrFail(ids: string[], operation: string): Promise<QuestionForExam[]> {
@@ -230,17 +260,22 @@ export class ExamService extends BaseDomainService {
     async createAutomaticExam(
         input: CreateAutomaticExamCommandSchema,
     ): Promise<AutomaticExamPreview> {
-        const distribution = this.buildDistribution(input.questionCount, input.questionTypeDistribution);
+        const selectionPlan = this.buildSelectionPlan(
+            'createAutomaticExam',
+            input.questionCount,
+            input.questionTypeCounts,
+            input.difficultyCounts,
+        );
         const selected: QuestionForExam[] = [];
         const used = new Set<string>(input.filters?.excludeQuestionIds ?? []);
+        const topicIds = input.topicIds ?? input.filters?.topicIds;
 
-        for (const slot of distribution) {
-            if (slot.count <= 0) continue;
+        for (const slot of selectionPlan) {
             const criteria: QuestionSearchCriteria = {
                 subjectId: input.subjectId,
-                difficulty: input.difficulty,
+                difficulty: slot.difficulty,
                 questionTypeIds: [slot.questionTypeId],
-                topicIds: input.filters?.topicIds,
+                topicIds,
                 subtopicIds: input.filters?.subtopicIds,
                 excludeQuestionIds: Array.from(used),
                 limit: slot.count,
@@ -264,9 +299,16 @@ export class ExamService extends BaseDomainService {
         }
 
         const shuffled = this.shuffleQuestions(selected);
-        const normalized: ExamQuestionInput[] = shuffled.map((question, idx) => ({
+        const previewQuestions = shuffled.map((question, idx) => ({
             questionId: question.id,
             questionIndex: idx + 1,
+            difficulty: question.difficulty,
+            questionTypeId: question.questionTypeId,
+            subTopicId: question.subTopicId,
+            topicId: question.topicId,
+            body: question.body,
+            options: question.options ?? null,
+            response: question.response ?? null,
         }));
 
         const topicProportion = input.topicProportion ?? this.computeTopicProportion(selected);
@@ -283,7 +325,7 @@ export class ExamService extends BaseDomainService {
             questionCount: input.questionCount,
             topicProportion,
             topicCoverage,
-            questions: normalized,
+            questions: previewQuestions,
         };
     }
 
