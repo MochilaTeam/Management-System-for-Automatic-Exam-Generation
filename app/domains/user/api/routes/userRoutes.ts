@@ -89,7 +89,7 @@ router.post('/users', createUser);
  *             schema:
  *               $ref: '#/components/schemas/CurrentUserIdResponse'
  */
-router.get('/users/me', getCurrentUser);
+router.get('/users/me', getCurrentUser) ;
 
 /**
  * @openapi
