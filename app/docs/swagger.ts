@@ -228,6 +228,13 @@ const swaggerDefinition = {
             Student: studentSchema,
             User: userSchema,
             Teacher: teacherSchema,
+            CurrentUserIdResponse: {
+                type: 'object',
+                properties: {
+                    userId: { type: 'string', format: 'uuid' },
+                },
+                required: ['userId'],
+            },
 
             ListStudentsResponse: {
                 type: 'object',
