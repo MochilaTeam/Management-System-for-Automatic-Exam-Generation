@@ -15,6 +15,8 @@
         "zod": "^4.1.12"
     },
     "devDependencies": {
+        "@commitlint/cli": "^20.1.0",
+        "@commitlint/config-conventional": "^20.0.0",
         "@types/jsonwebtoken": "^9.0.10",
         "@types/node": "^24.6.0",
         "@types/swagger-jsdoc": "^6.0.4",
@@ -28,6 +30,7 @@
         "eslint-plugin-prettier": "^5.5.4",
         "eslint-plugin-promise": "^7.2.1",
         "globals": "^16.4.0",
+        "husky": "^9.1.7",
         "prettier": "^3.6.2",
         "ts-node": "^10.9.2"
     },
@@ -37,6 +40,8 @@
         "lint:fix": "eslint \"app/**/*.{ts,tsx}\" --fix",
         "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
         "seed": "sudo docker compose exec app npx tsx app/database/seed.ts",
-        "build": "tsc"
+        "build": "tsc",
+        "prepare": "husky",
+        "commit": "node scripts/commit-helper.js"
     }
 }

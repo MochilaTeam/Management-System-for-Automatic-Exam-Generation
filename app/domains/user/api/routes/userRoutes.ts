@@ -3,6 +3,7 @@ import { Router } from 'express';
 import {
     createUser,
     deleteUser,
+    getCurrentUser,
     getUserById,
     listUsers,
     updateUser,
@@ -72,6 +73,23 @@ const router = Router();
  */
 router.get('/users', listUsers);
 router.post('/users', createUser);
+
+/**
+ * @openapi
+ * /users/me:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Obtener el ID del usuario autenticado
+ *     responses:
+ *       200:
+ *         description: ID del usuario autenticado obtenido correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CurrentUserIdResponse'
+ */
+router.get('/users/me', getCurrentUser);
 
 /**
  * @openapi

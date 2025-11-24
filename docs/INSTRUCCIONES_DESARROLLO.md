@@ -143,6 +143,18 @@ Suele ejecutar `prettier --write` para formateo consistente del código.
 
 ---
 
+## 5) Commits y Pull Requests (formato convencional)
+
+- **Formato**: `<tipo>(alcance opcional): resumen breve` (minúsculas, máximo 72 caracteres).
+- **Tipos permitidos**: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test.
+- **Ejemplos**: `feat(auth): agrega refresh token`, `fix(db): reintenta conexión ante timeout`, `chore: actualiza dependencias`.
+- **Hook local**: al instalar dependencias (`npm install` o `npm ci`) se activa Husky y cualquier commit que no cumpla el formato fallará con commitlint.
+- **Asistente**: `npm run commit` te hace preguntas (tipo, scope, resumen) y arma el commit por ti; muestra una descripción breve de cada tipo y explica qué es el scope (ej. auth, api, db, ui, docs, tests).
+- **PRs**: el título debe usar el mismo formato; hay una plantilla en GitHub y un workflow que marca como fallido el PR si el título no es válido.
+- Si un commit falla, reescribe el mensaje con `git commit --amend -m "tipo(scope): tu resumen"` y vuelve a intentarlo.
+
+---
+
 ## 6) Checklist rápido
 
 1. `docker compose up -d --build`
