@@ -1,5 +1,8 @@
-
-import { ExamQuestionInput, ExamQuestionRead, examQuestionReadSchema } from '../../../domains/exam-generation/schemas/examSchema';
+import {
+    ExamQuestionInput,
+    ExamQuestionRead,
+    examQuestionReadSchema,
+} from '../../../domains/exam-generation/schemas/examSchema';
 import type ExamQuestion from '../models/ExamQuestion';
 
 export const ExamQuestionMapper = {
@@ -13,7 +16,10 @@ export const ExamQuestionMapper = {
         return examQuestionReadSchema.parse(plain);
     },
 
-    toBulkCreateAttrs(examId: string, questions: ExamQuestionInput[]): Array<Record<string, unknown>> {
+    toBulkCreateAttrs(
+        examId: string,
+        questions: ExamQuestionInput[],
+    ): Array<Record<string, unknown>> {
         return questions.map((q) => ({
             examId,
             questionId: q.questionId,

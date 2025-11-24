@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { DifficultyLevelEnum } from '../../question-bank/entities/enums/DifficultyLevels';
 import { ExamStatusEnum } from '../../exam-application/entities/enums/ExamStatusEnum';
+import { DifficultyLevelEnum } from '../../question-bank/entities/enums/DifficultyLevels';
 
 const uuid = () => z.string().uuid();
 
@@ -90,7 +90,8 @@ export const createAutomaticExamCommandSchema = baseExamCommandSchema
     .strict()
     .refine(
         (obj) =>
-            obj.questionTypeCounts.reduce((acc, entry) => acc + entry.count, 0) === obj.questionCount,
+            obj.questionTypeCounts.reduce((acc, entry) => acc + entry.count, 0) ===
+            obj.questionCount,
         {
             message: 'La suma de las cantidades por tipo debe coincidir con la cantidad total.',
             path: ['questionTypeCounts'],

@@ -1,11 +1,6 @@
 import { BaseDomainService } from '../../../../shared/domain/base_service';
-import { IExamRepository, ListExamsCriteria } from '../ports/IExamRepository';
-import { IExamQuestionRepository } from '../ports/IExamQuestionRepository';
-import {
-    IQuestionRepository,
-    QuestionForExam,
-    QuestionSearchCriteria,
-} from '../ports/IQuestionRepository';
+import { ExamStatusEnum } from '../../../exam-application/entities/enums/ExamStatusEnum';
+import { DifficultyLevelEnum } from '../../../question-bank/entities/enums/DifficultyLevels';
 import {
     AutomaticExamPreview,
     CreateAutomaticExamCommandSchema,
@@ -19,8 +14,13 @@ import {
     QuestionTypeDistributionEntry,
     UpdateExamCommandSchema,
 } from '../../schemas/examSchema';
-import { ExamStatusEnum } from '../../../exam-application/entities/enums/ExamStatusEnum';
-import { DifficultyLevelEnum } from '../../../question-bank/entities/enums/DifficultyLevels';
+import { IExamQuestionRepository } from '../ports/IExamQuestionRepository';
+import { IExamRepository, ListExamsCriteria } from '../ports/IExamRepository';
+import {
+    IQuestionRepository,
+    QuestionForExam,
+    QuestionSearchCriteria,
+} from '../ports/IQuestionRepository';
 
 type Deps = {
     examRepo: IExamRepository;
@@ -62,9 +62,13 @@ export class ExamService extends BaseDomainService {
         operation: string,
     ): ExamQuestionInput[] {
         if (questions.length !== expectedCount) {
-            this.raiseValidationError(operation, 'La cantidad de preguntas no coincide con el total.', {
-                entity: 'Exam',
-            });
+            this.raiseValidationError(
+                operation,
+                'La cantidad de preguntas no coincide con el total.',
+                {
+                    entity: 'Exam',
+                },
+            );
         }
 
         const idSet = new Set<string>();
@@ -76,9 +80,13 @@ export class ExamService extends BaseDomainService {
                 });
             }
             if (indexSet.has(q.questionIndex)) {
-                this.raiseValidationError(operation, 'Los índices de las preguntas deben ser únicos.', {
-                    entity: 'ExamQuestion',
-                });
+                this.raiseValidationError(
+                    operation,
+                    'Los índices de las preguntas deben ser únicos.',
+                    {
+                        entity: 'ExamQuestion',
+                    },
+                );
             }
             idSet.add(q.questionId);
             indexSet.add(q.questionIndex);
@@ -116,7 +124,9 @@ export class ExamService extends BaseDomainService {
         );
     }
 
-    private buildCoverageFromAutomatic(input: CreateAutomaticExamCommandSchema): Record<string, unknown> {
+    private buildCoverageFromAutomatic(
+        input: CreateAutomaticExamCommandSchema,
+    ): Record<string, unknown> {
         return (
             input.topicCoverage ?? {
                 mode: 'automatic',
@@ -139,7 +149,10 @@ export class ExamService extends BaseDomainService {
         const typeMap = new Map<string, number>();
         typeEntries.forEach((entry) => {
             if (entry.count <= 0) return;
-            typeMap.set(entry.questionTypeId, (typeMap.get(entry.questionTypeId) ?? 0) + entry.count);
+            typeMap.set(
+                entry.questionTypeId,
+                (typeMap.get(entry.questionTypeId) ?? 0) + entry.count,
+            );
         });
 
         const difficultyMap = new Map<DifficultyLevelEnum, number>();
@@ -150,7 +163,11 @@ export class ExamService extends BaseDomainService {
             }
         });
 
-        const entries: Array<{ questionTypeId: string; difficulty: DifficultyLevelEnum; count: number }> = [];
+        const entries: Array<{
+            questionTypeId: string;
+            difficulty: DifficultyLevelEnum;
+            count: number;
+        }> = [];
 
         for (const [typeId, typeCount] of typeMap.entries()) {
             let remainingType = typeCount;
@@ -173,7 +190,10 @@ export class ExamService extends BaseDomainService {
             }
         }
 
-        const remainingDifficulty = Array.from(difficultyMap.values()).reduce((acc, value) => acc + value, 0);
+        const remainingDifficulty = Array.from(difficultyMap.values()).reduce(
+            (acc, value) => acc + value,
+            0,
+        );
         if (remainingDifficulty > 0) {
             this.raiseValidationError(
                 operation,
@@ -194,7 +214,10 @@ export class ExamService extends BaseDomainService {
         return entries;
     }
 
-    private async fetchQuestionsOrFail(ids: string[], operation: string): Promise<QuestionForExam[]> {
+    private async fetchQuestionsOrFail(
+        ids: string[],
+        operation: string,
+    ): Promise<QuestionForExam[]> {
         const existing = await this.deps.questionRepo.findByIds(ids);
         if (existing.length !== ids.length) {
             this.raiseNotFoundError(operation, 'Alguna de las preguntas no existe.', {
@@ -216,7 +239,9 @@ export class ExamService extends BaseDomainService {
     private async getExamDetailOrFail(examId: string, operation: string): Promise<ExamDetailRead> {
         const exam = await this.deps.examRepo.get_by_id(examId);
         if (!exam) {
-            this.raiseNotFoundError(operation, 'El examen solicitado no existe.', { entity: 'Exam' });
+            this.raiseNotFoundError(operation, 'El examen solicitado no existe.', {
+                entity: 'Exam',
+            });
         }
         const questions = await this.deps.examQuestionRepo.listByExamId(examId);
         return { ...exam, questions };

@@ -1,5 +1,6 @@
 import { Includeable, ModelStatic, Op, Transaction, WhereOptions } from 'sequelize';
 
+import { sequelize } from '../../../database/database';
 import type {
     IQuestionRepository as IExamQuestionRepository,
     QuestionForExam,
@@ -19,7 +20,6 @@ import {
     questionDetailSchema,
     questionUpdateSchema,
 } from '../../../domains/question-bank/schemas/questionSchema';
-import { sequelize } from '../../../database/database';
 import { BaseRepository } from '../../../shared/domain/base_repository';
 import QuestionModel from '../models/Question';
 import Subject from '../models/Subject';
@@ -333,7 +333,8 @@ export class QuestionRepository
             }
             if (criteria.excludeQuestionIds && criteria.excludeQuestionIds.length > 0) {
                 if (!where.id) where.id = {};
-                (where.id as Record<symbol | string, unknown>)[Op.notIn] = criteria.excludeQuestionIds;
+                (where.id as Record<symbol | string, unknown>)[Op.notIn] =
+                    criteria.excludeQuestionIds;
             }
 
             const rows = await this.model.findAll({

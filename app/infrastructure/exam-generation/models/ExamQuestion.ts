@@ -40,7 +40,7 @@ ExamQuestion.init(
         tableName: 'ExamQuestions',
         indexes: [
             { unique: true, fields: ['examId', 'questionId'] },
-             { unique: true, fields: ['examId', 'questionIndex'] },
+            { unique: true, fields: ['examId', 'questionIndex'] },
             { fields: ['examId'] },
             { fields: ['questionId'] },
         ],

@@ -1,18 +1,30 @@
 import { ModelStatic, Transaction } from 'sequelize';
 
-
+import {
+    IExamRepository,
+    ListExamsCriteria,
+} from '../../../domains/exam-generation/domain/ports/IExamRepository';
+import {
+    ExamCreate,
+    ExamRead,
+    ExamUpdate,
+} from '../../../domains/exam-generation/schemas/examSchema';
 import { BaseRepository } from '../../../shared/domain/base_repository';
 import { ExamMapper } from '../mappers/ExamMapper';
 import type Exam from '../models/Exam';
-import { ExamCreate, ExamRead, ExamUpdate } from '../../../domains/exam-generation/schemas/examSchema';
-import { IExamRepository, ListExamsCriteria } from '../../../domains/exam-generation/domain/ports/IExamRepository';
 
 export class ExamRepository
     extends BaseRepository<Exam, ExamRead, ExamCreate, ExamUpdate>
     implements IExamRepository
 {
     constructor(model: ModelStatic<Exam>, defaultTx?: Transaction) {
-        super(model, ExamMapper.toRead, ExamMapper.toCreateAttrs, ExamMapper.toUpdateAttrs, defaultTx);
+        super(
+            model,
+            ExamMapper.toRead,
+            ExamMapper.toCreateAttrs,
+            ExamMapper.toUpdateAttrs,
+            defaultTx,
+        );
     }
 
     static withTx(model: ModelStatic<Exam>, tx: Transaction) {

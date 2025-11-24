@@ -1,10 +1,18 @@
 import { Attributes, Op, OrderItem, WhereOptions } from 'sequelize';
 
-
-
+import {
+    ExamFilters,
+    ListExamsCriteria,
+} from '../../../domains/exam-generation/domain/ports/IExamRepository';
+import {
+    ExamCreate,
+    examCreateSchema,
+    ExamRead,
+    examReadSchema,
+    ExamUpdate,
+    examUpdateSchema,
+} from '../../../domains/exam-generation/schemas/examSchema';
 import type Exam from '../models/Exam';
-import { ExamCreate, examCreateSchema, ExamRead, examReadSchema, ExamUpdate, examUpdateSchema } from '../../../domains/exam-generation/schemas/examSchema';
-import { ExamFilters, ListExamsCriteria } from '../../../domains/exam-generation/domain/ports/IExamRepository';
 
 export const ExamMapper = {
     toRead(row: Exam): ExamRead {

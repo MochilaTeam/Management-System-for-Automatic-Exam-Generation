@@ -54,6 +54,10 @@ const router = Router();
  *     responses:
  *       200:
  *         description: Colección paginada de exámenes.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ListExamsResponse'
  */
 router.get('/exams', listExams);
 
@@ -73,6 +77,10 @@ router.get('/exams', listExams);
  *     responses:
  *       201:
  *         description: Examen creado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ExamDetailResponse'
  */
 router.post('/exams/manual', createManualExam);
 
@@ -92,6 +100,10 @@ router.post('/exams/manual', createManualExam);
  *     responses:
  *       200:
  *         description: Propuesta generada.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AutomaticExamPreviewResponse'
  */
 router.post('/exams/automatic', createAutomaticExam);
 
@@ -112,6 +124,10 @@ router.post('/exams/automatic', createAutomaticExam);
  *     responses:
  *       200:
  *         description: Examen encontrado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ExamDetailResponse'
  *   patch:
  *     tags:
  *       - Exams
@@ -132,6 +148,10 @@ router.post('/exams/automatic', createAutomaticExam);
  *     responses:
  *       200:
  *         description: Examen actualizado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ExamDetailResponse'
  *   delete:
  *     tags:
  *       - Exams

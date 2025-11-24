@@ -1,10 +1,7 @@
 import { RetrieveOneSchema } from '../../../../shared/domain/base_response';
 import { BaseCommand } from '../../../../shared/domain/base_use_case';
 import { ExamService } from '../../domain/services/examService';
-import {
-    AutomaticExamPreview,
-    CreateAutomaticExamCommandSchema,
-} from '../../schemas/examSchema';
+import { AutomaticExamPreview, CreateAutomaticExamCommandSchema } from '../../schemas/examSchema';
 
 export class CreateAutomaticExamCommand extends BaseCommand<
     CreateAutomaticExamCommandSchema,

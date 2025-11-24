@@ -1,10 +1,7 @@
 import { RetrieveOneSchema } from '../../../../shared/domain/base_response';
 import { BaseCommand } from '../../../../shared/domain/base_use_case';
 import { ExamService } from '../../domain/services/examService';
-import {
-    ExamDetailRead,
-    UpdateExamCommandSchema,
-} from '../../schemas/examSchema';
+import { ExamDetailRead, UpdateExamCommandSchema } from '../../schemas/examSchema';
 
 type Input = {
     examId: string;

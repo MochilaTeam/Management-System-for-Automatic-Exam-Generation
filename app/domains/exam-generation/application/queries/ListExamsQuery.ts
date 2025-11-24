@@ -3,10 +3,7 @@ import { BaseQuery } from '../../../../shared/domain/base_use_case';
 import { ExamService } from '../../domain/services/examService';
 import { ExamRead, ListExamsQuerySchema } from '../../schemas/examSchema';
 
-export class ListExamsQuery extends BaseQuery<
-    ListExamsQuerySchema,
-    PaginatedSchema<ExamRead>
-> {
+export class ListExamsQuery extends BaseQuery<ListExamsQuerySchema, PaginatedSchema<ExamRead>> {
     constructor(private readonly svc: ExamService) {
         super();
     }
