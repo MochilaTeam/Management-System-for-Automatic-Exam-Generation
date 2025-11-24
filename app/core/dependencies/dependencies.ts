@@ -1,10 +1,11 @@
 import { SystemLogger } from '../logging/logger';
+import { getHasher } from '../security/hasher';
 
-let cached_logger: SystemLogger | null = null;
+export type Hasher = ReturnType<typeof getHasher>;
+
+let _logger: SystemLogger | null = null;
+let _hasher: Hasher | null = null;
 
 export function get_logger(): SystemLogger {
-    if (!cached_logger) {
-        cached_logger = new SystemLogger();
-    }
-    return cached_logger;
+    return (_logger ??= new SystemLogger());
 }

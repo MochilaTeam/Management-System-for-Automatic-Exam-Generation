@@ -29,3 +29,5 @@ User.hasOne(Teacher, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
 });
+
+export { Student, Teacher, User };

@@ -1,4 +1,4 @@
-import { FindOptions, Model, ModelStatic, WhereOptions } from 'sequelize';
+import { FindOptions, Model, ModelStatic, Transaction, WhereOptions } from 'sequelize';
 
 import {
     BaseDatabaseError,
@@ -8,23 +8,38 @@ import {
     UnexpectedError,
 } from '../exceptions/domainErrors';
 
-export class BaseRepository<TModel extends Model, TRead> {
+export class BaseRepository<TModel extends Model, TRead, TCreate, TUpdate> {
     protected readonly model: ModelStatic<TModel>;
     protected readonly toReadFn: (row: TModel) => TRead;
+    protected readonly toCreateAttrsFn: (dto: TCreate) => Record<string, unknown>;
+    protected readonly toUpdateAttrsFn: (dto: TUpdate) => Record<string, unknown>;
+    protected readonly defaultTx?: Transaction;
 
-    constructor(model: ModelStatic<TModel>, toRead: (row: TModel) => TRead) {
+    constructor(
+        model: ModelStatic<TModel>,
+        toRead: (row: TModel) => TRead,
+        toCreateAttrsFn: (dto: TCreate) => Record<string, unknown>,
+        toUpdateAttrsFn: (dto: TUpdate) => Record<string, unknown>,
+        defaultTx?: Transaction, // ← opcional, para repos “scopeados”
+    ) {
         this.model = model;
         this.toReadFn = toRead;
+        this.toCreateAttrsFn = toCreateAttrsFn;
+        this.toUpdateAttrsFn = toUpdateAttrsFn;
+        this.defaultTx = defaultTx;
     }
 
-    /**
-     * Busca una entidad por filtros.
-     * - Si hay > 1 resultado ⇒ MultipleResultsFoundError
-     * - Si no hay ⇒ null
-     */
-    async get_one(filters: WhereOptions): Promise<TRead | null> {
+    protected effTx(tx?: Transaction) {
+        return tx ?? this.defaultTx;
+    }
+
+    async get_one(where: WhereOptions, tx?: Transaction): Promise<TRead | null> {
         try {
-            const rows = await this.model.findAll({ where: filters, limit: 2 } as FindOptions);
+            const rows = await this.model.findAll({
+                where,
+                limit: 2,
+                transaction: this.effTx(tx),
+            } as FindOptions);
             if (rows.length > 1) {
                 throw new MultipleResultsFoundError({ message: 'More than one entity found' });
             }
@@ -35,104 +50,92 @@ export class BaseRepository<TModel extends Model, TRead> {
         }
     }
 
-    /**
-     * Crea un registro.
-     */
-    async create(data: TModel['_creationAttributes']): Promise<TRead> {
+    async create(data: TCreate, tx?: Transaction): Promise<TRead> {
         try {
-            const created = await this.model.create(data);
+            const attrs = this.toCreateAttrsFn(data);
+            const created = await this.model.create(attrs as TModel['_creationAttributes'], {
+                transaction: this.effTx(tx),
+            });
             return this.toReadFn(created);
         } catch (e) {
             this.raiseError(e, this.model.name);
         }
     }
 
-    /**
-     * Obtiene por id (UUID string).
-     * - Si no existe ⇒ null
-     */
-    async get_by_id(id: string): Promise<TRead | null> {
+    async get_by_id(id: string, tx?: Transaction): Promise<TRead | null> {
         try {
-            const row = await this.model.findByPk(id);
+            const row = await this.model.findByPk(id, { transaction: this.effTx(tx) });
             return row ? this.toReadFn(row) : null;
         } catch (e) {
             this.raiseError(e, this.model.name);
         }
     }
 
-    /**
-     * Lista múltiple con paginación y filtros.
-     */
-    async get_multi(opts?: {
-        offset?: number;
-        limit?: number;
-        filters?: WhereOptions;
-    }): Promise<TRead[]> {
+    async listByOptions(options: FindOptions = {}, tx?: Transaction): Promise<TRead[]> {
         try {
-            const { offset = 0, limit = 100, filters = {} as WhereOptions } = opts ?? {};
-            const options: FindOptions = { where: filters, offset, limit };
-            const rows = await this.model.findAll(options);
+            const rows = await this.model.findAll({ ...options, transaction: this.effTx(tx) });
             return rows.map((r) => this.toReadFn(r));
         } catch (e) {
             this.raiseError(e, this.model.name);
         }
     }
 
-    /**
-     * Actualiza por id parcialmente.
-     * - Si no existe ⇒ null
-     * - Devuelve DTO actualizado
-     */
-    async update(id: string, data: Partial<TModel['_creationAttributes']>): Promise<TRead | null> {
+    async paginateByOptions(
+        options: FindOptions = {},
+        tx?: Transaction,
+    ): Promise<{ items: TRead[]; total: number }> {
         try {
-            const row = await this.model.findByPk(id);
+            const { rows, count } = await this.model.findAndCountAll({
+                ...options,
+                transaction: this.effTx(tx),
+            });
+            return { items: rows.map((r) => this.toReadFn(r)), total: count };
+        } catch (e) {
+            this.raiseError(e, this.model.name);
+        }
+    }
+
+    async update(id: string, data: TUpdate, tx?: Transaction): Promise<TRead | null> {
+        try {
+            const attrs = this.toUpdateAttrsFn(data);
+            const row = await this.model.findByPk(id, { transaction: this.effTx(tx) });
             if (!row) return null;
-            await row.update(data);
+            await row.update(attrs, { transaction: this.effTx(tx) });
             return this.toReadFn(row);
         } catch (e) {
             this.raiseError(e, this.model.name);
         }
     }
 
-    /**
-     * Verifica existencia por filtros.
-     */
-    async exists(filters: WhereOptions): Promise<boolean> {
+    async exists(where: WhereOptions, tx?: Transaction): Promise<boolean> {
         try {
-            const n = await this.model.count({ where: filters });
+            const n = await this.model.count({ where, transaction: this.effTx(tx) });
             return n > 0;
         } catch (e) {
             this.raiseError(e, this.model.name);
         }
     }
 
-    /**
-     * Eliminación hard delete por id.
-     * - Devuelve true si borró ≥ 1 fila; false si no existía
-     */
-    async delete(id: string): Promise<boolean> {
+    async deleteById(id: string, tx?: Transaction): Promise<boolean> {
         try {
-            const deleted = await this.model.destroy({ where: { id } as WhereOptions });
+            const deleted = await this.model.destroy({
+                where: { id } as WhereOptions,
+                transaction: this.effTx(tx),
+            });
             return deleted > 0;
         } catch (e) {
             this.raiseError(e, this.model.name);
         }
     }
 
-    /**
-     * Conteo con filtros opcionales.
-     */
-    async count(filters?: WhereOptions): Promise<number> {
+    async count(where?: WhereOptions, tx?: Transaction): Promise<number> {
         try {
-            return await this.model.count({ where: filters ?? {} });
+            return await this.model.count({ where: where ?? {}, transaction: this.effTx(tx) });
         } catch (e) {
             this.raiseError(e, this.model.name);
         }
     }
 
-    /**
-     * Traduce errores de Sequelize a excepciones de dominio.
-     */
     protected raiseError(error: unknown, entityName?: string): never {
         const maybe = error as { name?: string; message?: string };
         const name = maybe?.name ?? '';

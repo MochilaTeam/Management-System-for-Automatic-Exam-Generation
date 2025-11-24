@@ -6,7 +6,7 @@ import SubjectTopic from './SubjectTopic';
 import Subtopic from './SubTopic';
 import TeacherSubject from './TeacherSubject';
 import Topic from './Topic';
-import Teacher from '../../user/models/Teacher';
+import { Teacher } from '../../user/models';
 
 Subject.belongsToMany(Topic, {
     through: SubjectTopic,
@@ -85,3 +85,7 @@ Subtopic.belongsToMany(Question, {
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE',
 });
+export { default as Subject } from './Subject';
+export { default as Topic } from './Topic';
+export { default as SubTopic } from './SubTopic';
+export { default as SubjectTopic } from './SubjectTopic';

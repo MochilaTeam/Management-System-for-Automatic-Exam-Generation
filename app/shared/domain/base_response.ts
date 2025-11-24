@@ -1,5 +1,3 @@
-// shared/domain/base_response.ts
-
 /** Contrato base que comparten todas las respuestas */
 export class BaseResponse {
     constructor(
@@ -8,16 +6,15 @@ export class BaseResponse {
     ) {}
 }
 
-/** Paginación básica */
-export class PaginationSchema<T> extends BaseResponse {
+export class BaseErrorResponse<TDetails = unknown> extends BaseResponse {
     constructor(
-        public data: T[],
-        public page_size: number,
-        public total: number,
-        message: string = 'Consulta paginada exitosa',
-        success: boolean = true,
+        message: string,
+        public code: string | null = null,
+        public statusCode: number | null = null,
+        public entity: string | null = null,
+        public details?: TDetails,
     ) {
-        super(success, message);
+        super(false, message);
     }
 }
 
@@ -54,6 +51,23 @@ export class RetrieveManySchema<T> extends BaseResponse {
     constructor(
         public data: T[],
         message: string = 'Consulta de múltiples elementos exitosa',
+        success: boolean = true,
+    ) {
+        super(success, message);
+    }
+}
+
+export type PaginationMeta = {
+    limit: number;
+    offset: number;
+    total: number;
+};
+
+export class PaginatedSchema<T> extends BaseResponse {
+    constructor(
+        public data: T[],
+        public meta: PaginationMeta,
+        message: string = 'Consulta paginada exitosa',
         success: boolean = true,
     ) {
         super(success, message);

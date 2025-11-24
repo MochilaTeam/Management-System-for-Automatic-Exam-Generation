@@ -3,8 +3,7 @@ import ExamRegrade from './ExamRegrade';
 import ExamResponse from './ExamResponse';
 import Exam from '../../exam-generation/models/Exam';
 import ExamQuestion from '../../exam-generation/models/ExamQuestion';
-import Student from '../../user/models/Student';
-import Teacher from '../../user/models/Teacher';
+import { Student, Teacher } from '../../user/models';
 
 ExamResponse.belongsTo(Student, {
     as: 'student',
