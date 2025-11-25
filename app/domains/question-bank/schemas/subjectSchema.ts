@@ -118,6 +118,7 @@ export const subjectDetailSchema = z
         subject_id: z.string(),
         subject_name: z.string(),
         subject_program: z.string(),
+        subject_leader_id: z.string().uuid().nullable(),
         subject_leader_name: z.string(), // si no hay líder => cadena vacía
         topics_amount: z.number(),
         topics: z.array(topicDetailSchema),
