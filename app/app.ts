@@ -42,3 +42,5 @@ start().catch((err) => {
 app.get('/ping', (_req: Request, res: Response) => {
     res.json({ message: 'pong' });
 });
+
+export { app };
