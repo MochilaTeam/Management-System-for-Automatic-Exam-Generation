@@ -151,6 +151,7 @@ const subjectDetailSchema = {
         subject_id: { type: 'string', format: 'uuid' },
         subject_name: { type: 'string' },
         subject_program: { type: 'string' },
+        subject_leader_id: { type: 'string', format: 'uuid', nullable: true },
         subject_leader_name: { type: 'string', description: 'Vacío si no hay líder' },
         topics_amount: { type: 'number' },
         topics: {
@@ -162,6 +163,7 @@ const subjectDetailSchema = {
         'subject_id',
         'subject_name',
         'subject_program',
+        'subject_leader_id',
         'subject_leader_name',
         'topics_amount',
         'topics',
@@ -556,13 +558,6 @@ const swaggerDefinition = {
             Student: studentSchema,
             User: userSchema,
             Teacher: teacherSchema,
-            CurrentUserIdResponse: {
-                type: 'object',
-                properties: {
-                    userId: { type: 'string', format: 'uuid' },
-                },
-                required: ['userId'],
-            },
 
             ListStudentsResponse: {
                 type: 'object',
