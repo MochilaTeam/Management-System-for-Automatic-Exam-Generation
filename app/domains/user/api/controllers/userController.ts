@@ -79,7 +79,8 @@ export async function getCurrentUser(req: AuthenticatedRequest, res: Response, n
             });
         }
 
-        res.status(200).json({ userId });
+        const result = await makeGetUserByIdQuery().execute({ userId });
+        res.status(200).json(result);
     } catch (err) {
         next(err);
     }
