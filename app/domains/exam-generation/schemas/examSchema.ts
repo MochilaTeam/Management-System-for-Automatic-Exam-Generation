@@ -68,13 +68,13 @@ export const baseExamCommandSchema = z
     })
     .strict();
 
-export const createManualExamCommandSchema = baseExamCommandSchema
+const manualExamBaseSchema = baseExamCommandSchema.omit({ questionCount: true, difficulty: true });
+
+export const createManualExamCommandSchema = manualExamBaseSchema
     .extend({
         questions: z
             .array(examQuestionInputSchema)
             .min(1, { message: 'Debe adjuntar al menos una pregunta.' }),
-        topicProportion: z.record(z.string(), z.number().min(0)).optional(),
-        topicCoverage: z.record(z.string(), z.any()).optional(),
     })
     .strict();
 
@@ -149,10 +149,7 @@ export const updateExamCommandSchema = z
         observations: z.string().max(2000).nullable().optional(),
         examStatus: z.nativeEnum(ExamStatusEnum).optional(),
         validatorId: uuid().nullable().optional(),
-        topicProportion: z.record(z.string(), z.number().min(0)).optional(),
-        topicCoverage: z.record(z.string(), z.any()).optional(),
-        questions: z.array(examQuestionInputSchema).optional(),
-        questionCount: z.number().int().min(1).optional(),
+        questions: z.array(examQuestionInputSchema).min(1).optional(),
     })
     .strict()
     .refine((obj) => Object.keys(obj).length > 0, {
@@ -195,6 +192,7 @@ export const examUpdateSchema = z
         topicProportion: z.record(z.string(), z.number().min(0)).optional(),
         topicCoverage: z.record(z.string(), z.any()).optional(),
         questionCount: z.number().int().min(1).optional(),
+        difficulty: z.nativeEnum(DifficultyLevelEnum).optional(),
     })
     .strict()
     .refine((obj) => Object.keys(obj).length > 0, {

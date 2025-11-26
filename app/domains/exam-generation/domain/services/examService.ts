@@ -110,18 +110,32 @@ export class ExamService extends BaseDomainService {
         return result;
     }
 
+    private deriveDifficultyFromCatalog(questions: QuestionForExam[]): DifficultyLevelEnum {
+        if (!questions.length) return DifficultyLevelEnum.MEDIUM;
+        const weights: Record<DifficultyLevelEnum, number> = {
+            [DifficultyLevelEnum.EASY]: 1,
+            [DifficultyLevelEnum.MEDIUM]: 2,
+            [DifficultyLevelEnum.HARD]: 3,
+        };
+        const average =
+            questions.reduce((acc, question) => acc + (weights[question.difficulty] ?? 2), 0) /
+            questions.length;
+        if (average < 1.5) return DifficultyLevelEnum.EASY;
+        if (average < 2.5) return DifficultyLevelEnum.MEDIUM;
+        return DifficultyLevelEnum.HARD;
+    }
+
     private buildCoverageFromManual(
-        input: CreateManualExamCommandSchema,
+        subjectId: string,
+        difficulty: DifficultyLevelEnum,
         questionIds: string[],
     ): Record<string, unknown> {
-        return (
-            input.topicCoverage ?? {
-                mode: 'manual',
-                subjectId: input.subjectId,
-                difficulty: input.difficulty,
-                questionIds,
-            }
-        );
+        return {
+            mode: 'manual',
+            subjectId,
+            difficulty,
+            questionIds,
+        };
     }
 
     private buildCoverageFromAutomatic(
@@ -248,9 +262,10 @@ export class ExamService extends BaseDomainService {
     }
 
     async createManualExam(input: CreateManualExamCommandSchema): Promise<ExamDetailRead> {
+        const targetCount = input.questions.length;
         const questions = this.ensureQuestionsPayload(
             input.questions,
-            input.questionCount,
+            targetCount,
             'createManualExam',
         );
         const catalog = await this.fetchQuestionsOrFail(
@@ -258,21 +273,23 @@ export class ExamService extends BaseDomainService {
             'createManualExam',
         );
 
-        const topicProportion = input.topicProportion ?? this.computeTopicProportion(catalog);
+        const derivedDifficulty = this.deriveDifficultyFromCatalog(catalog);
+        const topicProportion = this.computeTopicProportion(catalog);
         const topicCoverage = this.buildCoverageFromManual(
-            input,
+            input.subjectId,
+            derivedDifficulty,
             questions.map((q) => q.questionId),
         );
 
         const created = await this.deps.examRepo.create({
             title: input.title,
             subjectId: input.subjectId,
-            difficulty: input.difficulty,
+            difficulty: derivedDifficulty,
             examStatus: input.examStatus ?? ExamStatusEnum.DRAFT,
             authorId: input.authorId,
             validatorId: input.validatorId,
             observations: input.observations ?? null,
-            questionCount: input.questionCount,
+            questionCount: targetCount,
             topicProportion,
             topicCoverage,
         });
@@ -365,12 +382,9 @@ export class ExamService extends BaseDomainService {
         if (patch.observations !== undefined) dto.observations = patch.observations;
         if (patch.examStatus !== undefined) dto.examStatus = patch.examStatus;
         if (patch.validatorId !== undefined) dto.validatorId = patch.validatorId;
-        if (patch.topicProportion !== undefined) dto.topicProportion = patch.topicProportion;
-        if (patch.topicCoverage !== undefined) dto.topicCoverage = patch.topicCoverage;
-
         let normalizedQuestions: ExamQuestionInput[] | null = null;
         if (patch.questions) {
-            const targetCount = patch.questionCount ?? patch.questions.length;
+            const targetCount = patch.questions.length;
             normalizedQuestions = this.ensureQuestionsPayload(
                 patch.questions,
                 targetCount,
@@ -380,6 +394,7 @@ export class ExamService extends BaseDomainService {
                 normalizedQuestions.map((q) => q.questionId),
                 'updateExam',
             );
+            const derivedDifficulty = this.deriveDifficultyFromCatalog(catalog);
             if (dto.topicProportion === undefined) {
                 dto.topicProportion = this.computeTopicProportion(catalog);
             }
@@ -387,16 +402,12 @@ export class ExamService extends BaseDomainService {
                 dto.topicCoverage = {
                     mode: 'manual-update',
                     subjectId: existing.subjectId,
+                    difficulty: derivedDifficulty,
                     sourceQuestions: normalizedQuestions.map((q) => q.questionId),
                 };
             }
             dto.questionCount = targetCount;
-        } else if (patch.questionCount !== undefined) {
-            this.raiseValidationError(
-                'updateExam',
-                'Debe adjuntar las preguntas para actualizar la cantidad total.',
-                { entity: 'Exam' },
-            );
+            dto.difficulty = derivedDifficulty;
         }
 
         const updated = await this.deps.examRepo.update(id, dto);
