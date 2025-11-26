@@ -285,7 +285,6 @@ const createManualExamInputSchema = {
         authorId: { type: 'string', format: 'uuid' },
         validatorId: { type: 'string', format: 'uuid', nullable: true },
         observations: { type: 'string', nullable: true },
-        questionCount: { type: 'integer', example: 10 },
         questions: {
             type: 'array',
             items: {
@@ -301,18 +300,10 @@ const createManualExamInputSchema = {
                 { questionId: '1c21ac0a-445a-42b7-9b18-8b0979f765c1', questionIndex: 2 },
             ],
         },
-        topicProportion: {
-            type: 'object',
-            additionalProperties: { type: 'number' },
-            nullable: true,
-        },
-        topicCoverage: {
-            type: 'object',
-            additionalProperties: true,
-            nullable: true,
-        },
     },
-    required: ['title', 'subjectId', 'difficulty', 'authorId', 'questionCount', 'questions'],
+    description:
+        'El número total de preguntas se deriva del tamaño del arreglo enviado y la proporción/cobertura se recalcula automáticamente.',
+    required: ['title', 'subjectId', 'difficulty', 'authorId', 'questions'],
 };
 
 const createAutomaticExamInputSchema = {
@@ -449,15 +440,6 @@ const updateExamInputSchema = {
             enum: ['draft', 'on_review', 'valid', 'invalid', 'published'],
         },
         validatorId: { type: 'string', format: 'uuid', nullable: true },
-        topicProportion: {
-            type: 'object',
-            additionalProperties: { type: 'number' },
-        },
-        topicCoverage: {
-            type: 'object',
-            additionalProperties: true,
-        },
-        questionCount: { type: 'integer' },
         questions: {
             type: 'array',
             items: {
@@ -468,10 +450,12 @@ const updateExamInputSchema = {
                 },
                 required: ['questionId', 'questionIndex'],
             },
+            description:
+                'Si se envía, sustituye completamente las preguntas del examen; la cantidad y métricas se recalculan.',
         },
     },
     description:
-        'Todos los campos son opcionales; si se cambia la cantidad de preguntas debe reenviarse la colección completa de preguntas/índices.',
+        'Todos los campos son opcionales; si se envía el arreglo de preguntas debe contener la lista completa a persistir.',
 };
 
 const listExamsResponseSchema = {

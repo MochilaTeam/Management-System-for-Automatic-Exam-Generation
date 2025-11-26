@@ -114,14 +114,12 @@ export class ExamService extends BaseDomainService {
         input: CreateManualExamCommandSchema,
         questionIds: string[],
     ): Record<string, unknown> {
-        return (
-            input.topicCoverage ?? {
-                mode: 'manual',
-                subjectId: input.subjectId,
-                difficulty: input.difficulty,
-                questionIds,
-            }
-        );
+        return {
+            mode: 'manual',
+            subjectId: input.subjectId,
+            difficulty: input.difficulty,
+            questionIds,
+        };
     }
 
     private buildCoverageFromAutomatic(
@@ -248,9 +246,10 @@ export class ExamService extends BaseDomainService {
     }
 
     async createManualExam(input: CreateManualExamCommandSchema): Promise<ExamDetailRead> {
+        const targetCount = input.questions.length;
         const questions = this.ensureQuestionsPayload(
             input.questions,
-            input.questionCount,
+            targetCount,
             'createManualExam',
         );
         const catalog = await this.fetchQuestionsOrFail(
@@ -258,7 +257,7 @@ export class ExamService extends BaseDomainService {
             'createManualExam',
         );
 
-        const topicProportion = input.topicProportion ?? this.computeTopicProportion(catalog);
+        const topicProportion = this.computeTopicProportion(catalog);
         const topicCoverage = this.buildCoverageFromManual(
             input,
             questions.map((q) => q.questionId),
@@ -272,7 +271,7 @@ export class ExamService extends BaseDomainService {
             authorId: input.authorId,
             validatorId: input.validatorId,
             observations: input.observations ?? null,
-            questionCount: input.questionCount,
+            questionCount: targetCount,
             topicProportion,
             topicCoverage,
         });
@@ -365,12 +364,9 @@ export class ExamService extends BaseDomainService {
         if (patch.observations !== undefined) dto.observations = patch.observations;
         if (patch.examStatus !== undefined) dto.examStatus = patch.examStatus;
         if (patch.validatorId !== undefined) dto.validatorId = patch.validatorId;
-        if (patch.topicProportion !== undefined) dto.topicProportion = patch.topicProportion;
-        if (patch.topicCoverage !== undefined) dto.topicCoverage = patch.topicCoverage;
-
         let normalizedQuestions: ExamQuestionInput[] | null = null;
         if (patch.questions) {
-            const targetCount = patch.questionCount ?? patch.questions.length;
+            const targetCount = patch.questions.length;
             normalizedQuestions = this.ensureQuestionsPayload(
                 patch.questions,
                 targetCount,
@@ -391,12 +387,6 @@ export class ExamService extends BaseDomainService {
                 };
             }
             dto.questionCount = targetCount;
-        } else if (patch.questionCount !== undefined) {
-            this.raiseValidationError(
-                'updateExam',
-                'Debe adjuntar las preguntas para actualizar la cantidad total.',
-                { entity: 'Exam' },
-            );
         }
 
         const updated = await this.deps.examRepo.update(id, dto);
