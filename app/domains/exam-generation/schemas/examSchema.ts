@@ -68,7 +68,7 @@ export const baseExamCommandSchema = z
     })
     .strict();
 
-const manualExamBaseSchema = baseExamCommandSchema.omit({ questionCount: true });
+const manualExamBaseSchema = baseExamCommandSchema.omit({ questionCount: true, difficulty: true });
 
 export const createManualExamCommandSchema = manualExamBaseSchema
     .extend({
@@ -192,6 +192,7 @@ export const examUpdateSchema = z
         topicProportion: z.record(z.string(), z.number().min(0)).optional(),
         topicCoverage: z.record(z.string(), z.any()).optional(),
         questionCount: z.number().int().min(1).optional(),
+        difficulty: z.nativeEnum(DifficultyLevelEnum).optional(),
     })
     .strict()
     .refine((obj) => Object.keys(obj).length > 0, {

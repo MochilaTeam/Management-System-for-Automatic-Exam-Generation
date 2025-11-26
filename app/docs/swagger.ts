@@ -276,7 +276,6 @@ const createManualExamInputSchema = {
     properties: {
         title: { type: 'string', example: 'Parcial 1' },
         subjectId: { type: 'string', format: 'uuid' },
-        difficulty: { type: 'string', enum: ['EASY', 'MEDIUM', 'HARD'], example: 'MEDIUM' },
         examStatus: {
             type: 'string',
             enum: ['draft', 'on_review', 'valid', 'invalid', 'published'],
@@ -302,8 +301,8 @@ const createManualExamInputSchema = {
         },
     },
     description:
-        'El número total de preguntas se deriva del tamaño del arreglo enviado y la proporción/cobertura se recalcula automáticamente.',
-    required: ['title', 'subjectId', 'difficulty', 'authorId', 'questions'],
+        'La dificultad, proporciones y cobertura se recalculan en backend a partir de las preguntas enviadas (solo especifique título, metadatos y la colección de preguntas).',
+    required: ['title', 'subjectId', 'authorId', 'questions'],
 };
 
 const createAutomaticExamInputSchema = {

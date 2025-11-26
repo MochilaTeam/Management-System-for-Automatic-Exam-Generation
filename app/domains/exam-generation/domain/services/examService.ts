@@ -110,14 +110,30 @@ export class ExamService extends BaseDomainService {
         return result;
     }
 
+    private deriveDifficultyFromCatalog(questions: QuestionForExam[]): DifficultyLevelEnum {
+        if (!questions.length) return DifficultyLevelEnum.MEDIUM;
+        const weights: Record<DifficultyLevelEnum, number> = {
+            [DifficultyLevelEnum.EASY]: 1,
+            [DifficultyLevelEnum.MEDIUM]: 2,
+            [DifficultyLevelEnum.HARD]: 3,
+        };
+        const average =
+            questions.reduce((acc, question) => acc + (weights[question.difficulty] ?? 2), 0) /
+            questions.length;
+        if (average < 1.5) return DifficultyLevelEnum.EASY;
+        if (average < 2.5) return DifficultyLevelEnum.MEDIUM;
+        return DifficultyLevelEnum.HARD;
+    }
+
     private buildCoverageFromManual(
-        input: CreateManualExamCommandSchema,
+        subjectId: string,
+        difficulty: DifficultyLevelEnum,
         questionIds: string[],
     ): Record<string, unknown> {
         return {
             mode: 'manual',
-            subjectId: input.subjectId,
-            difficulty: input.difficulty,
+            subjectId,
+            difficulty,
             questionIds,
         };
     }
@@ -257,16 +273,18 @@ export class ExamService extends BaseDomainService {
             'createManualExam',
         );
 
+        const derivedDifficulty = this.deriveDifficultyFromCatalog(catalog);
         const topicProportion = this.computeTopicProportion(catalog);
         const topicCoverage = this.buildCoverageFromManual(
-            input,
+            input.subjectId,
+            derivedDifficulty,
             questions.map((q) => q.questionId),
         );
 
         const created = await this.deps.examRepo.create({
             title: input.title,
             subjectId: input.subjectId,
-            difficulty: input.difficulty,
+            difficulty: derivedDifficulty,
             examStatus: input.examStatus ?? ExamStatusEnum.DRAFT,
             authorId: input.authorId,
             validatorId: input.validatorId,
@@ -376,6 +394,7 @@ export class ExamService extends BaseDomainService {
                 normalizedQuestions.map((q) => q.questionId),
                 'updateExam',
             );
+            const derivedDifficulty = this.deriveDifficultyFromCatalog(catalog);
             if (dto.topicProportion === undefined) {
                 dto.topicProportion = this.computeTopicProportion(catalog);
             }
@@ -383,10 +402,12 @@ export class ExamService extends BaseDomainService {
                 dto.topicCoverage = {
                     mode: 'manual-update',
                     subjectId: existing.subjectId,
+                    difficulty: derivedDifficulty,
                     sourceQuestions: normalizedQuestions.map((q) => q.questionId),
                 };
             }
             dto.questionCount = targetCount;
+            dto.difficulty = derivedDifficulty;
         }
 
         const updated = await this.deps.examRepo.update(id, dto);
