@@ -97,4 +97,59 @@
  *           type: integer
  *           description: Duración del examen en minutos
  *           example: 90
+ *     ExamResponseInput:
+ *       type: object
+ *       required:
+ *         - examQuestionId
+ *       properties:
+ *         examQuestionId:
+ *           type: string
+ *           format: uuid
+ *           description: ID de la pregunta del examen (ExamQuestion)
+ *         selectedOptionId:
+ *           type: string
+ *           format: uuid
+ *           nullable: true
+ *           description: ID de la opción seleccionada (para preguntas de selección)
+ *         textAnswer:
+ *           type: string
+ *           nullable: true
+ *           description: Respuesta de texto (para preguntas abiertas)
+ *     ExamResponseOutput:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *         examQuestionId:
+ *           type: string
+ *           format: uuid
+ *         studentId:
+ *           type: string
+ *           format: uuid
+ *         selectedOptionId:
+ *           type: string
+ *           format: uuid
+ *           nullable: true
+ *         textAnswer:
+ *           type: string
+ *           nullable: true
+ *         autoPoints:
+ *           type: number
+ *           description: Puntos calculados automáticamente
+ *         manualPoints:
+ *           type: number
+ *           nullable: true
+ *           description: Puntos asignados manualmente (si aplica)
+ *         answeredAt:
+ *           type: string
+ *           format: date-time
+ *     ExamResponseSuccessResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           example: true
+ *         data:
+ *           $ref: '#/components/schemas/ExamResponseOutput'
  */
