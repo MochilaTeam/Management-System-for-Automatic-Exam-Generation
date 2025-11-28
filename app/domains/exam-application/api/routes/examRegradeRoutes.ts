@@ -17,7 +17,7 @@ const router = Router();
  *     description: |
  *       Permite a un estudiante solicitar la recalificación de un examen que ya ha sido calificado.
  *       Crea un nuevo registro ExamRegrade con estado REQUESTED.
- *       
+ *
  *       **Lógica interna (a implementar):**
  *       1. Validar que el estudiante (autenticado) tiene una asignación para el examen solicitado.
  *       2. Validar que el examen ya ha sido calificado (ExamAssignment.status = GRADED).

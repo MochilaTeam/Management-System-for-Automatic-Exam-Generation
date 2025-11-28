@@ -120,7 +120,7 @@ router.post(
  *       Permite a un estudiante obtener la lista de exámenes que le han sido asignados.
  *       Incluye paginación y filtros por estado y asignatura.
  *       Incluye información de tablas adicinales como el nombre de el profesor que asignó el examen
- *       y el nombre de la asignatura.  
+ *       y el nombre de la asignatura.
  *       Al recargar los examenes se actualizan los estados de los mismos.
  *          Un examen se considera PENDING si su fecha de aplicación es mayor a la fecha actual.
  *          Un examen se considera ENABLED si su fecha de aplicación es menor a la fecha actual y la fecha actual es mayor a la fecha de aplicación + la duración del examen.
@@ -184,11 +184,6 @@ router.post(
  *                   type: string
  *                   example: Acceso denegado
  */
-router.get(
-    '/exams/my-assignments',
-    authenticate,
-    requireRoles(Roles.STUDENT),
-    listStudentExams,
-);
+router.get('/exams/my-assignments', authenticate, requireRoles(Roles.STUDENT), listStudentExams);
 
 export default router;

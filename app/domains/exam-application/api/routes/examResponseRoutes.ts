@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { authenticate } from '../../../../core/middlewares/authenticate';
 import { requireRoles } from '../../../../core/middlewares/authorize';
 import { Roles } from '../../../../shared/enums/rolesEnum';
@@ -16,7 +17,7 @@ const router = Router();
  *     description: |
  *       Permite a un estudiante guardar su respuesta a una pregunta específica de un examen activo.
  *       Calcula automáticamente los puntos si es posible (ej. selección múltiple).
- *       
+ *
  *       **Lógica interna (a implementar):**
  *       1. Validar que el estudiante tiene una asignación (ExamAssignment) para el examen de la pregunta.
  *       2. Validar que el examen está en curso (fecha actual entre inicio y fin calculado).
@@ -61,7 +62,7 @@ router.post('/exams/responses', authenticate, requireRoles(Roles.STUDENT), creat
  *     description: |
  *       Permite a un estudiante modificar su respuesta si el examen sigue activo.
  *       Recalcula los puntos automáticos.
- *       
+ *
  *       **Lógica interna (a implementar):**
  *       1. Buscar la respuesta por ID y verificar que pertenezca al estudiante.
  *       2. Validar que el examen sigue activo.
