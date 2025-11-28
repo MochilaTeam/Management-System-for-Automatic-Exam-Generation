@@ -49,6 +49,8 @@ const router = Router();
  *         description: Examen asignado correctamente a todos los estudiantes del curso
  *         content:
  *           application/json:
+ *         content:
+ *           application/json:
  *             schema:
  *               type: object
  *               properties:
@@ -56,28 +58,7 @@ const router = Router();
  *                   type: boolean
  *                   example: true
  *                 data:
- *                   type: object
- *                   properties:
- *                     examId:
- *                       type: string
- *                       format: uuid
- *                     courseId:
- *                       type: string
- *                       format: uuid
- *                     assignmentsCreated:
- *                       type: integer
- *                       description: Número de estudiantes a los que se les asignó el examen
- *                       example: 25
- *                     applicationDate:
- *                       type: string
- *                       format: date-time
- *                     durationMinutes:
- *                       type: integer
- *                       example: 90
- *                     examStatus:
- *                       type: string
- *                       enum: [published]
- *                       description: Nuevo estado del examen (PUBLISHED)
+ *                   $ref: '#/components/schemas/AssignExamToCourseResponse'
  *       400:
  *         description: Error en la validación de datos o el examen no está en estado APPROVED
  *         content:
@@ -138,6 +119,8 @@ router.post(
  *     description: |
  *       Permite a un estudiante obtener la lista de exámenes que le han sido asignados.
  *       Incluye paginación y filtros por estado y asignatura.
+ *       Incluye información de tablas adicinales como el nombre de el profesor que asignó el examen
+ *       y el nombre de la asignatura.
  *     security:
  *       - bearerAuth: []
  *     parameters:

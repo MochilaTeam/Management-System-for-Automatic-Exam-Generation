@@ -42,6 +42,29 @@
  *           nullable: true
  *           description: Instrucciones especiales para los estudiantes
  *           example: "Favor de leer cuidadosamente cada pregunta antes de responder"
+ *     AssignExamToCourseResponse:
+ *       type: object
+ *       properties:
+ *         examId:
+ *           type: string
+ *           format: uuid
+ *         courseId:
+ *           type: string
+ *           format: uuid
+ *         assignmentsCreated:
+ *           type: integer
+ *           description: Número de estudiantes a los que se les asignó el examen
+ *           example: 25
+ *         applicationDate:
+ *           type: string
+ *           format: date-time
+ *         durationMinutes:
+ *           type: integer
+ *           example: 90
+ *         examStatus:
+ *           type: string
+ *           enum: [published]
+ *           description: Nuevo estado del examen (PUBLISHED)
  *     StudentExamAssignmentListResponse:
  *       type: object
  *       properties:
