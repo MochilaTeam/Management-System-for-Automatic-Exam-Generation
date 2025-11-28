@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { authenticate } from '../../../../core/middlewares/authenticate';
 import { requireRoles } from '../../../../core/middlewares/authorize';
 import { Roles } from '../../../../shared/enums/rolesEnum';
+import { createExamAssignment } from '../controllers/examAssignmentsControllers';
 
 const router = Router();
 
@@ -107,7 +108,7 @@ router.post(
     '/exams/:examId/assign-to-course',
     authenticate,
     requireRoles(Roles.TEACHER),
-    assignExamToCourse,
+    createExamAssignment,
 );
 
 /**
