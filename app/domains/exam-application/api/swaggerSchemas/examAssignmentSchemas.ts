@@ -152,4 +152,56 @@
  *           example: true
  *         data:
  *           $ref: '#/components/schemas/ExamResponseOutput'
+ *     RequestExamRegradeInput:
+ *       type: object
+ *       required:
+ *         - examId
+ *         - professorId
+ *       properties:
+ *         examId:
+ *           type: string
+ *           format: uuid
+ *           description: ID del examen para el cual se solicita recalificación
+ *         professorId:
+ *           type: string
+ *           format: uuid
+ *           description: ID del profesor al que se solicita la recalificación
+ *         reason:
+ *           type: string
+ *           nullable: true
+ *           minLength: 10
+ *           description: Razón de la solicitud de recalificación
+ *           example: "Considero que la pregunta 5 fue calificada incorrectamente"
+ *     ExamRegradeOutput:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *         studentId:
+ *           type: string
+ *           format: uuid
+ *         examId:
+ *           type: string
+ *           format: uuid
+ *         professorId:
+ *           type: string
+ *           format: uuid
+ *         reason:
+ *           type: string
+ *           nullable: true
+ *         status:
+ *           type: string
+ *           enum: [REQUESTED, IN_REVIEW, RESOLVED, REJECTED]
+ *           description: Estado de la solicitud de recalificación
+ *         requestedAt:
+ *           type: string
+ *           format: date-time
+ *         resolvedAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         finalGrade:
+ *           type: number
+ *           nullable: true
  */
