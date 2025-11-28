@@ -1,9 +1,8 @@
 import { Router } from 'express';
+
 import { authenticate } from '../../../../core/middlewares/authenticate';
 import { requireRoles } from '../../../../core/middlewares/authorize';
 import { Roles } from '../../../../shared/enums/rolesEnum';
-
-
 
 const router = Router();
 
@@ -15,7 +14,7 @@ const router = Router();
  *     summary: Asignar un examen aprobado a un curso¡
  *     description: |
  *       Este endpoint permite a un profesor asignar un examen con estado APPROVED a todos los estudiantes de un curso.
- *       
+ *
  *       **Lógica interna (a implementar):**
  *       1. Validar que el examen existe y tiene estado APPROVED
  *       2. Validar que el profesor tiene permisos sobre el curso
@@ -123,7 +122,12 @@ const router = Router();
  */
 
 //TODO: guardar tambien curso en ExamAssignment
-router.post('/exams/:examId/assign-to-course', authenticate, requireRoles(Roles.TEACHER), assignExamToCourse);
+router.post(
+    '/exams/:examId/assign-to-course',
+    authenticate,
+    requireRoles(Roles.TEACHER),
+    assignExamToCourse,
+);
 
 /**
  * @openapi
