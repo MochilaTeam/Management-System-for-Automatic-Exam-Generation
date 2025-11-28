@@ -42,4 +42,36 @@
  *           nullable: true
  *           description: Instrucciones especiales para los estudiantes
  *           example: "Favor de leer cuidadosamente cada pregunta antes de responder"
+ *     StudentExamAssignmentListResponse:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           description: ID de la asignación (ExamAssignment)
+ *         examId:
+ *           type: string
+ *           format: uuid
+ *           description: ID del examen
+ *         subjectName:
+ *           type: string
+ *           description: Nombre de la asignatura
+ *           example: "Matemáticas Avanzadas"
+ *         professorName:
+ *           type: string
+ *           description: Nombre del profesor que asignó el examen
+ *           example: "Juan Pérez"
+ *         status:
+ *           type: string
+ *           enum: [PENDING, ENABLED, SUBMITTED, GRADED, CANCELLED]
+ *           description: Estado de la asignación
+ *           example: "PENDING"
+ *         applicationDate:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha y hora programada para el examen
+ *         durationMinutes:
+ *           type: integer
+ *           description: Duración del examen en minutos
+ *           example: 90
  */

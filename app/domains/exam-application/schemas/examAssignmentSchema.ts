@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AssignedExamStatus } from '../entities/enum/AssignedExamStatus';
 
 // ===== Params =====
 export const examIdParamsSchema = z
@@ -22,3 +23,15 @@ export const assignExamToCourseBodySchema = z
     .strict();
 
 export type AssignExamToCourseBody = z.infer<typeof assignExamToCourseBodySchema>;
+
+// ===== Query for listing student exams =====
+export const listStudentExamsQuerySchema = z
+    .object({
+        page: z.coerce.number().int().min(1).default(1),
+        limit: z.coerce.number().int().min(1).max(50).default(10),
+        status: z.nativeEnum(AssignedExamStatus).optional(),
+        subjectId: z.string().uuid().optional(),
+    })
+    .strict();
+
+export type ListStudentExamsQuery = z.infer<typeof listStudentExamsQuerySchema>;
