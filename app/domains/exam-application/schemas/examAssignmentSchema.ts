@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { AssignedExamStatus } from '../entities/enum/AssignedExamStatus';
+import { AssignedExamStatus } from '../../../infrastructure/exam-application/enums/AssignedExamStatus';
 
 // ===== Params =====
 export const examIdParamsSchema = z

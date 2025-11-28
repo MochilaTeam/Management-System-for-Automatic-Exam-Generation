@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { ExamRegradesStatus } from '../entities/enum/ExamRegradeStatus';
+import { ExamRegradesStatus } from '../../../infrastructure/exam-application/enums/ExamRegradeStatus';
 
 // ===== Body for requesting exam regrade =====
 export const requestExamRegradeBodySchema = z

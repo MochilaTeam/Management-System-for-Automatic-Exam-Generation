@@ -1,7 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
-import { AssignedExamStatus } from '../../../domains/exam-application/entities/enum/AssignedExamStatus';
+import { AssignedExamStatus } from '../enums/AssignedExamStatus';
 
 class ExamAssignments extends Model {
     public id!: string;
