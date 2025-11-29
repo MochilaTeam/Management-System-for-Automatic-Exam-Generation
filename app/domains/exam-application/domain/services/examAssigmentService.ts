@@ -1,19 +1,14 @@
 import { AssignedExamStatus } from '../../entities/enums/AssignedExamStatus';
 import { BaseDomainService } from '../../../../shared/domain/base_service';
-import { ExamStatusEnum } from '../../../exam-generation/entities/enums/ExamStatusEnum';
 import { IStudentRepository } from '../../../user/domain/ports/IStudentRepository';
 import { ITeacherRepository } from '../../../user/domain/ports/ITeacherRepository';
 import { ITeacherSubjectLinkRepository } from '../../../user/domain/ports/ITeacherSubjectLinkRepository';
 import { StudentRead } from '../../../user/schemas/studentSchema';
 import { AssignExamToCourseResponse } from '../../schemas/examAssignmentSchema';
 import { IExamAssignmentRepository } from '../ports/IExamAssignmentRepository';
+import { ExamStatusEnum } from '../../entities/enums/ExamStatusEnum';
 
-//TODO: ELIMINAR DESPUES, USAR EL REAL
-export interface IExamRepository {
-    getExamStatus(examId: string): Promise<ExamStatusEnum | null>;
-    getExamSubjectId(examId: string): Promise<string | null>;
-    updateExamStatus(examId: string, status: ExamStatusEnum): Promise<void>;
-}
+import { IExamRepository } from '../../../exam-generation/domain/ports/IExamRepository';
 
 type Deps = {
     examAssignmentRepo: IExamAssignmentRepository;
@@ -80,7 +75,7 @@ export class ExamAssignmentService extends BaseDomainService {
             });
 
             //Cambiar el estado del examen
-            await this.examRepo.updateExamStatus(examId, ExamStatusEnum.PUBLISHED);
+            await this.examRepo.update(examId, { examStatus: ExamStatusEnum.PUBLISHED });
 
             //Devolver la respuesta
             const result: AssignExamToCourseResponse = {
@@ -105,10 +100,11 @@ export class ExamAssignmentService extends BaseDomainService {
     ): Promise<string> {
         const operation = 'ensure-teacher-can-assign-exam';
 
-        const subjectId = await this.examRepo.getExamSubjectId(examId);
-        if (!subjectId) {
+        const exam = await this.examRepo.get_by_id(examId);
+        if (!exam) {
             this.raiseNotFoundError(operation, 'EXAMEN NO ENCONTRADO', { entity: 'Exam' });
         }
+        const subjectId = exam?.subjectId;
 
         const teachers = await this.teacherRepo.list({
             filters: { userId: currentUserId },
@@ -123,7 +119,7 @@ export class ExamAssignmentService extends BaseDomainService {
         }
 
         const assignments = await this.teacherSubjectLinkRepo.getAssignments(teacher.id);
-        const teachesSubject = assignments.teachingSubjectIds.includes(subjectId);
+        const teachesSubject = assignments.teachingSubjectIds.includes(subjectId!);
         if (!teachesSubject) {
             this.raiseBusinessRuleError(operation, 'PROFESOR NO ASIGNADO A LA MATERIA', {
                 entity: 'Subject',
@@ -175,11 +171,11 @@ export class ExamAssignmentService extends BaseDomainService {
 
     private async ensureExamIsApproved(examId: string): Promise<void> {
         const operation = 'ensure-exam-is-approved';
-        const status = await this.examRepo.getExamStatus(examId);
-        if (!status) {
+        const exam = await this.examRepo.get_by_id(examId);
+        if (!exam) {
             this.raiseNotFoundError(operation, 'EXAMEN NO ENCONTRADO', { entity: 'Exam' });
         }
-        if (status !== ExamStatusEnum.APPROVED) {
+        if (exam?.examStatus !== ExamStatusEnum.APPROVED) {
             this.raiseBusinessRuleError(operation, 'EXAMEN NO APROBADO AUN', {
                 entity: 'Exam',
             });
