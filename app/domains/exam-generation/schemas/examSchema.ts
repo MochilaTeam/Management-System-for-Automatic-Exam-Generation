@@ -289,9 +289,7 @@ export type AutomaticExamPreview = z.infer<typeof automaticExamPreviewSchema>;
 export type AutomaticExamPreviewQuestion = z.infer<typeof automaticExamPreviewQuestionSchema>;
 export type AcceptExamCommandSchema = z.infer<typeof acceptExamCommandSchema>;
 export type RejectExamCommandSchema = z.infer<typeof rejectExamCommandSchema>;
-export type RequestExamReviewCommandSchema = z.infer<
-    typeof requestExamReviewCommandSchema
->;
+export type RequestExamReviewCommandSchema = z.infer<typeof requestExamReviewCommandSchema>;
 
 export type ListExamsQuerySchema = z.infer<typeof listExamsQuerySchema>;
 export type ExamCreate = z.infer<typeof examCreateSchema>;

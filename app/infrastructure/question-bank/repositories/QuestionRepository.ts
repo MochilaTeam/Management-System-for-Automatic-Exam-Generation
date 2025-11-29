@@ -313,32 +313,32 @@ export class QuestionRepository
                     criteria.excludeQuestionIds;
             }
 
-        let topicFilterIds = criteria.topicIds?.length ? [...criteria.topicIds] : undefined;
-        if (criteria.subjectId) {
-            const subjectTopics = await SubjectTopic.findAll({
-                attributes: ['topicId'],
-                where: { subjectId: criteria.subjectId },
+            let topicFilterIds = criteria.topicIds?.length ? [...criteria.topicIds] : undefined;
+            if (criteria.subjectId) {
+                const subjectTopics = await SubjectTopic.findAll({
+                    attributes: ['topicId'],
+                    where: { subjectId: criteria.subjectId },
+                    transaction: this.effTx(tx),
+                });
+                const allowedIds = subjectTopics.map((row) => row.getDataValue('topicId'));
+                if (!allowedIds.length) {
+                    return [];
+                }
+                topicFilterIds = topicFilterIds
+                    ? topicFilterIds.filter((id) => allowedIds.includes(id))
+                    : allowedIds;
+                if (!topicFilterIds.length) {
+                    return [];
+                }
+            }
+
+            const rows = await this.model.findAll({
+                where,
+                include: this.buildInclude(topicFilterIds),
+                order: sequelize.random(),
+                limit: criteria.limit ?? 20,
                 transaction: this.effTx(tx),
             });
-            const allowedIds = subjectTopics.map((row) => row.getDataValue('topicId'));
-            if (!allowedIds.length) {
-                return [];
-            }
-            topicFilterIds = topicFilterIds
-                ? topicFilterIds.filter((id) => allowedIds.includes(id))
-                : allowedIds;
-            if (!topicFilterIds.length) {
-                return [];
-            }
-        }
-
-        const rows = await this.model.findAll({
-            where,
-            include: this.buildInclude(topicFilterIds),
-            order: sequelize.random(),
-            limit: criteria.limit ?? 20,
-            transaction: this.effTx(tx),
-        });
             return rows.map((row) => QuestionRepository.toQuestionForExam(row));
         } catch (error) {
             return this.raiseError(error, this.model.name);

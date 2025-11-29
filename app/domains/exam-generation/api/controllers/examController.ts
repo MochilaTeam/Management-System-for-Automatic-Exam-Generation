@@ -149,11 +149,7 @@ export async function requestExamReview(req: Request, res: Response, next: NextF
     }
 }
 
-export async function acceptExam(
-    req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction,
-) {
+export async function acceptExam(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         const { examId } = examIdParamsSchema.parse(req.params);
         const currentUserId = ensureCurrentUserId(req);
@@ -164,11 +160,7 @@ export async function acceptExam(
     }
 }
 
-export async function rejectExam(
-    req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction,
-) {
+export async function rejectExam(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         const { examId } = examIdParamsSchema.parse(req.params);
         const currentUserId = ensureCurrentUserId(req);

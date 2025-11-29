@@ -316,10 +316,14 @@ export class ExamService extends BaseDomainService {
     ): Promise<TeacherPlain> {
         const teacher = await this.getTeacherByUserId(operation, currentUserId);
         if (!teacher.hasRoleSubjectLeader) {
-            this.raiseBusinessRuleError(operation, 'Solo un jefe de asignatura puede realizar esto.', {
-                entity: 'Teacher',
-                code: 'SUBJECT_LEADER_ROLE_REQUIRED',
-            });
+            this.raiseBusinessRuleError(
+                operation,
+                'Solo un jefe de asignatura puede realizar esto.',
+                {
+                    entity: 'Teacher',
+                    code: 'SUBJECT_LEADER_ROLE_REQUIRED',
+                },
+            );
         }
         const subject = await Subject.findByPk(subjectId);
         if (!subject) {
@@ -552,10 +556,14 @@ export class ExamService extends BaseDomainService {
     async acceptExam(examId: string, currentUserId: string): Promise<ExamDetailRead> {
         const exam = await this.getExamOrFail(examId, 'acceptExam');
         if (exam.examStatus !== ExamStatusEnum.UNDER_REVIEW) {
-            this.raiseBusinessRuleError('acceptExam', 'Solo se pueden aceptar exámenes en revisión.', {
-                entity: 'Exam',
-                code: 'EXAM_NOT_UNDER_REVIEW',
-            });
+            this.raiseBusinessRuleError(
+                'acceptExam',
+                'Solo se pueden aceptar exámenes en revisión.',
+                {
+                    entity: 'Exam',
+                    code: 'EXAM_NOT_UNDER_REVIEW',
+                },
+            );
         }
         const teacher = await this.ensureSubjectLeaderForExam(
             'acceptExam',
@@ -573,10 +581,14 @@ export class ExamService extends BaseDomainService {
     async rejectExam(examId: string, currentUserId: string): Promise<ExamDetailRead> {
         const exam = await this.getExamOrFail(examId, 'rejectExam');
         if (exam.examStatus !== ExamStatusEnum.UNDER_REVIEW) {
-            this.raiseBusinessRuleError('rejectExam', 'Solo se pueden rechazar exámenes en revisión.', {
-                entity: 'Exam',
-                code: 'EXAM_NOT_UNDER_REVIEW',
-            });
+            this.raiseBusinessRuleError(
+                'rejectExam',
+                'Solo se pueden rechazar exámenes en revisión.',
+                {
+                    entity: 'Exam',
+                    code: 'EXAM_NOT_UNDER_REVIEW',
+                },
+            );
         }
         const teacher = await this.ensureSubjectLeaderForExam(
             'rejectExam',

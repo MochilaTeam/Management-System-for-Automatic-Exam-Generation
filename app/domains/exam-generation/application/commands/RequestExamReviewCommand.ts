@@ -15,9 +15,7 @@ export class RequestExamReviewCommand extends BaseCommand<
         super();
     }
 
-    protected async executeBusinessLogic(
-        input: Input,
-    ): Promise<RetrieveOneSchema<ExamDetailRead>> {
+    protected async executeBusinessLogic(input: Input): Promise<RetrieveOneSchema<ExamDetailRead>> {
         const detail = await this.svc.requestExamReview(input.examId);
         return new RetrieveOneSchema(detail, 'Revisión de examen solicitada', true);
     }

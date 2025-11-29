@@ -13,9 +13,7 @@ export class AcceptExamCommand extends BaseCommand<Input, RetrieveOneSchema<Exam
         super();
     }
 
-    protected async executeBusinessLogic(
-        input: Input,
-    ): Promise<RetrieveOneSchema<ExamDetailRead>> {
+    protected async executeBusinessLogic(input: Input): Promise<RetrieveOneSchema<ExamDetailRead>> {
         const detail = await this.svc.acceptExam(input.examId, input.currentUserId);
         return new RetrieveOneSchema(detail, 'Examen aceptado', true);
     }

@@ -19,6 +19,3 @@ export class GetExamByIdQuery extends BaseQuery<ExamIdParams, RetrieveOneSchema<
         return new RetrieveOneSchema(exam, 'Examen encontrado', true);
     }
 }
-
-
-
