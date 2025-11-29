@@ -188,6 +188,298 @@ const questionTypeSchema = {
     additionalProperties: false,
 };
 
+const examQuestionPreviewSchema = {
+    type: 'object',
+    properties: {
+        questionId: { type: 'string', format: 'uuid' },
+        questionIndex: { type: 'integer', example: 1 },
+        body: { type: 'string', example: 'Defina qué es la normalización en bases de datos.' },
+        difficulty: { type: 'string', enum: ['EASY', 'MEDIUM', 'HARD'], example: 'MEDIUM' },
+        questionTypeId: { type: 'string', format: 'uuid' },
+        subTopicId: { type: 'string', format: 'uuid', nullable: true },
+        topicId: { type: 'string', format: 'uuid', nullable: true },
+        options: {
+            type: 'array',
+            nullable: true,
+            items: {
+                type: 'object',
+                properties: {
+                    text: { type: 'string', example: 'Opción A' },
+                    isCorrect: { type: 'boolean', example: false },
+                },
+                required: ['text', 'isCorrect'],
+            },
+        },
+        response: { type: 'string', nullable: true, example: 'Respuesta modelo' },
+    },
+    required: ['questionId', 'questionIndex', 'body', 'difficulty', 'questionTypeId'],
+};
+
+const examQuestionLinkSchema = {
+    type: 'object',
+    properties: {
+        id: { type: 'string', format: 'uuid' },
+        examId: { type: 'string', format: 'uuid' },
+        questionId: { type: 'string', format: 'uuid' },
+        questionIndex: { type: 'integer', example: 1 },
+    },
+    required: ['id', 'examId', 'questionId', 'questionIndex'],
+};
+
+const examBaseSchema = {
+    type: 'object',
+    properties: {
+        id: { type: 'string', format: 'uuid' },
+        title: { type: 'string', example: 'Parcial 1' },
+        subjectId: { type: 'string', format: 'uuid' },
+        difficulty: { type: 'string', enum: ['EASY', 'MEDIUM', 'HARD'], example: 'MEDIUM' },
+        examStatus: {
+            type: 'string',
+            enum: ['draft', 'on_review', 'valid', 'invalid', 'published'],
+            example: 'draft',
+        },
+        authorId: { type: 'string', format: 'uuid' },
+        validatorId: { type: 'string', format: 'uuid', nullable: true },
+        observations: { type: 'string', nullable: true },
+        questionCount: { type: 'integer', example: 10 },
+        topicProportion: {
+            type: 'object',
+            additionalProperties: { type: 'number' },
+            example: { algebra: 0.4, analitica: 0.6 },
+        },
+        topicCoverage: {
+            type: 'object',
+            additionalProperties: true,
+            example: { topicIds: ['2f51...', '3ad2...'], minPerTopic: 3 },
+        },
+        validatedAt: { type: 'string', nullable: true, format: 'date-time' },
+        createdAt: { type: 'string', format: 'date-time' },
+        updatedAt: { type: 'string', format: 'date-time' },
+    },
+    required: [
+        'id',
+        'title',
+        'subjectId',
+        'difficulty',
+        'examStatus',
+        'authorId',
+        'questionCount',
+        'topicProportion',
+        'topicCoverage',
+        'createdAt',
+        'updatedAt',
+    ],
+};
+
+const createManualExamInputSchema = {
+    type: 'object',
+    properties: {
+        title: { type: 'string', example: 'Parcial 1' },
+        subjectId: { type: 'string', format: 'uuid' },
+        questions: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    questionId: { type: 'string', format: 'uuid' },
+                    questionIndex: { type: 'integer', example: 1 },
+                },
+                required: ['questionId', 'questionIndex'],
+            },
+            example: [
+                { questionId: '5f50d4d1-f0ac-4b6e-a40b-0a5c5c849f20', questionIndex: 1 },
+                { questionId: '1c21ac0a-445a-42b7-9b18-8b0979f765c1', questionIndex: 2 },
+            ],
+        },
+    },
+    description:
+        'La dificultad, autor y estado se calculan automáticamente; envía solo título, materia y las preguntas a incluir.',
+    required: ['title', 'subjectId', 'questions'],
+};
+
+const createAutomaticExamInputSchema = {
+    type: 'object',
+    properties: {
+        title: { type: 'string', example: 'Parcial 2' },
+        subjectId: { type: 'string', format: 'uuid' },
+        questionCount: { type: 'integer', example: 12 },
+        questionTypeDistribution: {
+            type: 'array',
+            description: 'Cantidad de preguntas por tipo (debe sumar la cantidad total)',
+            items: {
+                type: 'object',
+                properties: {
+                    type: { type: 'string', format: 'uuid' },
+                    count: { type: 'integer', example: 4 },
+                },
+                required: ['type', 'count'],
+            },
+            example: [
+                { type: '5f50d4d1-f0ac-4b6e-a40b-0a5c5c849f20', count: 4 },
+                { type: '1c21ac0a-445a-42b7-9b18-8b0979f765c1', count: 4 },
+                { type: '9a9b5e2d-129e-4d6a-826f-f1c4090a3c88', count: 4 },
+            ],
+        },
+        difficultyDistribution: {
+            type: 'array',
+            description: 'Cantidad de preguntas por nivel de dificultad',
+            items: {
+                type: 'object',
+                properties: {
+                    difficulty: { type: 'string', enum: ['EASY', 'MEDIUM', 'HARD'] },
+                    count: { type: 'integer', example: 4 },
+                },
+                required: ['difficulty', 'count'],
+            },
+            example: [
+                { difficulty: 'EASY', count: 3 },
+                { difficulty: 'MEDIUM', count: 6 },
+                { difficulty: 'HARD', count: 3 },
+            ],
+        },
+        topicCoverage: {
+            type: 'array',
+            items: { type: 'string', format: 'uuid' },
+            description: 'Temas que deben considerarse durante la generación (opcional)',
+            example: ['2f51069d-391f-4c5a-9994-3e7b5c7fbb6a'],
+        },
+        subtopicDistribution: {
+            type: 'array',
+            description: 'Distribución deseada por subtema (opcional)',
+            items: {
+                type: 'object',
+                properties: {
+                    subtopic: { type: 'string', format: 'uuid' },
+                    count: { type: 'integer', example: 2 },
+                },
+                required: ['subtopic', 'count'],
+            },
+        },
+    },
+    required: [
+        'title',
+        'subjectId',
+        'questionCount',
+        'questionTypeDistribution',
+        'difficultyDistribution',
+    ],
+};
+
+const automaticExamPreviewSchemaDoc = {
+    type: 'object',
+    properties: {
+        title: { type: 'string' },
+        subjectId: { type: 'string', format: 'uuid' },
+        difficulty: { type: 'string', enum: ['EASY', 'MEDIUM', 'HARD'] },
+        examStatus: {
+            type: 'string',
+            enum: ['draft', 'on_review', 'valid', 'invalid', 'published'],
+        },
+        authorId: { type: 'string', format: 'uuid' },
+        validatorId: { type: 'string', format: 'uuid', nullable: true },
+        observations: { type: 'string', nullable: true },
+        questionCount: { type: 'integer' },
+        topicProportion: {
+            type: 'object',
+            additionalProperties: { type: 'number' },
+            example: { algebra: 0.5, analitica: 0.5 },
+        },
+        topicCoverage: {
+            type: 'object',
+            additionalProperties: true,
+            example: {
+                typeCounts: [
+                    { questionTypeId: '5f50d...', count: 4 },
+                    { questionTypeId: '1c21a...', count: 4 },
+                ],
+                difficultyCounts: { EASY: 3, MEDIUM: 6, HARD: 3 },
+                topicIds: ['2f51...', '3ad2...'],
+                subtopicDistribution: [{ subtopicId: '9a9b...', count: 2 }],
+            },
+        },
+        questions: {
+            type: 'array',
+            items: examQuestionPreviewSchema,
+        },
+    },
+    required: [
+        'title',
+        'subjectId',
+        'difficulty',
+        'examStatus',
+        'authorId',
+        'questionCount',
+        'topicProportion',
+        'topicCoverage',
+        'questions',
+    ],
+};
+
+const updateExamInputSchema = {
+    type: 'object',
+    properties: {
+        title: { type: 'string' },
+        observations: { type: 'string', nullable: true },
+        questions: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    questionId: { type: 'string', format: 'uuid' },
+                    questionIndex: { type: 'integer' },
+                },
+                required: ['questionId', 'questionIndex'],
+            },
+            description:
+                'Si se envía, sustituye completamente las preguntas del examen; la cantidad y métricas se recalculan.',
+        },
+    },
+    description:
+        'Todos los campos son opcionales; si se envía el arreglo de preguntas debe contener la lista completa a persistir. Cualquier actualización devolverá el examen a estado draft automáticamente.',
+};
+
+const listExamsResponseSchema = {
+    type: 'object',
+    properties: {
+        data: {
+            type: 'array',
+            items: examBaseSchema,
+        },
+        meta: paginationMetaSchema,
+    },
+    required: ['data', 'meta'],
+};
+
+const examDetailResponseSchema = {
+    type: 'object',
+    properties: {
+        data: {
+            allOf: [
+                examBaseSchema,
+                {
+                    type: 'object',
+                    properties: {
+                        questions: {
+                            type: 'array',
+                            items: examQuestionLinkSchema,
+                        },
+                    },
+                    required: ['questions'],
+                },
+            ],
+        },
+    },
+    required: ['data'],
+};
+
+const automaticExamPreviewResponseSchema = {
+    type: 'object',
+    properties: {
+        data: automaticExamPreviewSchemaDoc,
+    },
+    required: ['data'],
+};
+
 const swaggerDefinition = {
     openapi: '3.0.0',
     info: {
@@ -397,6 +689,16 @@ const swaggerDefinition = {
                 ],
                 additionalProperties: false,
             },
+            ExamQuestionPreview: examQuestionPreviewSchema,
+            ExamQuestion: examQuestionLinkSchema,
+            Exam: examBaseSchema,
+            CreateManualExamInput: createManualExamInputSchema,
+            CreateAutomaticExamInput: createAutomaticExamInputSchema,
+            AutomaticExamPreview: automaticExamPreviewSchemaDoc,
+            UpdateExamInput: updateExamInputSchema,
+            ListExamsResponse: listExamsResponseSchema,
+            ExamDetailResponse: examDetailResponseSchema,
+            AutomaticExamPreviewResponse: automaticExamPreviewResponseSchema,
 
             // Wrappers de Subjects
             RetrieveOneSubjectDetailResponse: {
