@@ -1,8 +1,8 @@
-import { AssignedExamStatus } from '../../entities/enums/AssignedExamStatus'; //TODO: CAMBIAR LOS ENUMS DE LUGAR
 import { BaseDomainService } from '../../../../shared/domain/base_service';
 import { BusinessRuleError, NotFoundError } from '../../../../shared/exceptions/domainErrors';
 import { IQuestionRepository } from '../../../question-bank/domain/ports/IQuestionRepository';
 import { IStudentRepository } from '../../../user/domain/ports/IStudentRepository';
+import { AssignedExamStatus } from '../../entities/enums/AssignedExamStatus'; //TODO: CAMBIAR LOS ENUMS DE LUGAR
 import {
     CreateExamResponseCommandSchema,
     ExamResponseOutput,

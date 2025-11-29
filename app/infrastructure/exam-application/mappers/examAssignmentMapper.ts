@@ -1,6 +1,6 @@
 import { CreateExamAssignmentInput } from '../../../domains/exam-application/domain/ports/IExamAssignmentRepository';
-import { StudentExamAssignmentItem } from '../../../domains/exam-application/schemas/examAssignmentSchema';
 import { AssignedExamStatus } from '../../../domains/exam-application/entities/enums/AssignedExamStatus';
+import { StudentExamAssignmentItem } from '../../../domains/exam-application/schemas/examAssignmentSchema';
 import ExamAssignments from '../models/ExamAssignment';
 
 // Type for the plain object returned by Sequelize with includes

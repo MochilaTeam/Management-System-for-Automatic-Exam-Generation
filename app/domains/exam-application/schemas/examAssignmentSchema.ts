@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { AssignedExamStatus } from '../entities/enums/AssignedExamStatus';
 import { ExamStatusEnum } from '../../exam-generation/entities/enums/ExamStatusEnum';
+import { AssignedExamStatus } from '../entities/enums/AssignedExamStatus';
 
 // ===== Params =====
 export const examIdParamsSchema = z
