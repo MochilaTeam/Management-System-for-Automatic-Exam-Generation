@@ -1,6 +1,9 @@
+import { AcceptExamCommand } from '../../../domains/exam-generation/application/commands/AcceptExamCommand';
 import { CreateAutomaticExamCommand } from '../../../domains/exam-generation/application/commands/CreateAutomaticExamCommand';
 import { CreateManualExamCommand } from '../../../domains/exam-generation/application/commands/CreateManualExamCommand';
 import { DeleteExamCommand } from '../../../domains/exam-generation/application/commands/DeleteExamCommand';
+import { RejectExamCommand } from '../../../domains/exam-generation/application/commands/RejectExamCommand';
+import { RequestExamReviewCommand } from '../../../domains/exam-generation/application/commands/RequestExamReviewCommand';
 import { UpdateExamCommand } from '../../../domains/exam-generation/application/commands/UpdateExamCommand';
 import { GetExamByIdQuery } from '../../../domains/exam-generation/application/queries/GetExamByIdQuery';
 import { ListExamsQuery } from '../../../domains/exam-generation/application/queries/ListExamsQuery';
@@ -24,6 +27,9 @@ let _cCreateManual: CreateManualExamCommand | null = null;
 let _cCreateAutomatic: CreateAutomaticExamCommand | null = null;
 let _cUpdate: UpdateExamCommand | null = null;
 let _cDelete: DeleteExamCommand | null = null;
+let _cRequestReview: RequestExamReviewCommand | null = null;
+let _cAccept: AcceptExamCommand | null = null;
+let _cReject: RejectExamCommand | null = null;
 
 export function makeExamRepository() {
     if (_examRepo) return _examRepo;
@@ -87,4 +93,22 @@ export function makeDeleteExamCommand() {
     if (_cDelete) return _cDelete;
     _cDelete = new DeleteExamCommand(makeExamService());
     return _cDelete;
+}
+
+export function makeRequestExamReviewCommand() {
+    if (_cRequestReview) return _cRequestReview;
+    _cRequestReview = new RequestExamReviewCommand(makeExamService());
+    return _cRequestReview;
+}
+
+export function makeAcceptExamCommand() {
+    if (_cAccept) return _cAccept;
+    _cAccept = new AcceptExamCommand(makeExamService());
+    return _cAccept;
+}
+
+export function makeRejectExamCommand() {
+    if (_cReject) return _cReject;
+    _cReject = new RejectExamCommand(makeExamService());
+    return _cReject;
 }

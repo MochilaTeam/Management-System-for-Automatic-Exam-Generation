@@ -1,3 +1,5 @@
+import Subject from '../../../../infrastructure/question-bank/models/Subject';
+import { Teacher } from '../../../../infrastructure/user/models';
 import { BaseDomainService } from '../../../../shared/domain/base_service';
 import { ExamStatusEnum } from '../../../exam-application/entities/enums/ExamStatusEnum';
 import { DifficultyLevelEnum } from '../../../question-bank/entities/enums/DifficultyLevels';
@@ -27,6 +29,14 @@ type Deps = {
     examQuestionRepo: IExamQuestionRepository;
     questionRepo: IQuestionRepository;
 };
+
+type TeacherPlain = {
+    id: string;
+    userId: string;
+    hasRoleSubjectLeader: boolean;
+};
+
+type SubjectPlain = { id: string; leadTeacherId: string | null };
 
 export class ExamService extends BaseDomainService {
     constructor(private readonly deps: Deps) {
@@ -125,6 +135,29 @@ export class ExamService extends BaseDomainService {
         return DifficultyLevelEnum.HARD;
     }
 
+    private deriveDifficultyFromDistribution(counts: DifficultyCountMap): DifficultyLevelEnum {
+        const weights: Record<DifficultyLevelEnum, number> = {
+            [DifficultyLevelEnum.EASY]: 1,
+            [DifficultyLevelEnum.MEDIUM]: 2,
+            [DifficultyLevelEnum.HARD]: 3,
+        };
+        const total = (Object.keys(counts) as Array<keyof DifficultyCountMap>).reduce(
+            (acc, key) => acc + counts[key],
+            0,
+        );
+        if (!total) {
+            return DifficultyLevelEnum.MEDIUM;
+        }
+        const weightedSum = (Object.keys(counts) as Array<keyof DifficultyCountMap>).reduce(
+            (acc, key) => acc + weights[key as DifficultyLevelEnum] * counts[key],
+            0,
+        );
+        const average = weightedSum / total;
+        if (average < 1.5) return DifficultyLevelEnum.EASY;
+        if (average < 2.5) return DifficultyLevelEnum.MEDIUM;
+        return DifficultyLevelEnum.HARD;
+    }
+
     private buildCoverageFromManual(
         subjectId: string,
         difficulty: DifficultyLevelEnum,
@@ -140,18 +173,17 @@ export class ExamService extends BaseDomainService {
 
     private buildCoverageFromAutomatic(
         input: CreateAutomaticExamCommandSchema,
+        difficulty: DifficultyLevelEnum,
     ): Record<string, unknown> {
-        return (
-            input.topicCoverage ?? {
-                mode: 'automatic',
-                subjectId: input.subjectId,
-                difficulty: input.difficulty,
-                typeCounts: input.questionTypeCounts,
-                difficultyCounts: input.difficultyCounts,
-                topicIds: input.topicIds ?? [],
-                filters: input.filters ?? {},
-            }
-        );
+        return {
+            mode: 'automatic',
+            subjectId: input.subjectId,
+            difficulty,
+            typeCounts: input.questionTypeCounts,
+            difficultyCounts: input.difficultyCounts,
+            topicIds: input.topicIds ?? [],
+            subtopicDistribution: input.subtopicDistribution ?? [],
+        };
     }
 
     private buildSelectionPlan(
@@ -250,15 +282,63 @@ export class ExamService extends BaseDomainService {
         return arr;
     }
 
-    private async getExamDetailOrFail(examId: string, operation: string): Promise<ExamDetailRead> {
+    private async getExamOrFail(examId: string, operation: string): Promise<ExamRead> {
         const exam = await this.deps.examRepo.get_by_id(examId);
         if (!exam) {
             this.raiseNotFoundError(operation, 'El examen solicitado no existe.', {
                 entity: 'Exam',
             });
         }
+        return exam;
+    }
+
+    private async getExamDetailOrFail(examId: string, operation: string): Promise<ExamDetailRead> {
+        const exam = await this.getExamOrFail(examId, operation);
         const questions = await this.deps.examQuestionRepo.listByExamId(examId);
         return { ...exam, questions };
+    }
+
+    private async getTeacherByUserId(operation: string, userId: string): Promise<TeacherPlain> {
+        const row = await Teacher.findOne({ where: { userId } });
+        if (!row) {
+            this.raiseBusinessRuleError(operation, 'El usuario no posee un perfil de docente.', {
+                entity: 'Teacher',
+                code: 'TEACHER_PROFILE_NOT_FOUND',
+            });
+        }
+        return row.get({ plain: true }) as TeacherPlain;
+    }
+
+    private async ensureSubjectLeaderForExam(
+        operation: string,
+        subjectId: string,
+        currentUserId: string,
+    ): Promise<TeacherPlain> {
+        const teacher = await this.getTeacherByUserId(operation, currentUserId);
+        if (!teacher.hasRoleSubjectLeader) {
+            this.raiseBusinessRuleError(operation, 'Solo un jefe de asignatura puede realizar esto.', {
+                entity: 'Teacher',
+                code: 'SUBJECT_LEADER_ROLE_REQUIRED',
+            });
+        }
+        const subject = await Subject.findByPk(subjectId);
+        if (!subject) {
+            this.raiseNotFoundError(operation, 'La asignatura asociada al examen no existe.', {
+                entity: 'Subject',
+            });
+        }
+        const subjectPlain = subject.get({ plain: true }) as SubjectPlain;
+        if (subjectPlain.leadTeacherId !== teacher.id) {
+            this.raiseBusinessRuleError(
+                operation,
+                'El docente no es el jefe asignado de la asignatura del examen.',
+                {
+                    entity: 'Subject',
+                    code: 'TEACHER_NOT_SUBJECT_LEADER',
+                },
+            );
+        }
+        return teacher;
     }
 
     async createManualExam(input: CreateManualExamCommandSchema): Promise<ExamDetailRead> {
@@ -285,10 +365,10 @@ export class ExamService extends BaseDomainService {
             title: input.title,
             subjectId: input.subjectId,
             difficulty: derivedDifficulty,
-            examStatus: input.examStatus ?? ExamStatusEnum.DRAFT,
+            examStatus: ExamStatusEnum.DRAFT,
             authorId: input.authorId,
-            validatorId: input.validatorId,
-            observations: input.observations ?? null,
+            validatorId: null,
+            observations: null,
             questionCount: targetCount,
             topicProportion,
             topicCoverage,
@@ -302,6 +382,7 @@ export class ExamService extends BaseDomainService {
     async createAutomaticExam(
         input: CreateAutomaticExamCommandSchema,
     ): Promise<AutomaticExamPreview> {
+        const derivedDifficulty = this.deriveDifficultyFromDistribution(input.difficultyCounts);
         const selectionPlan = this.buildSelectionPlan(
             'createAutomaticExam',
             input.questionCount,
@@ -309,8 +390,9 @@ export class ExamService extends BaseDomainService {
             input.difficultyCounts,
         );
         const selected: QuestionForExam[] = [];
-        const used = new Set<string>(input.filters?.excludeQuestionIds ?? []);
-        const topicIds = input.topicIds ?? input.filters?.topicIds;
+        const used = new Set<string>();
+        const topicIds = input.topicIds;
+        const subtopicIds = input.subtopicDistribution?.map((entry) => entry.subtopicId);
 
         for (const slot of selectionPlan) {
             const criteria: QuestionSearchCriteria = {
@@ -318,7 +400,7 @@ export class ExamService extends BaseDomainService {
                 difficulty: slot.difficulty,
                 questionTypeIds: [slot.questionTypeId],
                 topicIds,
-                subtopicIds: input.filters?.subtopicIds,
+                subtopicIds,
                 excludeQuestionIds: Array.from(used),
                 limit: slot.count,
             };
@@ -353,17 +435,17 @@ export class ExamService extends BaseDomainService {
             response: question.response ?? null,
         }));
 
-        const topicProportion = input.topicProportion ?? this.computeTopicProportion(selected);
-        const topicCoverage = this.buildCoverageFromAutomatic(input);
+        const topicProportion = this.computeTopicProportion(selected);
+        const topicCoverage = this.buildCoverageFromAutomatic(input, derivedDifficulty);
 
         return {
             title: input.title,
             subjectId: input.subjectId,
-            difficulty: input.difficulty,
-            examStatus: input.examStatus ?? ExamStatusEnum.DRAFT,
+            difficulty: derivedDifficulty,
+            examStatus: ExamStatusEnum.DRAFT,
             authorId: input.authorId,
-            validatorId: input.validatorId ?? null,
-            observations: input.observations ?? null,
+            validatorId: null,
+            observations: null,
             questionCount: input.questionCount,
             topicProportion,
             topicCoverage,
@@ -372,16 +454,15 @@ export class ExamService extends BaseDomainService {
     }
 
     async updateExam(id: string, patch: UpdateExamCommandSchema): Promise<ExamDetailRead> {
-        const existing = await this.deps.examRepo.get_by_id(id);
-        if (!existing) {
-            this.raiseNotFoundError('updateExam', 'El examen no existe.', { entity: 'Exam' });
-        }
+        const existing = await this.getExamOrFail(id, 'updateExam');
 
-        const dto: ExamUpdate = {};
+        const dto: ExamUpdate = {
+            examStatus: ExamStatusEnum.DRAFT,
+            validatorId: null,
+            validatedAt: null,
+        };
         if (patch.title !== undefined) dto.title = patch.title;
         if (patch.observations !== undefined) dto.observations = patch.observations;
-        if (patch.examStatus !== undefined) dto.examStatus = patch.examStatus;
-        if (patch.validatorId !== undefined) dto.validatorId = patch.validatorId;
         let normalizedQuestions: ExamQuestionInput[] | null = null;
         if (patch.questions) {
             const targetCount = patch.questions.length;
@@ -428,5 +509,83 @@ export class ExamService extends BaseDomainService {
             this.raiseNotFoundError('deleteExam', 'El examen no existe.', { entity: 'Exam' });
         }
         return deleted;
+    }
+
+    async requestExamReview(examId: string): Promise<ExamDetailRead> {
+        const exam = await this.getExamOrFail(examId, 'requestExamReview');
+        if (exam.examStatus === ExamStatusEnum.UNDER_REVIEW) {
+            this.raiseBusinessRuleError('requestExamReview', 'El examen ya está en revisión.', {
+                entity: 'Exam',
+                code: 'EXAM_ALREADY_UNDER_REVIEW',
+            });
+        }
+        if (exam.examStatus === ExamStatusEnum.APPROVED) {
+            this.raiseBusinessRuleError(
+                'requestExamReview',
+                'El examen ya fue aceptado; realice cambios para volver a solicitar revisión.',
+                {
+                    entity: 'Exam',
+                    code: 'APPROVED_EXAM_CANNOT_BE_REVIEWED',
+                },
+            );
+        }
+        if (exam.examStatus === ExamStatusEnum.PUBLISHED) {
+            this.raiseBusinessRuleError(
+                'requestExamReview',
+                'No es posible solicitar revisión de un examen publicado.',
+                {
+                    entity: 'Exam',
+                    code: 'PUBLISHED_EXAM_CANNOT_BE_REVIEWED',
+                },
+            );
+        }
+        await this.deps.examRepo.update(examId, {
+            examStatus: ExamStatusEnum.UNDER_REVIEW,
+            validatorId: null,
+            validatedAt: null,
+        });
+        return this.getExamDetailOrFail(examId, 'requestExamReview');
+    }
+
+    async acceptExam(examId: string, currentUserId: string): Promise<ExamDetailRead> {
+        const exam = await this.getExamOrFail(examId, 'acceptExam');
+        if (exam.examStatus !== ExamStatusEnum.UNDER_REVIEW) {
+            this.raiseBusinessRuleError('acceptExam', 'Solo se pueden aceptar exámenes en revisión.', {
+                entity: 'Exam',
+                code: 'EXAM_NOT_UNDER_REVIEW',
+            });
+        }
+        const teacher = await this.ensureSubjectLeaderForExam(
+            'acceptExam',
+            exam.subjectId,
+            currentUserId,
+        );
+        await this.deps.examRepo.update(examId, {
+            examStatus: ExamStatusEnum.APPROVED,
+            validatorId: teacher.id,
+            validatedAt: new Date(),
+        });
+        return this.getExamDetailOrFail(examId, 'acceptExam');
+    }
+
+    async rejectExam(examId: string, currentUserId: string): Promise<ExamDetailRead> {
+        const exam = await this.getExamOrFail(examId, 'rejectExam');
+        if (exam.examStatus !== ExamStatusEnum.UNDER_REVIEW) {
+            this.raiseBusinessRuleError('rejectExam', 'Solo se pueden rechazar exámenes en revisión.', {
+                entity: 'Exam',
+                code: 'EXAM_NOT_UNDER_REVIEW',
+            });
+        }
+        const teacher = await this.ensureSubjectLeaderForExam(
+            'rejectExam',
+            exam.subjectId,
+            currentUserId,
+        );
+        await this.deps.examRepo.update(examId, {
+            examStatus: ExamStatusEnum.REJECTED,
+            validatorId: teacher.id,
+            validatedAt: new Date(),
+        });
+        return this.getExamDetailOrFail(examId, 'rejectExam');
     }
 }

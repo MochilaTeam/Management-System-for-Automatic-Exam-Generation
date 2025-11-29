@@ -66,6 +66,8 @@ export const ExamMapper = {
         if (safe.topicProportion !== undefined) attrs.topicProportion = safe.topicProportion;
         if (safe.topicCoverage !== undefined) attrs.topicCoverage = safe.topicCoverage;
         if (safe.questionCount !== undefined) attrs.questionCount = safe.questionCount;
+        if (safe.difficulty !== undefined) attrs.difficulty = safe.difficulty;
+        if (safe.validatedAt !== undefined) attrs.validatedAt = safe.validatedAt;
         return attrs;
     },
 

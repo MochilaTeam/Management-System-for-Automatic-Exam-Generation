@@ -46,46 +46,84 @@ const difficultyCountSchema = z
     })
     .strict();
 
-export const examAutomaticFiltersSchema = z
-    .object({
-        topicIds: z.array(uuid()).min(1).optional(),
-        subtopicIds: z.array(uuid()).min(1).optional(),
-        excludeQuestionIds: z.array(uuid()).optional(),
-    })
-    .strict()
-    .partial();
-
-export const baseExamCommandSchema = z
+export const createManualExamSchema = z
     .object({
         title: z.string().min(3).max(255),
         subjectId: uuid(),
-        difficulty: z.nativeEnum(DifficultyLevelEnum),
-        authorId: uuid(),
-        validatorId: uuid().optional().nullable(),
-        observations: z.string().max(2000).optional().nullable(),
-        questionCount: z.number().int().min(1),
-        examStatus: z.nativeEnum(ExamStatusEnum).optional(),
-    })
-    .strict();
-
-const manualExamBaseSchema = baseExamCommandSchema.omit({ questionCount: true, difficulty: true });
-
-export const createManualExamCommandSchema = manualExamBaseSchema
-    .extend({
         questions: z
             .array(examQuestionInputSchema)
             .min(1, { message: 'Debe adjuntar al menos una pregunta.' }),
     })
     .strict();
 
-export const createAutomaticExamCommandSchema = baseExamCommandSchema
+export const createManualExamCommandSchema = createManualExamSchema
     .extend({
+        authorId: uuid(),
+    })
+    .strict();
+
+const automaticQuestionTypeDistributionSchema = z
+    .array(
+        z
+            .object({
+                type: uuid(),
+                count: z.number().int().min(0),
+            })
+            .strict(),
+    )
+    .min(1);
+
+const automaticDifficultyDistributionSchema = z
+    .array(
+        z
+            .object({
+                difficulty: z.nativeEnum(DifficultyLevelEnum),
+                count: z.number().int().min(0),
+            })
+            .strict(),
+    )
+    .min(1);
+
+const automaticSubtopicDistributionSchema = z.array(
+    z
+        .object({
+            subtopic: uuid(),
+            count: z.number().int().min(0),
+        })
+        .strict(),
+);
+
+export const createAutomaticExamSchema = z
+    .object({
+        title: z.string().min(3).max(255),
+        subjectId: uuid(),
+        questionCount: z.number().int().min(1),
+        questionTypeDistribution: automaticQuestionTypeDistributionSchema,
+        difficultyDistribution: automaticDifficultyDistributionSchema,
+        topicCoverage: z.array(uuid()).optional(),
+        subtopicDistribution: automaticSubtopicDistributionSchema.optional(),
+    })
+    .strict();
+
+export const createAutomaticExamCommandSchema = z
+    .object({
+        title: z.string().min(3).max(255),
+        subjectId: uuid(),
+        questionCount: z.number().int().min(1),
+        authorId: uuid(),
         questionTypeCounts: questionTypeCountSchema,
         difficultyCounts: difficultyCountSchema,
-        filters: examAutomaticFiltersSchema.optional(),
         topicIds: z.array(uuid()).min(1).optional(),
-        topicProportion: z.record(z.string(), z.number().min(0)).optional(),
-        topicCoverage: z.record(z.string(), z.any()).optional(),
+        subtopicDistribution: z
+            .array(
+                z
+                    .object({
+                        subtopicId: uuid(),
+                        count: z.number().int().min(0),
+                    })
+                    .strict(),
+            )
+            .optional(),
     })
     .strict()
     .refine(
@@ -147,14 +185,27 @@ export const updateExamCommandSchema = z
     .object({
         title: z.string().min(3).max(255).optional(),
         observations: z.string().max(2000).nullable().optional(),
-        examStatus: z.nativeEnum(ExamStatusEnum).optional(),
-        validatorId: uuid().nullable().optional(),
         questions: z.array(examQuestionInputSchema).min(1).optional(),
     })
     .strict()
     .refine((obj) => Object.keys(obj).length > 0, {
         message: 'Debe enviar al menos un campo para actualizar.',
     });
+
+export const acceptExamCommandSchema = z
+    .object({
+        examId: uuid(),
+        currentUserId: uuid(),
+    })
+    .strict();
+
+export const rejectExamCommandSchema = acceptExamCommandSchema;
+
+export const requestExamReviewCommandSchema = z
+    .object({
+        examId: uuid(),
+    })
+    .strict();
 
 export const listExamsQuerySchema = z
     .object({
@@ -193,6 +244,7 @@ export const examUpdateSchema = z
         topicCoverage: z.record(z.string(), z.any()).optional(),
         questionCount: z.number().int().min(1).optional(),
         difficulty: z.nativeEnum(DifficultyLevelEnum).optional(),
+        validatedAt: z.date().nullable().optional(),
     })
     .strict()
     .refine((obj) => Object.keys(obj).length > 0, {
@@ -226,14 +278,20 @@ export type ExamIdParams = z.infer<typeof examIdParamsSchema>;
 export type ExamQuestionInput = z.infer<typeof examQuestionInputSchema>;
 export type ExamQuestionRead = z.infer<typeof examQuestionReadSchema>;
 export type QuestionTypeDistributionEntry = z.infer<typeof questionTypeCountSchema>[number];
-export type ExamAutomaticFilters = z.infer<typeof examAutomaticFiltersSchema>;
 export type DifficultyCountMap = z.infer<typeof difficultyCountSchema>;
 
+export type CreateManualExamSchema = z.infer<typeof createManualExamSchema>;
 export type CreateManualExamCommandSchema = z.infer<typeof createManualExamCommandSchema>;
+export type CreateAutomaticExamSchema = z.infer<typeof createAutomaticExamSchema>;
 export type CreateAutomaticExamCommandSchema = z.infer<typeof createAutomaticExamCommandSchema>;
 export type UpdateExamCommandSchema = z.infer<typeof updateExamCommandSchema>;
 export type AutomaticExamPreview = z.infer<typeof automaticExamPreviewSchema>;
 export type AutomaticExamPreviewQuestion = z.infer<typeof automaticExamPreviewQuestionSchema>;
+export type AcceptExamCommandSchema = z.infer<typeof acceptExamCommandSchema>;
+export type RejectExamCommandSchema = z.infer<typeof rejectExamCommandSchema>;
+export type RequestExamReviewCommandSchema = z.infer<
+    typeof requestExamReviewCommandSchema
+>;
 
 export type ListExamsQuerySchema = z.infer<typeof listExamsQuerySchema>;
 export type ExamCreate = z.infer<typeof examCreateSchema>;

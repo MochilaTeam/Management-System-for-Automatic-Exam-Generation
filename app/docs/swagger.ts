@@ -276,14 +276,6 @@ const createManualExamInputSchema = {
     properties: {
         title: { type: 'string', example: 'Parcial 1' },
         subjectId: { type: 'string', format: 'uuid' },
-        examStatus: {
-            type: 'string',
-            enum: ['draft', 'on_review', 'valid', 'invalid', 'published'],
-            example: 'draft',
-        },
-        authorId: { type: 'string', format: 'uuid' },
-        validatorId: { type: 'string', format: 'uuid', nullable: true },
-        observations: { type: 'string', nullable: true },
         questions: {
             type: 'array',
             items: {
@@ -301,8 +293,8 @@ const createManualExamInputSchema = {
         },
     },
     description:
-        'La dificultad, proporciones y cobertura se recalculan en backend a partir de las preguntas enviadas (solo especifique título, metadatos y la colección de preguntas).',
-    required: ['title', 'subjectId', 'authorId', 'questions'],
+        'La dificultad, autor y estado se calculan automáticamente; envía solo título, materia y las preguntas a incluir.',
+    required: ['title', 'subjectId', 'questions'],
 };
 
 const createAutomaticExamInputSchema = {
@@ -310,73 +302,66 @@ const createAutomaticExamInputSchema = {
     properties: {
         title: { type: 'string', example: 'Parcial 2' },
         subjectId: { type: 'string', format: 'uuid' },
-        difficulty: { type: 'string', enum: ['EASY', 'MEDIUM', 'HARD'], example: 'MEDIUM' },
-        examStatus: {
-            type: 'string',
-            enum: ['draft', 'on_review', 'valid', 'invalid', 'published'],
-            example: 'draft',
-        },
-        authorId: { type: 'string', format: 'uuid' },
-        validatorId: { type: 'string', format: 'uuid', nullable: true },
-        observations: { type: 'string', nullable: true },
         questionCount: { type: 'integer', example: 12 },
-        questionTypeCounts: {
+        questionTypeDistribution: {
             type: 'array',
             description: 'Cantidad de preguntas por tipo (debe sumar la cantidad total)',
             items: {
                 type: 'object',
                 properties: {
-                    questionTypeId: { type: 'string', format: 'uuid' },
+                    type: { type: 'string', format: 'uuid' },
                     count: { type: 'integer', example: 4 },
                 },
-                required: ['questionTypeId', 'count'],
+                required: ['type', 'count'],
             },
             example: [
-                { questionTypeId: '5f50d4d1-f0ac-4b6e-a40b-0a5c5c849f20', count: 4 },
-                { questionTypeId: '1c21ac0a-445a-42b7-9b18-8b0979f765c1', count: 4 },
-                { questionTypeId: '9a9b5e2d-129e-4d6a-826f-f1c4090a3c88', count: 4 },
+                { type: '5f50d4d1-f0ac-4b6e-a40b-0a5c5c849f20', count: 4 },
+                { type: '1c21ac0a-445a-42b7-9b18-8b0979f765c1', count: 4 },
+                { type: '9a9b5e2d-129e-4d6a-826f-f1c4090a3c88', count: 4 },
             ],
         },
-        difficultyCounts: {
-            type: 'object',
-            properties: {
-                EASY: { type: 'integer', example: 3 },
-                MEDIUM: { type: 'integer', example: 6 },
-                HARD: { type: 'integer', example: 3 },
+        difficultyDistribution: {
+            type: 'array',
+            description: 'Cantidad de preguntas por nivel de dificultad',
+            items: {
+                type: 'object',
+                properties: {
+                    difficulty: { type: 'string', enum: ['EASY', 'MEDIUM', 'HARD'] },
+                    count: { type: 'integer', example: 4 },
+                },
+                required: ['difficulty', 'count'],
             },
-            required: ['EASY', 'MEDIUM', 'HARD'],
+            example: [
+                { difficulty: 'EASY', count: 3 },
+                { difficulty: 'MEDIUM', count: 6 },
+                { difficulty: 'HARD', count: 3 },
+            ],
         },
-        topicIds: {
+        topicCoverage: {
             type: 'array',
             items: { type: 'string', format: 'uuid' },
-            description: 'Lista de temas permitidos para la generación',
+            description: 'Temas que deben considerarse durante la generación (opcional)',
             example: ['2f51069d-391f-4c5a-9994-3e7b5c7fbb6a'],
         },
-        filters: {
-            type: 'object',
-            nullable: true,
-            properties: {
-                subtopicIds: {
-                    type: 'array',
-                    items: { type: 'string', format: 'uuid' },
-                    description: 'Subtemas válidos',
+        subtopicDistribution: {
+            type: 'array',
+            description: 'Distribución deseada por subtema (opcional)',
+            items: {
+                type: 'object',
+                properties: {
+                    subtopic: { type: 'string', format: 'uuid' },
+                    count: { type: 'integer', example: 2 },
                 },
-                excludeQuestionIds: {
-                    type: 'array',
-                    items: { type: 'string', format: 'uuid' },
-                    description: 'Preguntas que no deben reutilizarse',
-                },
+                required: ['subtopic', 'count'],
             },
         },
     },
     required: [
         'title',
         'subjectId',
-        'difficulty',
-        'authorId',
         'questionCount',
-        'questionTypeCounts',
-        'difficultyCounts',
+        'questionTypeDistribution',
+        'difficultyDistribution',
     ],
 };
 
@@ -409,6 +394,7 @@ const automaticExamPreviewSchemaDoc = {
                 ],
                 difficultyCounts: { EASY: 3, MEDIUM: 6, HARD: 3 },
                 topicIds: ['2f51...', '3ad2...'],
+                subtopicDistribution: [{ subtopicId: '9a9b...', count: 2 }],
             },
         },
         questions: {
@@ -434,11 +420,6 @@ const updateExamInputSchema = {
     properties: {
         title: { type: 'string' },
         observations: { type: 'string', nullable: true },
-        examStatus: {
-            type: 'string',
-            enum: ['draft', 'on_review', 'valid', 'invalid', 'published'],
-        },
-        validatorId: { type: 'string', format: 'uuid', nullable: true },
         questions: {
             type: 'array',
             items: {
@@ -454,7 +435,7 @@ const updateExamInputSchema = {
         },
     },
     description:
-        'Todos los campos son opcionales; si se envía el arreglo de preguntas debe contener la lista completa a persistir.',
+        'Todos los campos son opcionales; si se envía el arreglo de preguntas debe contener la lista completa a persistir. Cualquier actualización devolverá el examen a estado draft automáticamente.',
 };
 
 const listExamsResponseSchema = {

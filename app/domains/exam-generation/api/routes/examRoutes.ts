@@ -1,11 +1,14 @@
 import { Router } from 'express';
 
 import {
+    acceptExam,
     createAutomaticExam,
     createManualExam,
     deleteExam,
     getExamById,
     listExams,
+    rejectExam,
+    requestExamReview,
     updateExam,
 } from '../controllers/examController';
 
@@ -170,5 +173,77 @@ router.post('/exams/automatic', createAutomaticExam);
 router.get('/exams/:examId', getExamById);
 router.patch('/exams/:examId', updateExam);
 router.delete('/exams/:examId', deleteExam);
+
+/**
+ * @openapi
+ * /exams/{examId}/request-review:
+ *   post:
+ *     tags:
+ *       - Exams
+ *     summary: Solicitar revisión de un examen
+ *     parameters:
+ *       - in: path
+ *         name: examId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Estado actualizado a revisión.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ExamDetailResponse'
+ */
+router.post('/exams/:examId/request-review', requestExamReview);
+
+/**
+ * @openapi
+ * /exams/{examId}/accept:
+ *   post:
+ *     tags:
+ *       - Exams
+ *     summary: Aceptar un examen en revisión
+ *     parameters:
+ *       - in: path
+ *         name: examId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Examen aceptado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ExamDetailResponse'
+ */
+router.post('/exams/:examId/accept', acceptExam);
+
+/**
+ * @openapi
+ * /exams/{examId}/reject:
+ *   post:
+ *     tags:
+ *       - Exams
+ *     summary: Rechazar un examen en revisión
+ *     parameters:
+ *       - in: path
+ *         name: examId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Examen rechazado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ExamDetailResponse'
+ */
+router.post('/exams/:examId/reject', rejectExam);
 
 export default router;
