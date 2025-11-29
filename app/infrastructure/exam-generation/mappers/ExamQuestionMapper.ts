@@ -7,7 +7,7 @@ import type ExamQuestion from '../models/ExamQuestion';
 
 export const ExamQuestionMapper = {
     toRead(row: ExamQuestion): ExamQuestionRead {
-        const plain = row.get({ plain: true }) as {
+        const { id, examId, questionId, questionIndex } = row.get({ plain: true }) as {
             id: string;
             examId: string;
             questionId: string;
