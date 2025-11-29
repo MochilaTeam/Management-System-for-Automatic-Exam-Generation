@@ -32,4 +32,6 @@ export interface IExamAssignmentRepository {
     listStudentExamAssignments(
         criteria: ListExamAssignmentsCriteria,
     ): Promise<Page<StudentExamAssignmentItem>>;
+
+    findByExamIdAndStudentId(examId: string, studentId: string): Promise<StudentExamAssignmentItem | null>;
 }

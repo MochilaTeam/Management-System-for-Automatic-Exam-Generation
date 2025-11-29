@@ -15,7 +15,7 @@ export class ExamAssignmentRepository implements IExamAssignmentRepository {
     constructor(
         private readonly model: ModelStatic<ExamAssignments>,
         private readonly defaultTx?: Transaction,
-    ) {}
+    ) { }
 
     static withTx(model: ModelStatic<ExamAssignments>, tx: Transaction) {
         return new ExamAssignmentRepository(model, tx);
@@ -106,6 +106,27 @@ export class ExamAssignmentRepository implements IExamAssignmentRepository {
         } catch {
             throw new BaseDatabaseError({
                 message: 'Error obteniendo las asignaciones de exámenes',
+            });
+        }
+    }
+
+    async findByExamIdAndStudentId(
+        examId: string,
+        studentId: string,
+        tx?: Transaction,
+    ): Promise<StudentExamAssignmentItem | null> {
+        try {
+            const assignment = await this.model.findOne({
+                where: { examId, studentId },
+                transaction: this.effTx(tx),
+            });
+
+            if (!assignment) return null;
+
+            return ExamAssignmentMapper.toStudentExamItem(assignment);
+        } catch {
+            throw new BaseDatabaseError({
+                message: 'Error buscando la asignación del examen',
             });
         }
     }

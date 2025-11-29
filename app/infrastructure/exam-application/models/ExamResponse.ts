@@ -7,9 +7,9 @@ class ExamResponses extends Model {
     public studentId!: string;
     public examQuestionId!: string;
     public examId!: string;
-    public selectedOptionId!: string | null;
+    public selectedOptions!: Array<{ text: string; isCorrect: boolean }> | null;
     public textAnswer!: string | null;
-    public autoPoints!: number;
+    public autoPoints!: number | null;
     public manualPoints!: number | null;
     public answeredAt!: Date | null;
 }
@@ -43,8 +43,8 @@ ExamResponses.init(
             onDelete: 'RESTRICT',
             onUpdate: 'RESTRICT',
         },
-        selectedOptionId: {
-            type: DataTypes.UUID,
+        selectedOptions: {
+            type: DataTypes.JSON,
             allowNull: true,
         },
         textAnswer: {
@@ -53,8 +53,8 @@ ExamResponses.init(
         },
         autoPoints: {
             type: DataTypes.DECIMAL(10, 2),
-            allowNull: false,
-            defaultValue: 0,
+            allowNull: true,
+            defaultValue: null,
         },
         manualPoints: {
             type: DataTypes.DECIMAL(10, 2),

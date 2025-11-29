@@ -1,10 +1,20 @@
 import { z } from 'zod';
 
-// ===== Body for creating/updating exam response =====
-export const examResponseSchema = z
+
+export const createExamResponseCommandSchema = z
     .object({
+        user_id: z.string().uuid(),
+        examId: z.string().uuid(),
         examQuestionId: z.string().uuid(),
-        selectedOptionId: z.string().uuid().nullable().optional(), //TODO: cambiar selected options para que sea un array como el de Question
+        selectedOptions: z
+            .array(
+                z.object({
+                    text: z.string(),
+                    isCorrect: z.boolean(),
+                }),
+            )
+            .nullable()
+            .optional(),
         textAnswer: z
             .string()
             .transform((s) => s.trim())
@@ -14,7 +24,8 @@ export const examResponseSchema = z
     })
     .strict();
 
-export type ExamResponseBody = z.infer<typeof examResponseSchema>;
+export type CreateExamResponseCommandSchema = z.infer<typeof createExamResponseCommandSchema>;
+
 
 // ===== Params =====
 export const responseIdParamsSchema = z
@@ -29,11 +40,19 @@ export type ResponseIdParams = z.infer<typeof responseIdParamsSchema>;
 export const examResponseOutputSchema = z
     .object({
         id: z.string().uuid(),
+        examId: z.string().uuid(),
         examQuestionId: z.string().uuid(),
         studentId: z.string().uuid(),
-        selectedOptionId: z.string().uuid().nullable(),
+        selectedOptions: z
+            .array(
+                z.object({
+                    text: z.string(),
+                    isCorrect: z.boolean(),
+                }),
+            )
+            .nullable(),
         textAnswer: z.string().nullable(),
-        autoPoints: z.number(),
+        autoPoints: z.number().nullable(),
         manualPoints: z.number().nullable(),
         answeredAt: z.date(),
     })

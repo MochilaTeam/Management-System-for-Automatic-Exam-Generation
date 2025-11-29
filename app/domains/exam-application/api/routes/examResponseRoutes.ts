@@ -3,8 +3,7 @@ import { Router } from 'express';
 import { authenticate } from '../../../../core/middlewares/authenticate';
 import { requireRoles } from '../../../../core/middlewares/authorize';
 import { Roles } from '../../../../shared/enums/rolesEnum';
-
-// import { createExamResponse, updateExamResponse } from '../controllers/examResponseController';
+import { createExamResponse } from '../controllers/examResponseControllers';
 
 const router = Router();
 
@@ -51,7 +50,12 @@ const router = Router();
  *       403:
  *         description: No autorizado o no asignado al examen
  */
-router.post('/exams/responses', authenticate, requireRoles(Roles.STUDENT), createExamResponse);
+router.post(
+    '/exams/responses',
+    authenticate,
+    requireRoles(Roles.STUDENT),
+    createExamResponse
+);
 
 /**
  * @openapi
@@ -95,6 +99,6 @@ router.post('/exams/responses', authenticate, requireRoles(Roles.STUDENT), creat
  *       404:
  *         description: Respuesta no encontrada
  */
-// router.put('/exams/responses/:responseId', authenticate, requireRoles(Roles.STUDENT), updateExamResponse);
+router.put('/exams/responses/:responseId', authenticate, requireRoles(Roles.STUDENT), updateExamResponse);
 
 export default router;

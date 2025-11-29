@@ -11,6 +11,7 @@ import { Student, Teacher } from '../../../infrastructure/user/models';
 import { StudentRepository } from '../../../infrastructure/user/repositories/StudentRepository';
 import { TeacherRepository } from '../../../infrastructure/user/repositories/TeacherRepository';
 
+let _repo: ExamAssignmentRepository | null = null;
 let _svc: ExamAssignmentService | null = null;
 let _createCmd: CreateExamAssignmentCommand | null = null;
 let _listStudentExamsQuery: ListStudentExamsQuery | null = null;
@@ -28,10 +29,18 @@ const notImplementedExamRepository: IExamRepository = {
     },
 };
 
-function makeExamAssignmentService() {
+// Repository
+export function makeExamAssignmentRepository() {
+    if (_repo) return _repo;
+    _repo = new ExamAssignmentRepository(ExamAssignments);
+    return _repo;
+}
+
+// Service
+export function makeExamAssignmentService() {
     if (_svc) return _svc;
 
-    const examAssignmentRepo = new ExamAssignmentRepository(ExamAssignments);
+    const examAssignmentRepo = makeExamAssignmentRepository();
     const teacherRepo = new TeacherRepository(Teacher);
     const teacherSubjectLinkRepo = new TeacherSubjectLinkRepository();
     const studentRepo = new StudentRepository(Student);
@@ -46,12 +55,14 @@ function makeExamAssignmentService() {
     return _svc;
 }
 
+// Commands
 export function makeCreateExamAssignmentCommand() {
     if (_createCmd) return _createCmd;
     _createCmd = new CreateExamAssignmentCommand(makeExamAssignmentService());
     return _createCmd;
 }
 
+// Queries
 export function makeListStudentExamsQuery() {
     if (_listStudentExamsQuery) return _listStudentExamsQuery;
     _listStudentExamsQuery = new ListStudentExamsQuery(makeExamAssignmentService());
