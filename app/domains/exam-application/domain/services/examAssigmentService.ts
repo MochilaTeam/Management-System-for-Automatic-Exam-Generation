@@ -1,4 +1,4 @@
-import { AssignedExamStatus } from '../../../../infrastructure/exam-application/enums/AssignedExamStatus';
+import { AssignedExamStatus } from '../../entities/enums/AssignedExamStatus';
 import { BaseDomainService } from '../../../../shared/domain/base_service';
 import { ExamStatusEnum } from '../../../exam-generation/entities/enums/ExamStatusEnum';
 import { IStudentRepository } from '../../../user/domain/ports/IStudentRepository';

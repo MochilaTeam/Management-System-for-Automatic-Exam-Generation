@@ -1,4 +1,4 @@
-import { AssignedExamStatus } from '../../../../infrastructure/exam-application/enums/AssignedExamStatus';
+import { AssignedExamStatus } from '../../entities/enums/AssignedExamStatus';
 import { StudentExamAssignmentItem } from '../../schemas/examAssignmentSchema';
 
 export type CreateExamAssignmentInput = {
