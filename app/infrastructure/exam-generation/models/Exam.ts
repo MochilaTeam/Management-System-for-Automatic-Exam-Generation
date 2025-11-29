@@ -1,11 +1,12 @@
 import { Model, DATE, INTEGER, TEXT, JSON, DataTypes } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
-import { ExamStatusEnum } from '../../../domains/exam-generation/entities/enums/ExamStatusEnum';
+import { ExamStatusEnum } from '../../../domains/exam-application/entities/enums/ExamStatusEnum';
 import { DifficultyLevelEnum } from '../../../domains/question-bank/entities/enums/DifficultyLevels';
 
 class Exam extends Model {
     public id!: string;
+    public title!: string;
 
     public difficulty!: DifficultyLevelEnum;
     public examStatus!: ExamStatusEnum;
@@ -32,6 +33,10 @@ Exam.init(
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV4,
             primaryKey: true,
+            allowNull: false,
+        },
+        title: {
+            type: DataTypes.STRING(255),
             allowNull: false,
         },
 

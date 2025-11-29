@@ -50,7 +50,6 @@ User.init(
         sequelize,
         tableName: 'Users',
         timestamps: true,
-        indexes: [{ unique: true, fields: ['name'] }],
     },
 );
 
