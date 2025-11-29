@@ -37,6 +37,7 @@ export const ExamMapper = {
             ...plain,
             topicProportion: plain.topicProportion ?? {},
             topicCoverage: plain.topicCoverage ?? {},
+            validatedAt: plain.validatedAt ?? null,
         });
     },
 

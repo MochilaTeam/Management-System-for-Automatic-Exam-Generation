@@ -342,6 +342,7 @@ export class ExamService extends BaseDomainService {
     }
 
     async createManualExam(input: CreateManualExamCommandSchema): Promise<ExamDetailRead> {
+        const teacher = await this.getTeacherByUserId('createManualExam', input.authorId);
         const targetCount = input.questions.length;
         const questions = this.ensureQuestionsPayload(
             input.questions,
@@ -366,7 +367,7 @@ export class ExamService extends BaseDomainService {
             subjectId: input.subjectId,
             difficulty: derivedDifficulty,
             examStatus: ExamStatusEnum.DRAFT,
-            authorId: input.authorId,
+            authorId: teacher.id,
             validatorId: null,
             observations: null,
             questionCount: targetCount,
@@ -382,6 +383,7 @@ export class ExamService extends BaseDomainService {
     async createAutomaticExam(
         input: CreateAutomaticExamCommandSchema,
     ): Promise<AutomaticExamPreview> {
+        const teacher = await this.getTeacherByUserId('createAutomaticExam', input.authorId);
         const derivedDifficulty = this.deriveDifficultyFromDistribution(input.difficultyCounts);
         const selectionPlan = this.buildSelectionPlan(
             'createAutomaticExam',
@@ -443,7 +445,7 @@ export class ExamService extends BaseDomainService {
             subjectId: input.subjectId,
             difficulty: derivedDifficulty,
             examStatus: ExamStatusEnum.DRAFT,
-            authorId: input.authorId,
+            authorId: teacher.id,
             validatorId: null,
             observations: null,
             questionCount: input.questionCount,

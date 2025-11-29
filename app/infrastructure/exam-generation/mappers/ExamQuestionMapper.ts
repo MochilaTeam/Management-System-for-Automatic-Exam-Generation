@@ -13,7 +13,12 @@ export const ExamQuestionMapper = {
             questionId: string;
             questionIndex: number;
         };
-        return examQuestionReadSchema.parse(plain);
+        return examQuestionReadSchema.parse({
+            id: plain.id,
+            examId: plain.examId,
+            questionId: plain.questionId,
+            questionIndex: plain.questionIndex,
+        });
     },
 
     toBulkCreateAttrs(
