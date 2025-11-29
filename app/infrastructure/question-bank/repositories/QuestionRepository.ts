@@ -22,9 +22,8 @@ import {
 } from '../../../domains/question-bank/schemas/questionSchema';
 import { BaseRepository } from '../../../shared/domain/base_repository';
 import QuestionModel from '../models/Question';
-import Subject from '../models/Subject';
+import SubjectTopic from '../models/SubjectTopic';
 import Subtopic from '../models/SubTopic';
-import Topic from '../models/Topic';
 
 type QuestionPlain = {
     id: string;
@@ -260,48 +259,25 @@ export class QuestionRepository
         };
     }
 
-    private buildInclude(subjectId?: string, topicIds?: string[]): Includeable[] {
-        const topicInclude: {
-            model: typeof Topic;
+    private buildInclude(topicIds?: string[]): Includeable[] {
+        const includeEntry: {
+            model: typeof Subtopic;
             as: string;
             attributes: string[];
             required: boolean;
-            include: Includeable[];
             where?: WhereOptions;
         } = {
-            model: Topic,
-            as: 'topic',
-            attributes: ['id'],
-            required: Boolean(subjectId || (topicIds && topicIds.length > 0)),
-            include: [],
+            model: Subtopic,
+            as: 'primarySubtopic',
+            attributes: ['id', 'topicId'],
+            required: Boolean(topicIds && topicIds.length > 0),
         };
 
         if (topicIds && topicIds.length > 0) {
-            topicInclude.where = {
-                id: { [Op.in]: topicIds },
-            };
+            includeEntry.where = { topicId: { [Op.in]: topicIds } };
         }
 
-        if (subjectId) {
-            topicInclude.include.push({
-                model: Subject,
-                as: 'subjects',
-                attributes: ['id'],
-                through: { attributes: [] },
-                where: { id: subjectId },
-                required: true,
-            });
-        }
-
-        return [
-            {
-                model: Subtopic,
-                as: 'primarySubtopic',
-                attributes: ['id', 'topicId'],
-                include: [topicInclude],
-                required: false,
-            },
-        ];
+        return [includeEntry];
     }
 
     async findByIds(ids: string[], tx?: Transaction): Promise<QuestionForExam[]> {
@@ -337,13 +313,32 @@ export class QuestionRepository
                     criteria.excludeQuestionIds;
             }
 
-            const rows = await this.model.findAll({
-                where,
-                include: this.buildInclude(criteria.subjectId, criteria.topicIds),
-                order: sequelize.random(),
-                limit: criteria.limit ?? 20,
+        let topicFilterIds = criteria.topicIds?.length ? [...criteria.topicIds] : undefined;
+        if (criteria.subjectId) {
+            const subjectTopics = await SubjectTopic.findAll({
+                attributes: ['topicId'],
+                where: { subjectId: criteria.subjectId },
                 transaction: this.effTx(tx),
             });
+            const allowedIds = subjectTopics.map((row) => row.getDataValue('topicId'));
+            if (!allowedIds.length) {
+                return [];
+            }
+            topicFilterIds = topicFilterIds
+                ? topicFilterIds.filter((id) => allowedIds.includes(id))
+                : allowedIds;
+            if (!topicFilterIds.length) {
+                return [];
+            }
+        }
+
+        const rows = await this.model.findAll({
+            where,
+            include: this.buildInclude(topicFilterIds),
+            order: sequelize.random(),
+            limit: criteria.limit ?? 20,
+            transaction: this.effTx(tx),
+        });
             return rows.map((row) => QuestionRepository.toQuestionForExam(row));
         } catch (error) {
             return this.raiseError(error, this.model.name);
