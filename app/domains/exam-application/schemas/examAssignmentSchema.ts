@@ -15,7 +15,7 @@ export type ExamIdParams = z.infer<typeof examIdParamsSchema>;
 // ===== Body for assigning exam to course =====
 export const assignExamToCourseBodySchema = z
     .object({
-        course: z.string(), //TODO: implementar enum para cursos 
+        course: z.string(), //TODO: implementar enum para cursos
         applicationDate: z
             .string()
             .datetime()
@@ -29,7 +29,7 @@ export type AssignExamToCourseBody = z.infer<typeof assignExamToCourseBodySchema
 export const createExamAssignmentCommandSchema = z
     .object({
         examId: z.string().uuid(),
-        course: z.string(), //TODO: implementar enum para cursos 
+        course: z.string(), //TODO: implementar enum para cursos
         applicationDate: z
             .string()
             .datetime()

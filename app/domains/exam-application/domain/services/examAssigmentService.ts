@@ -1,23 +1,18 @@
 import { BaseDomainService } from '../../../../shared/domain/base_service';
 import { ExamStatusEnum } from '../../../exam-generation/entities/enums/ExamStatusEnum';
-import { ITeacherSubjectLinkRepository } from '../../../user/domain/ports/ITeacherSubjectLinkRepository';
-import { ITeacherRepository } from '../../../user/domain/ports/ITeacherRepository';
 import { IStudentRepository } from '../../../user/domain/ports/IStudentRepository';
+import { ITeacherRepository } from '../../../user/domain/ports/ITeacherRepository';
+import { ITeacherSubjectLinkRepository } from '../../../user/domain/ports/ITeacherSubjectLinkRepository';
 import { StudentRead } from '../../../user/schemas/studentSchema';
-import {
-    AssignExamToCourseResponse,
-} from '../../schemas/examAssignmentSchema';
+import { AssignExamToCourseResponse } from '../../schemas/examAssignmentSchema';
 import { IExamAssignmentRepository } from '../ports/IExamAssignmentRepository';
 
-
-
-//TODO: ELIMINAR DESPUES, USAR EL REAL 
+//TODO: ELIMINAR DESPUES, USAR EL REAL
 export interface IExamRepository {
     getExamStatus(examId: string): Promise<ExamStatusEnum | null>;
     getExamSubjectId(examId: string): Promise<string | null>;
     updateExamStatus(examId: string, status: ExamStatusEnum): Promise<void>;
 }
-
 
 type Deps = {
     examAssignmentRepo: IExamAssignmentRepository;
@@ -34,7 +29,13 @@ export class ExamAssignmentService extends BaseDomainService {
     private readonly teacherSubjectLinkRepo: ITeacherSubjectLinkRepository;
     private readonly studentRepo: IStudentRepository;
 
-    constructor({ examAssignmentRepo, examRepo, teacherRepo, teacherSubjectLinkRepo, studentRepo }: Deps) {
+    constructor({
+        examAssignmentRepo,
+        examRepo,
+        teacherRepo,
+        teacherSubjectLinkRepo,
+        studentRepo,
+    }: Deps) {
         super();
         this.examAssignmentRepo = examAssignmentRepo;
         this.examRepo = examRepo;
@@ -53,14 +54,13 @@ export class ExamAssignmentService extends BaseDomainService {
         const operation = 'create-exam-assignment';
         this.logOperationStart(operation);
         try {
-
             //Validar que el examen existe y tiene estado APPROVED
             await this.ensureExamIsApproved(examId);
 
             //Validar que el profesor puede asignar el examen
             const teacherId = await this.ensureTeacherCanAssignExam(examId, currentUserId);
 
-            //Obtener todos los estudiantes de el curso 
+            //Obtener todos los estudiantes de el curso
             const students = await this.getStudentsByCourse(course);
 
             if (students.length === 0) {
@@ -78,7 +78,7 @@ export class ExamAssignmentService extends BaseDomainService {
                 durationMinutes,
             });
 
-            //Cambiar el estado del examen 
+            //Cambiar el estado del examen
             await this.examRepo.updateExamStatus(examId, ExamStatusEnum.PUBLISHED);
 
             //Devolver la respuesta
@@ -133,18 +133,9 @@ export class ExamAssignmentService extends BaseDomainService {
     }
 
     private async getStudentsByCourse(course: string): Promise<StudentRead[]> {
-        const operation = 'get-students-by-course';
-
-        const courseNumber = parseInt(course, 10);
-        if (isNaN(courseNumber)) {
-            this.raiseBusinessRuleError(operation, 'CURSO INVÁLIDO', {
-                entity: 'Course',
-            });
-        }
-
         const students = await this.studentRepo.list({
             filters: {
-                course: courseNumber, //TODO: implementar filtro por curso
+                course: course,
             },
             limit: 1000,
             offset: 0,
@@ -163,14 +154,14 @@ export class ExamAssignmentService extends BaseDomainService {
         const operation = 'create-assignments-for-students';
 
         // Create an assignment for each student
-        const assignmentPromises = params.students.map(student =>
+        const assignmentPromises = params.students.map((student) =>
             this.examAssignmentRepo.createExamAssignment({
                 examId: params.examId,
                 studentId: student.id,
                 professorId: params.professorId,
                 applicationDate: params.applicationDate,
                 durationMinutes: params.durationMinutes,
-            })
+            }),
         );
 
         try {

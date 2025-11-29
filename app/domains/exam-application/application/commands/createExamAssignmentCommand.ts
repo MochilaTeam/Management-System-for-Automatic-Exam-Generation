@@ -1,7 +1,10 @@
-import { RetrieveOneSchema } from "../../../../shared/domain/base_response";
-import { BaseCommand } from "../../../../shared/domain/base_use_case";
-import { ExamAssignmentService } from "../../domain/services/examAssigmentService";
-import { AssignExamToCourseResponse, CreateExamAssignmentCommandSchema } from "../../schemas/examAssignmentSchema";
+import { RetrieveOneSchema } from '../../../../shared/domain/base_response';
+import { BaseCommand } from '../../../../shared/domain/base_use_case';
+import { ExamAssignmentService } from '../../domain/services/examAssigmentService';
+import {
+    AssignExamToCourseResponse,
+    CreateExamAssignmentCommandSchema,
+} from '../../schemas/examAssignmentSchema';
 
 export class CreateExamAssignmentCommand extends BaseCommand<
     CreateExamAssignmentCommandSchema,
@@ -12,9 +15,8 @@ export class CreateExamAssignmentCommand extends BaseCommand<
     }
 
     protected async executeBusinessLogic(
-        input: CreateExamAssignmentCommandSchema
+        input: CreateExamAssignmentCommandSchema,
     ): Promise<RetrieveOneSchema<AssignExamToCourseResponse>> {
-
         const item = await this.svc.createExamAssignment(
             input.examId,
             input.course,

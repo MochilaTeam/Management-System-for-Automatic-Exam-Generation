@@ -17,7 +17,7 @@ Student.init(
             allowNull: false,
         },
         age: { type: INTEGER, allowNull: false },
-        course: { type: INTEGER, allowNull: false },
+        course: { type: DataTypes.STRING, allowNull: false },
         userId: {
             type: DataTypes.UUID,
             allowNull: false,

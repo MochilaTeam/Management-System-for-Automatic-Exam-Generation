@@ -103,7 +103,6 @@ const router = Router();
  *                   example: No tienes permisos para asignar exámenes a este curso
  */
 
-//TODO: guardar tambien curso en ExamAssignment
 router.post(
     '/exams/:examId/assign-to-course',
     authenticate,
@@ -113,7 +112,7 @@ router.post(
 
 /**
  * @openapi
- * /exams/my-assignments:
+ * /exams/my-assignments:+
  *   get:
  *     tags: [Exam Assignment]
  *     summary: Listar mis exámenes asignados

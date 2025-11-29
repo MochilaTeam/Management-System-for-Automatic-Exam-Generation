@@ -17,7 +17,7 @@ export class StudentService extends BaseDomainService {
     async createProfile(input: {
         userId: string;
         age: number;
-        course: number;
+        course: string;
     }): Promise<StudentRead> {
         const user = await this.deps.userRepo.get_by_id(input.userId);
         if (!user) {
@@ -64,6 +64,7 @@ export class StudentService extends BaseDomainService {
                 active,
                 filter: criteria.filter,
                 email: criteria.email,
+                course: criteria.course,
             },
         };
         const { items, total } = await this.deps.studentRepo.paginate(repoCriteria);
@@ -73,7 +74,7 @@ export class StudentService extends BaseDomainService {
     //update al perfil de student
     async updateProfile(
         id: string,
-        patch: Partial<{ age: number; course: number }>,
+        patch: Partial<{ age: number; course: string }>,
     ): Promise<StudentRead | null> {
         const updated = await this.deps.studentRepo.updateProfile(id, patch);
         return updated;

@@ -23,7 +23,7 @@ export const StudentMapper = {
             id: string;
             userId: string;
             age: number;
-            course: number;
+            course: string;
             user?: User;
             User?: User;
         };
@@ -63,11 +63,13 @@ export const StudentMapper = {
         role?: string;
         active?: boolean;
         filter?: string;
+        course?: string;
     }): { where: WhereOptions<Attributes<Student>>; userWhere?: WhereOptions<Attributes<User>> } {
         const where: WhereOptions<Attributes<Student>> = {};
         const userWhere: WhereOptions<Attributes<User>> = {};
 
         if (filters.userId) where.userId = filters.userId;
+        if (filters.course) where.course = filters.course;
         if (filters.email) userWhere.email = filters.email;
         if (filters.active !== undefined) userWhere.active = filters.active;
         if (filters.role) userWhere.role = filters.role;
