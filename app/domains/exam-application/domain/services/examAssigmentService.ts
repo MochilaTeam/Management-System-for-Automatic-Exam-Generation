@@ -1,3 +1,4 @@
+import { AssignedExamStatus } from '../../../../infrastructure/exam-application/enums/AssignedExamStatus';
 import { BaseDomainService } from '../../../../shared/domain/base_service';
 import { ExamStatusEnum } from '../../../exam-generation/entities/enums/ExamStatusEnum';
 import { IStudentRepository } from '../../../user/domain/ports/IStudentRepository';
@@ -189,7 +190,7 @@ export class ExamAssignmentService extends BaseDomainService {
         currentUserId: string;
         page: number;
         limit: number;
-        status?: string;
+        status?: AssignedExamStatus;
         subjectId?: string;
         teacherId?: string;
     }) {
