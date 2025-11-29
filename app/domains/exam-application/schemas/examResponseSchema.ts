@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-
 export const createExamResponseCommandSchema = z
     .object({
         user_id: z.string().uuid(),
@@ -25,7 +24,6 @@ export const createExamResponseCommandSchema = z
     .strict();
 
 export type CreateExamResponseCommandSchema = z.infer<typeof createExamResponseCommandSchema>;
-
 
 // ===== Params =====
 export const responseIdParamsSchema = z

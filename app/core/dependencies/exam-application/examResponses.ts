@@ -1,10 +1,10 @@
-import { CreateExamResponseCommand } from "../../../domains/exam-application/application/commands/createExamResponseCommand";
-import { ExamResponseService } from "../../../domains/exam-application/domain/services/examResponseService";
-import { ExamResponseRepository } from "../../../infrastructure/exam-application/repositories/ExamResponseRepository";
-import { Student } from "../../../infrastructure/user/models";
-import { StudentRepository } from "../../../infrastructure/user/repositories/StudentRepository";
-import { makeQuestionRepository } from "../question-bank/questionDependencies";
-import { makeExamAssignmentRepository } from "./examAssignment";
+import { makeExamAssignmentRepository } from './examAssignment';
+import { CreateExamResponseCommand } from '../../../domains/exam-application/application/commands/createExamResponseCommand';
+import { ExamResponseService } from '../../../domains/exam-application/domain/services/examResponseService';
+import { ExamResponseRepository } from '../../../infrastructure/exam-application/repositories/ExamResponseRepository';
+import { Student } from '../../../infrastructure/user/models';
+import { StudentRepository } from '../../../infrastructure/user/repositories/StudentRepository';
+import { makeQuestionRepository } from '../question-bank/questionDependencies';
 
 let _repo: ExamResponseRepository | null = null;
 let _svc: ExamResponseService | null = null;

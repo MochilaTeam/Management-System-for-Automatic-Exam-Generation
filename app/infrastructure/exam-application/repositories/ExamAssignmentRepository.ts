@@ -15,7 +15,7 @@ export class ExamAssignmentRepository implements IExamAssignmentRepository {
     constructor(
         private readonly model: ModelStatic<ExamAssignments>,
         private readonly defaultTx?: Transaction,
-    ) { }
+    ) {}
 
     static withTx(model: ModelStatic<ExamAssignments>, tx: Transaction) {
         return new ExamAssignmentRepository(model, tx);

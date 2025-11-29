@@ -1,7 +1,10 @@
-import { RetrieveOneSchema } from "../../../../shared/domain/base_response";
-import { BaseCommand } from "../../../../shared/domain/base_use_case";
-import { ExamResponseService } from "../../domain/services/examResponseService";
-import { CreateExamResponseCommandSchema, ExamResponseOutput } from "../../schemas/examResponseSchema";
+import { RetrieveOneSchema } from '../../../../shared/domain/base_response';
+import { BaseCommand } from '../../../../shared/domain/base_use_case';
+import { ExamResponseService } from '../../domain/services/examResponseService';
+import {
+    CreateExamResponseCommandSchema,
+    ExamResponseOutput,
+} from '../../schemas/examResponseSchema';
 
 export class CreateExamResponseCommand extends BaseCommand<
     CreateExamResponseCommandSchema,

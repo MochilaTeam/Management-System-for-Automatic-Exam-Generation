@@ -1,9 +1,9 @@
 import { NextFunction, Response } from 'express';
 
+import { makeCreateExamResponseCommand } from '../../../../core/dependencies/exam-application/examResponses';
 import { UnauthorizedError } from '../../../../shared/exceptions/domainErrors';
 import { AuthenticatedRequest } from '../../../../shared/types/http/AuthenticatedRequest';
 import { createExamResponseCommandSchema } from '../../schemas/examResponseSchema';
-import { makeCreateExamResponseCommand } from '../../../../core/dependencies/exam-application/examResponses';
 
 export async function createExamResponse(
     req: AuthenticatedRequest,
@@ -20,7 +20,7 @@ export async function createExamResponse(
 
         const result = await makeCreateExamResponseCommand().execute(validatedData);
 
-        res.status(201).json(result)
+        res.status(201).json(result);
     } catch (err) {
         next(err);
     }

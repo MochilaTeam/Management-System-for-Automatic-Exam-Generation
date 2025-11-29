@@ -50,12 +50,7 @@ const router = Router();
  *       403:
  *         description: No autorizado o no asignado al examen
  */
-router.post(
-    '/exams/responses',
-    authenticate,
-    requireRoles(Roles.STUDENT),
-    createExamResponse
-);
+router.post('/exams/responses', authenticate, requireRoles(Roles.STUDENT), createExamResponse);
 
 /**
  * @openapi
@@ -99,6 +94,11 @@ router.post(
  *       404:
  *         description: Respuesta no encontrada
  */
-router.put('/exams/responses/:responseId', authenticate, requireRoles(Roles.STUDENT), updateExamResponse);
+router.put(
+    '/exams/responses/:responseId',
+    authenticate,
+    requireRoles(Roles.STUDENT),
+    updateExamResponse,
+);
 
 export default router;
