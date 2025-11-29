@@ -1,4 +1,5 @@
 import { CreateExamAssignmentCommand } from '../../../domains/exam-application/application/commands/createExamAssignmentCommand';
+import { ListStudentExamsQuery } from '../../../domains/exam-application/application/queries/listStudentExamsQuery';
 import {
     ExamAssignmentService,
     IExamRepository,
@@ -12,6 +13,7 @@ import { TeacherRepository } from '../../../infrastructure/user/repositories/Tea
 
 let _svc: ExamAssignmentService | null = null;
 let _createCmd: CreateExamAssignmentCommand | null = null;
+let _listStudentExamsQuery: ListStudentExamsQuery | null = null;
 
 const notImplementedExamRepository: IExamRepository = {
     //TODO: USAR EL REAL
@@ -48,4 +50,10 @@ export function makeCreateExamAssignmentCommand() {
     if (_createCmd) return _createCmd;
     _createCmd = new CreateExamAssignmentCommand(makeExamAssignmentService());
     return _createCmd;
+}
+
+export function makeListStudentExamsQuery() {
+    if (_listStudentExamsQuery) return _listStudentExamsQuery;
+    _listStudentExamsQuery = new ListStudentExamsQuery(makeExamAssignmentService());
+    return _listStudentExamsQuery;
 }

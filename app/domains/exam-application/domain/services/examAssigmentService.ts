@@ -184,4 +184,53 @@ export class ExamAssignmentService extends BaseDomainService {
             });
         }
     }
+
+    async listStudentExams(input: {
+        currentUserId: string;
+        page: number;
+        limit: number;
+        status?: string;
+        subjectId?: string;
+        teacherId?: string;
+    }) {
+        const operation = 'list-student-exams';
+        this.logOperationStart(operation);
+
+        try {
+            // Get student from userId
+            const students = await this.studentRepo.list({
+                filters: { userId: input.currentUserId },
+                limit: 1,
+                offset: 0,
+            });
+
+            const student = students[0];
+            if (!student) {
+                this.raiseNotFoundError(operation, 'ESTUDIANTE NO ENCONTRADO', {
+                    entity: 'Student',
+                });
+            }
+
+            // Calculate offset from page
+            const offset = (input.page - 1) * input.limit;
+
+            // Call repository with filters
+            const result = await this.examAssignmentRepo.listStudentExamAssignments({
+                offset,
+                limit: input.limit,
+                filters: {
+                    studentId: student.id,
+                    status: input.status,
+                    subjectId: input.subjectId,
+                    teacherId: input.teacherId,
+                },
+            });
+
+            this.logOperationSuccess(operation);
+            return result;
+        } catch (error) {
+            this.logOperationError(operation, error as Error);
+            throw error;
+        }
+    }
 }

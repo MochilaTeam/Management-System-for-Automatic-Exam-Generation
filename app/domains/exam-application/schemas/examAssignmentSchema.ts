@@ -44,10 +44,12 @@ export type CreateExamAssignmentCommandSchema = z.infer<typeof createExamAssignm
 // ===== Query for listing student exams =====
 export const listStudentExamsQuerySchema = z
     .object({
+        currentUserId: z.string().uuid(),
         page: z.coerce.number().int().min(1).default(1),
         limit: z.coerce.number().int().min(1).max(50).default(10),
         status: z.nativeEnum(AssignedExamStatus).optional(),
         subjectId: z.string().uuid().optional(),
+        teacherId: z.string().uuid().optional(),
     })
     .strict();
 
