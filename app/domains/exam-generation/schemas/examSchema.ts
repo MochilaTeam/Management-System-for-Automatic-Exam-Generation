@@ -213,6 +213,7 @@ export const listExamsQuerySchema = z
         difficulty: z.nativeEnum(DifficultyLevelEnum).optional(),
         examStatus: z.nativeEnum(ExamStatusEnum).optional(),
         authorId: uuid().optional(),
+        validatorId: uuid().optional(),
         title: z.string().min(1).optional(),
         limit: z.coerce.number().int().min(1).max(100).default(20),
         offset: z.coerce.number().int().min(0).default(0),

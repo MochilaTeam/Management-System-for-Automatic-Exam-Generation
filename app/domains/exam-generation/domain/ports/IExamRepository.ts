@@ -7,6 +7,7 @@ export type ExamFilters = {
     difficulty?: DifficultyLevelEnum;
     examStatus?: ExamStatusEnum;
     authorId?: string;
+    validatorId?: string;
     title?: string;
 };
 

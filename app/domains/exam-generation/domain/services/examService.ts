@@ -52,6 +52,7 @@ export class ExamService extends BaseDomainService {
                 difficulty: params.difficulty,
                 examStatus: params.examStatus,
                 authorId: params.authorId,
+                validatorId: params.validatorId,
                 title: params.title,
             },
         };

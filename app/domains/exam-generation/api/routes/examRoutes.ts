@@ -41,6 +41,11 @@ const router = Router();
  *           type: string
  *           format: uuid
  *       - in: query
+ *         name: validatorId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
  *         name: title
  *         schema:
  *           type: string
