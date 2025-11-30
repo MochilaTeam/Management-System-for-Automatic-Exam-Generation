@@ -52,6 +52,7 @@ export class ExamService extends BaseDomainService {
                 difficulty: params.difficulty,
                 examStatus: params.examStatus,
                 authorId: params.authorId,
+                validatorId: params.validatorId,
                 title: params.title,
             },
         };
@@ -553,7 +554,11 @@ export class ExamService extends BaseDomainService {
         return this.getExamDetailOrFail(examId, 'requestExamReview');
     }
 
-    async acceptExam(examId: string, currentUserId: string): Promise<ExamDetailRead> {
+    async acceptExam(
+        examId: string,
+        currentUserId: string,
+        comment?: string,
+    ): Promise<ExamDetailRead> {
         const exam = await this.getExamOrFail(examId, 'acceptExam');
         if (exam.examStatus !== ExamStatusEnum.UNDER_REVIEW) {
             this.raiseBusinessRuleError(
@@ -570,15 +575,23 @@ export class ExamService extends BaseDomainService {
             exam.subjectId,
             currentUserId,
         );
-        await this.deps.examRepo.update(examId, {
+        const updatePayload: ExamUpdate = {
             examStatus: ExamStatusEnum.APPROVED,
             validatorId: teacher.id,
             validatedAt: new Date(),
-        });
+        };
+        if (comment !== undefined) {
+            updatePayload.observations = comment;
+        }
+        await this.deps.examRepo.update(examId, updatePayload);
         return this.getExamDetailOrFail(examId, 'acceptExam');
     }
 
-    async rejectExam(examId: string, currentUserId: string): Promise<ExamDetailRead> {
+    async rejectExam(
+        examId: string,
+        currentUserId: string,
+        comment?: string,
+    ): Promise<ExamDetailRead> {
         const exam = await this.getExamOrFail(examId, 'rejectExam');
         if (exam.examStatus !== ExamStatusEnum.UNDER_REVIEW) {
             this.raiseBusinessRuleError(
@@ -595,11 +608,15 @@ export class ExamService extends BaseDomainService {
             exam.subjectId,
             currentUserId,
         );
-        await this.deps.examRepo.update(examId, {
+        const updatePayload: ExamUpdate = {
             examStatus: ExamStatusEnum.REJECTED,
             validatorId: teacher.id,
             validatedAt: new Date(),
-        });
+        };
+        if (comment !== undefined) {
+            updatePayload.observations = comment;
+        }
+        await this.deps.examRepo.update(examId, updatePayload);
         return this.getExamDetailOrFail(examId, 'rejectExam');
     }
 }

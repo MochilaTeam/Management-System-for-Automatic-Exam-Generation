@@ -41,6 +41,11 @@ const router = Router();
  *           type: string
  *           format: uuid
  *       - in: query
+ *         name: validatorId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
  *         name: title
  *         schema:
  *           type: string
@@ -177,7 +182,7 @@ router.delete('/exams/:examId', deleteExam);
 /**
  * @openapi
  * /exams/{examId}/request-review:
- *   post:
+ *   patch:
  *     tags:
  *       - Exams
  *     summary: Solicitar revisión de un examen
@@ -196,12 +201,12 @@ router.delete('/exams/:examId', deleteExam);
  *             schema:
  *               $ref: '#/components/schemas/ExamDetailResponse'
  */
-router.post('/exams/:examId/request-review', requestExamReview);
+router.patch('/exams/:examId/request-review', requestExamReview);
 
 /**
  * @openapi
  * /exams/{examId}/accept:
- *   post:
+ *   patch:
  *     tags:
  *       - Exams
  *     summary: Aceptar un examen en revisión
@@ -212,6 +217,12 @@ router.post('/exams/:examId/request-review', requestExamReview);
  *         schema:
  *           type: string
  *           format: uuid
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ExamDecisionInput'
  *     responses:
  *       200:
  *         description: Examen aceptado.
@@ -220,12 +231,12 @@ router.post('/exams/:examId/request-review', requestExamReview);
  *             schema:
  *               $ref: '#/components/schemas/ExamDetailResponse'
  */
-router.post('/exams/:examId/accept', acceptExam);
+router.patch('/exams/:examId/accept', acceptExam);
 
 /**
  * @openapi
  * /exams/{examId}/reject:
- *   post:
+ *   patch:
  *     tags:
  *       - Exams
  *     summary: Rechazar un examen en revisión
@@ -236,6 +247,12 @@ router.post('/exams/:examId/accept', acceptExam);
  *         schema:
  *           type: string
  *           format: uuid
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ExamDecisionInput'
  *     responses:
  *       200:
  *         description: Examen rechazado.
@@ -244,6 +261,6 @@ router.post('/exams/:examId/accept', acceptExam);
  *             schema:
  *               $ref: '#/components/schemas/ExamDetailResponse'
  */
-router.post('/exams/:examId/reject', rejectExam);
+router.patch('/exams/:examId/reject', rejectExam);
 
 export default router;
