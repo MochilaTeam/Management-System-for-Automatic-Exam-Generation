@@ -7,8 +7,8 @@ import type {
     Page,
     ExamAssignmentStatusSnapshot,
 } from '../../../domains/exam-application/domain/ports/IExamAssignmentRepository';
-import { StudentExamAssignmentItem } from '../../../domains/exam-application/schemas/examAssignmentSchema';
 import { AssignedExamStatus } from '../../../domains/exam-application/entities/enums/AssignedExamStatus';
+import { StudentExamAssignmentItem } from '../../../domains/exam-application/schemas/examAssignmentSchema';
 import { BaseDatabaseError } from '../../../shared/exceptions/domainErrors';
 import { ExamAssignmentMapper } from '../mappers/examAssignmentMapper';
 import ExamAssignments from '../models/ExamAssignment';
@@ -100,11 +100,7 @@ export class ExamAssignmentRepository implements IExamAssignmentRepository {
         }
     }
 
-    async updateStatus(
-        id: string,
-        status: AssignedExamStatus,
-        tx?: Transaction,
-    ): Promise<void> {
+    async updateStatus(id: string, status: AssignedExamStatus, tx?: Transaction): Promise<void> {
         const assignment = await this.model.findByPk(id, {
             transaction: this.effTx(tx),
         });

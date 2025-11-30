@@ -6,8 +6,8 @@ import {
 } from '../../../../shared/exceptions/domainErrors';
 import { IExamQuestionRepository } from '../../../exam-generation/domain/ports/IExamQuestionRepository';
 import { IQuestionRepository } from '../../../question-bank/domain/ports/IQuestionRepository';
-import { IStudentRepository } from '../../../user/domain/ports/IStudentRepository';
 import { QuestionDetail } from '../../../question-bank/schemas/questionSchema';
+import { IStudentRepository } from '../../../user/domain/ports/IStudentRepository';
 import { AssignedExamStatus } from '../../entities/enums/AssignedExamStatus'; //TODO: CAMBIAR LOS ENUMS DE LUGAR
 import {
     CreateExamResponseCommandSchema,
@@ -89,7 +89,9 @@ export class ExamResponseService extends BaseDomainService {
         const assignment = await this.getAssignmentOrThrow(response.examId, student.id);
         this.ensureAssignmentIsActive(assignment);
 
-        const questionDetail = await this.getQuestionDetailFromExamQuestion(response.examQuestionId);
+        const questionDetail = await this.getQuestionDetailFromExamQuestion(
+            response.examQuestionId,
+        );
         const autoPoints = this.calculateAutoPoints(questionDetail, input.selectedOptions);
 
         const updated = await this.examResponseRepo.update({
@@ -127,7 +129,9 @@ export class ExamResponseService extends BaseDomainService {
         );
 
         if (!response) {
-            throw new NotFoundError({ message: 'Aún no hay respuesta registrada para esta pregunta' });
+            throw new NotFoundError({
+                message: 'Aún no hay respuesta registrada para esta pregunta',
+            });
         }
 
         this.logOperationSuccess(operation);
@@ -162,7 +166,9 @@ export class ExamResponseService extends BaseDomainService {
         return null;
     }
 
-    private async getQuestionDetailFromExamQuestion(examQuestionId: string): Promise<QuestionDetail> {
+    private async getQuestionDetailFromExamQuestion(
+        examQuestionId: string,
+    ): Promise<QuestionDetail> {
         const examQuestion = await this.examQuestionRepo.getById(examQuestionId);
         if (!examQuestion) {
             throw new NotFoundError({ message: 'Pregunta del examen no encontrada' });
@@ -200,10 +206,7 @@ export class ExamResponseService extends BaseDomainService {
     }
 
     private ensureAssignmentIsActive(assignment: { status: AssignedExamStatus }) {
-        const allowedStatuses = [
-            AssignedExamStatus.ENABLED,
-            AssignedExamStatus.DURING_SOLUTION,
-        ];
+        const allowedStatuses = [AssignedExamStatus.ENABLED, AssignedExamStatus.DURING_SOLUTION];
         if (!allowedStatuses.includes(assignment.status)) {
             throw new BusinessRuleError({ message: 'El examen no se encuentra activo' });
         }

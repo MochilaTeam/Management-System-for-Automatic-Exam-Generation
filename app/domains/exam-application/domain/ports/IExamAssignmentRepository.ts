@@ -50,7 +50,5 @@ export interface IExamAssignmentRepository {
 
     updateStatus(id: string, status: AssignedExamStatus): Promise<void>;
     findDetailedById(id: string): Promise<StudentExamAssignmentItem | null>;
-    listAssignmentsForStatusRefresh(
-        studentId: string,
-    ): Promise<ExamAssignmentStatusSnapshot[]>;
+    listAssignmentsForStatusRefresh(studentId: string): Promise<ExamAssignmentStatusSnapshot[]>;
 }

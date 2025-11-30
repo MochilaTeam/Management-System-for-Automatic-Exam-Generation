@@ -384,9 +384,7 @@ export class ExamAssignmentService extends BaseDomainService {
             return AssignedExamStatus.ENABLED;
         }
 
-        const endDate = new Date(
-            snapshot.applicationDate.getTime() + durationMinutes * 60 * 1000,
-        );
+        const endDate = new Date(snapshot.applicationDate.getTime() + durationMinutes * 60 * 1000);
 
         if (now > endDate) {
             return AssignedExamStatus.IN_EVALUATION;
