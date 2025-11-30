@@ -6,8 +6,17 @@ import { ITeacherSubjectLinkRepository } from '../../../user/domain/ports/ITeach
 import { StudentRead } from '../../../user/schemas/studentSchema';
 import { AssignedExamStatus } from '../../entities/enums/AssignedExamStatus';
 import { ExamStatusEnum } from '../../entities/enums/ExamStatusEnum';
-import { AssignExamToCourseResponse } from '../../schemas/examAssignmentSchema';
-import { IExamAssignmentRepository } from '../ports/IExamAssignmentRepository';
+import {
+    AssignExamToCourseResponse,
+    ListEvaluatorExamsQuery,
+    SendExamToEvaluatorCommandSchema,
+    StudentExamAssignmentItem,
+} from '../../schemas/examAssignmentSchema';
+import type {
+    ExamAssignmentStatusSnapshot,
+    IExamAssignmentRepository,
+} from '../ports/IExamAssignmentRepository';
+import type { IExamResponseRepository } from '../ports/IExamResponseRepository';
 
 type Deps = {
     examAssignmentRepo: IExamAssignmentRepository;
@@ -15,6 +24,7 @@ type Deps = {
     teacherRepo: ITeacherRepository;
     teacherSubjectLinkRepo: ITeacherSubjectLinkRepository;
     studentRepo: IStudentRepository;
+    examResponseRepo: IExamResponseRepository;
 };
 
 export class ExamAssignmentService extends BaseDomainService {
@@ -23,6 +33,7 @@ export class ExamAssignmentService extends BaseDomainService {
     private readonly teacherRepo: ITeacherRepository;
     private readonly teacherSubjectLinkRepo: ITeacherSubjectLinkRepository;
     private readonly studentRepo: IStudentRepository;
+    private readonly examResponseRepo: IExamResponseRepository;
 
     constructor({
         examAssignmentRepo,
@@ -30,6 +41,7 @@ export class ExamAssignmentService extends BaseDomainService {
         teacherRepo,
         teacherSubjectLinkRepo,
         studentRepo,
+        examResponseRepo,
     }: Deps) {
         super();
         this.examAssignmentRepo = examAssignmentRepo;
@@ -37,6 +49,7 @@ export class ExamAssignmentService extends BaseDomainService {
         this.teacherRepo = teacherRepo;
         this.teacherSubjectLinkRepo = teacherSubjectLinkRepo;
         this.studentRepo = studentRepo;
+        this.examResponseRepo = examResponseRepo;
     }
 
     async createExamAssignment(
@@ -220,6 +233,8 @@ export class ExamAssignmentService extends BaseDomainService {
                 });
             }
 
+            await this.refreshStudentAssignmentsStatuses(student.id);
+
             // Calculate offset from page
             const offset = (input.page - 1) * input.limit;
 
@@ -241,5 +256,172 @@ export class ExamAssignmentService extends BaseDomainService {
             this.logOperationError(operation, error as Error);
             throw error;
         }
+    }
+
+    async sendExamToEvaluator(
+        input: SendExamToEvaluatorCommandSchema,
+    ): Promise<StudentExamAssignmentItem> {
+        const operation = 'send-exam-to-evaluator';
+        this.logOperationStart(operation);
+
+        try {
+            const student = await this.getStudentByUserId(input.currentUserId, operation);
+            const assignment = await this.examAssignmentRepo.findByExamIdAndStudentId(
+                input.examId,
+                student.id,
+            );
+
+            if (!assignment) {
+                this.raiseNotFoundError(operation, 'ASIGNACIÓN NO ENCONTRADA', {
+                    entity: 'ExamAssignment',
+                });
+            }
+
+            const allowedStatuses = [
+                AssignedExamStatus.ENABLED,
+                AssignedExamStatus.DURING_SOLUTION,
+                AssignedExamStatus.SUBMITTED,
+            ];
+            if (!allowedStatuses.includes(assignment.status)) {
+                this.raiseBusinessRuleError(operation, 'EL EXAMEN NO ESTÁ LISTO PARA EVALUARSE', {
+                    entity: 'ExamAssignment',
+                });
+            }
+
+            await this.examAssignmentRepo.updateStatus(
+                assignment.id,
+                AssignedExamStatus.IN_EVALUATION,
+            );
+
+            const updated = await this.examAssignmentRepo.findDetailedById(assignment.id);
+            if (!updated) {
+                this.raiseNotFoundError(operation, 'ASIGNACIÓN NO ENCONTRADA', {
+                    entity: 'ExamAssignment',
+                });
+            }
+
+            this.logOperationSuccess(operation);
+            return updated;
+        } catch (error) {
+            this.logOperationError(operation, error as Error);
+            throw error;
+        }
+    }
+
+    async listEvaluatorExams(input: ListEvaluatorExamsQuery) {
+        const operation = 'list-evaluator-exams';
+        this.logOperationStart(operation);
+
+        try {
+            const teacher = await this.getTeacherByUserId(input.currentUserId, operation);
+            const offset = (input.page - 1) * input.limit;
+
+            const result = await this.examAssignmentRepo.listStudentExamAssignments({
+                offset,
+                limit: input.limit,
+                filters: {
+                    teacherId: teacher.id,
+                    status: AssignedExamStatus.IN_EVALUATION,
+                },
+            });
+
+            this.logOperationSuccess(operation);
+            return result;
+        } catch (error) {
+            this.logOperationError(operation, error as Error);
+            throw error;
+        }
+    }
+
+    private async refreshStudentAssignmentsStatuses(studentId: string) {
+        const snapshots = await this.examAssignmentRepo.listAssignmentsForStatusRefresh(studentId);
+        if (!snapshots.length) return;
+
+        const now = new Date();
+        for (const snapshot of snapshots) {
+            const newStatus = await this.calculateStatusForSnapshot(snapshot, now);
+            if (newStatus && newStatus !== snapshot.status) {
+                await this.examAssignmentRepo.updateStatus(snapshot.id, newStatus);
+            }
+        }
+    }
+
+    private async calculateStatusForSnapshot(
+        snapshot: ExamAssignmentStatusSnapshot,
+        now: Date,
+    ): Promise<AssignedExamStatus | null> {
+        if (!snapshot.applicationDate) {
+            return snapshot.status;
+        }
+
+        if (
+            snapshot.status === AssignedExamStatus.CANCELLED ||
+            snapshot.status === AssignedExamStatus.GRADED ||
+            snapshot.status === AssignedExamStatus.IN_EVALUATION
+        ) {
+            return snapshot.status;
+        }
+
+        if (snapshot.grade !== null) {
+            return AssignedExamStatus.GRADED;
+        }
+
+        if (now < snapshot.applicationDate) {
+            return AssignedExamStatus.PENDING;
+        }
+
+        const hasResponses = await this.examResponseRepo.studentHasResponses(
+            snapshot.examId,
+            snapshot.studentId,
+        );
+
+        if (hasResponses) {
+            return AssignedExamStatus.SUBMITTED;
+        }
+
+        const durationMinutes = snapshot.durationMinutes ?? 0;
+        if (durationMinutes <= 0) {
+            return AssignedExamStatus.ENABLED;
+        }
+
+        const endDate = new Date(
+            snapshot.applicationDate.getTime() + durationMinutes * 60 * 1000,
+        );
+
+        if (now > endDate) {
+            return AssignedExamStatus.IN_EVALUATION;
+        }
+
+        return AssignedExamStatus.ENABLED;
+    }
+
+    private async getStudentByUserId(userId: string, operation: string) {
+        const students = await this.studentRepo.list({
+            filters: { userId },
+            limit: 1,
+            offset: 0,
+        });
+        const student = students[0];
+        if (!student) {
+            this.raiseNotFoundError(operation, 'ESTUDIANTE NO ENCONTRADO', {
+                entity: 'Student',
+            });
+        }
+        return student;
+    }
+
+    private async getTeacherByUserId(userId: string, operation: string) {
+        const teachers = await this.teacherRepo.list({
+            filters: { userId },
+            limit: 1,
+            offset: 0,
+        });
+        const teacher = teachers[0];
+        if (!teacher) {
+            this.raiseNotFoundError(operation, 'PROFESOR NO ENCONTRADO', {
+                entity: 'Teacher',
+            });
+        }
+        return teacher;
     }
 }

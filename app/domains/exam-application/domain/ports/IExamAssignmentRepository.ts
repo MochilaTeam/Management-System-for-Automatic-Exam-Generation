@@ -27,6 +27,16 @@ export type Page<T> = {
     total: number;
 };
 
+export type ExamAssignmentStatusSnapshot = {
+    id: string;
+    examId: string;
+    studentId: string;
+    status: AssignedExamStatus;
+    applicationDate: Date | null;
+    durationMinutes: number | null;
+    grade: number | null;
+};
+
 export interface IExamAssignmentRepository {
     createExamAssignment(input: CreateExamAssignmentInput): Promise<void>;
     listStudentExamAssignments(
@@ -37,4 +47,10 @@ export interface IExamAssignmentRepository {
         examId: string,
         studentId: string,
     ): Promise<StudentExamAssignmentItem | null>;
+
+    updateStatus(id: string, status: AssignedExamStatus): Promise<void>;
+    findDetailedById(id: string): Promise<StudentExamAssignmentItem | null>;
+    listAssignmentsForStatusRefresh(
+        studentId: string,
+    ): Promise<ExamAssignmentStatusSnapshot[]>;
 }

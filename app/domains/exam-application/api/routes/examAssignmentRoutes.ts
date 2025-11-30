@@ -3,7 +3,12 @@ import { Router } from 'express';
 import { authenticate } from '../../../../core/middlewares/authenticate';
 import { requireRoles } from '../../../../core/middlewares/authorize';
 import { Roles } from '../../../../shared/enums/rolesEnum';
-import { createExamAssignment, listStudentExams } from '../controllers/examAssignmentsControllers';
+import {
+    createExamAssignment,
+    listEvaluatorExams,
+    listStudentExams,
+    sendExamToEvaluator,
+} from '../controllers/examAssignmentsControllers';
 
 const router = Router();
 
@@ -120,10 +125,11 @@ router.post(
  *       Incluye paginación y filtros por estado y asignatura.
  *       Incluye información de tablas adicinales como el nombre de el profesor que asignó el examen
  *       y el nombre de la asignatura.
- *       Al recargar los examenes se actualizan los estados de los mismos.
+ *       Al recargar los exámenes se actualizan los estados de los mismos.
  *          Un examen se considera PENDING si su fecha de aplicación es mayor a la fecha actual.
- *          Un examen se considera ENABLED si su fecha de aplicación es menor a la fecha actual y la fecha actual es mayor a la fecha de aplicación + la duración del examen.
+ *          Un examen se considera ENABLED si la fecha actual está entre la fecha de aplicación y la fecha de aplicación más la duración del examen.
  *          Un examen se considera SUBMITTED si su fecha de aplicación es menor a la fecha actual y el estudiante ha respondido el examen.
+ *          Un examen pasa a IN_EVALUATION cuando se agota el tiempo disponible o el estudiante envía el examen.
  *          Un examen se considera GRADED si su fecha de aplicación es menor a la fecha actual y el examen ha sido calificado.
  *     security:
  *       - bearerAuth: []
@@ -144,7 +150,7 @@ router.post(
  *         name: status
  *         schema:
  *           type: string
- *           enum: [PENDING, ENABLED, SUBMITTED, GRADED, CANCELLED]
+ *           enum: [PENDING, ENABLED, DURING_SOLUTION, IN_EVALUATION, SUBMITTED, GRADED, CANCELLED]
  *         description: Filtrar por estado de la asignación
  *       - in: query
  *         name: subjectId
@@ -184,5 +190,94 @@ router.post(
  *                   example: Acceso denegado
  */
 router.get('/exams/my-assignments', authenticate, requireRoles(Roles.STUDENT), listStudentExams);
+
+/**
+ * @openapi
+ * /exams/{examId}/send-to-evaluator:
+ *   post:
+ *     tags: [Exam Assignment]
+ *     summary: Enviar examen a evaluación
+ *     description: |
+ *       Permite a un estudiante marcar su examen como listo para evaluación, cambiando el estado
+ *       de DURING_SOLUTION a IN_EVALUATION.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: examId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Examen enviado a evaluación
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/StudentExamAssignmentListResponse'
+ *       400:
+ *         description: El examen no está en estado DURING_SOLUTION
+ *       404:
+ *         description: Asignación de examen no encontrada
+ */
+router.post(
+    '/exams/:examId/send-to-evaluator',
+    authenticate,
+    requireRoles(Roles.STUDENT),
+    sendExamToEvaluator,
+);
+
+/**
+ * @openapi
+ * /exams/evaluator/my-assignments:
+ *   get:
+ *     tags: [Exam Assignment]
+ *     summary: Listar exámenes pendientes de evaluación
+ *     description: |
+ *       Permite a un profesor obtener los exámenes asignados que se encuentran en estado IN_EVALUATION.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Lista de exámenes en evaluación
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/StudentExamAssignmentListResponse'
+ *                 meta:
+ *                   $ref: '#/components/schemas/PaginationMeta'
+ *       403:
+ *         description: No autorizado
+ */
+router.get(
+    '/exams/evaluator/my-assignments',
+    authenticate,
+    requireRoles(Roles.TEACHER),
+    listEvaluatorExams,
+);
 
 export default router;

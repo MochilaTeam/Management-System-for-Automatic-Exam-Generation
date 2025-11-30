@@ -35,6 +35,15 @@ export const createExamAssignmentCommandSchema = assignExamToCourseBodySchema
 
 export type CreateExamAssignmentCommandSchema = z.infer<typeof createExamAssignmentCommandSchema>;
 
+export const sendExamToEvaluatorCommandSchema = z
+    .object({
+        examId: z.string().uuid(),
+        currentUserId: z.string().uuid(),
+    })
+    .strict();
+
+export type SendExamToEvaluatorCommandSchema = z.infer<typeof sendExamToEvaluatorCommandSchema>;
+
 // ===== Query for listing student exams =====
 export const listStudentExamsQuerySchema = z
     .object({
@@ -48,6 +57,16 @@ export const listStudentExamsQuerySchema = z
     .strict();
 
 export type ListStudentExamsQuery = z.infer<typeof listStudentExamsQuerySchema>;
+
+export const listEvaluatorExamsQuerySchema = z
+    .object({
+        currentUserId: z.string().uuid(),
+        page: z.coerce.number().int().min(1).default(1),
+        limit: z.coerce.number().int().min(1).max(50).default(10),
+    })
+    .strict();
+
+export type ListEvaluatorExamsQuery = z.infer<typeof listEvaluatorExamsQuerySchema>;
 
 // ===== Responses =====
 

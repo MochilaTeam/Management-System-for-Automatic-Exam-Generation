@@ -518,7 +518,7 @@ export class ExamService extends BaseDomainService {
         return deleted;
     }
 
-    async requestExamReview(examId: string): Promise<ExamDetailRead> {
+    async requestExamReview(examId: string, currentUserId: string): Promise<ExamDetailRead> {
         const exam = await this.getExamOrFail(examId, 'requestExamReview');
         if (exam.examStatus === ExamStatusEnum.UNDER_REVIEW) {
             this.raiseBusinessRuleError('requestExamReview', 'El examen ya está en revisión.', {
@@ -546,9 +546,14 @@ export class ExamService extends BaseDomainService {
                 },
             );
         }
+        const teacher = await this.ensureSubjectLeaderForExam(
+            'requestExamReview',
+            exam.subjectId,
+            currentUserId,
+        );
         await this.deps.examRepo.update(examId, {
             examStatus: ExamStatusEnum.UNDER_REVIEW,
-            validatorId: null,
+            validatorId: teacher.id,
             validatedAt: null,
         });
         return this.getExamDetailOrFail(examId, 'requestExamReview');
@@ -570,14 +575,9 @@ export class ExamService extends BaseDomainService {
                 },
             );
         }
-        const teacher = await this.ensureSubjectLeaderForExam(
-            'acceptExam',
-            exam.subjectId,
-            currentUserId,
-        );
+        await this.ensureSubjectLeaderForExam('acceptExam', exam.subjectId, currentUserId);
         const updatePayload: ExamUpdate = {
             examStatus: ExamStatusEnum.APPROVED,
-            validatorId: teacher.id,
             validatedAt: new Date(),
         };
         if (comment !== undefined) {
@@ -603,14 +603,9 @@ export class ExamService extends BaseDomainService {
                 },
             );
         }
-        const teacher = await this.ensureSubjectLeaderForExam(
-            'rejectExam',
-            exam.subjectId,
-            currentUserId,
-        );
+        await this.ensureSubjectLeaderForExam('rejectExam', exam.subjectId, currentUserId);
         const updatePayload: ExamUpdate = {
             examStatus: ExamStatusEnum.REJECTED,
-            validatorId: teacher.id,
             validatedAt: new Date(),
         };
         if (comment !== undefined) {

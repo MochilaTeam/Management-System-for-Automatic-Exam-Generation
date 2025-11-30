@@ -200,7 +200,11 @@ export class ExamResponseService extends BaseDomainService {
     }
 
     private ensureAssignmentIsActive(assignment: { status: AssignedExamStatus }) {
-        if (assignment.status !== AssignedExamStatus.ENABLED) {
+        const allowedStatuses = [
+            AssignedExamStatus.ENABLED,
+            AssignedExamStatus.DURING_SOLUTION,
+        ];
+        if (!allowedStatuses.includes(assignment.status)) {
             throw new BusinessRuleError({ message: 'El examen no se encuentra activo' });
         }
     }

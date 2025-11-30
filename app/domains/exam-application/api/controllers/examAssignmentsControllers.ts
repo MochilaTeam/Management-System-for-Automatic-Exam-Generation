@@ -3,14 +3,18 @@ import { Response } from 'express';
 
 import {
     makeCreateExamAssignmentCommand,
+    makeListEvaluatorExamsQuery,
     makeListStudentExamsQuery,
+    makeSendExamToEvaluatorCommand,
 } from '../../../../core/dependencies/exam-application/examAssignment';
 import { UnauthorizedError } from '../../../../shared/exceptions/domainErrors';
 import { AuthenticatedRequest } from '../../../../shared/types/http/AuthenticatedRequest';
 import {
     createExamAssignmentCommandSchema,
     examIdParamsSchema,
+    listEvaluatorExamsQuerySchema,
     listStudentExamsQuerySchema,
+    sendExamToEvaluatorCommandSchema,
 } from '../../schemas/examAssignmentSchema';
 
 export async function createExamAssignment(
@@ -52,6 +56,54 @@ export async function listStudentExams(
                 currentUserId,
             }),
         );
+        res.status(200).json(result);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function sendExamToEvaluator(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction,
+) {
+    try {
+        const currentUserId = req.user?.id;
+        if (!currentUserId) {
+            throw new UnauthorizedError({ message: 'No se encontró el id del usuario' });
+        }
+
+        const { examId } = examIdParamsSchema.parse(req.params);
+        const payload = sendExamToEvaluatorCommandSchema.parse({
+            examId,
+            currentUserId,
+        });
+
+        const result = await makeSendExamToEvaluatorCommand().execute(payload);
+        res.status(200).json(result);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function listEvaluatorExams(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction,
+) {
+    try {
+        const currentUserId = req.user?.id;
+        if (!currentUserId) {
+            throw new UnauthorizedError({ message: 'No se encontró el id del usuario' });
+        }
+
+        const result = await makeListEvaluatorExamsQuery().execute(
+            listEvaluatorExamsQuerySchema.parse({
+                ...req.query,
+                currentUserId,
+            }),
+        );
+
         res.status(200).json(result);
     } catch (err) {
         next(err);

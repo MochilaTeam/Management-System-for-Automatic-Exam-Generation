@@ -42,4 +42,9 @@ export class ExamResponseRepository implements IExamResponseRepository {
 
         return ExamResponseMapper.toOutput(response);
     }
+
+    async studentHasResponses(examId: string, studentId: string): Promise<boolean> {
+        const count = await ExamResponses.count({ where: { examId, studentId } });
+        return count > 0;
+    }
 }
