@@ -196,6 +196,7 @@ export const acceptExamCommandSchema = z
     .object({
         examId: uuid(),
         currentUserId: uuid(),
+        comment: z.string().min(1).max(2000).optional(),
     })
     .strict();
 
