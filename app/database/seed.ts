@@ -1,5 +1,6 @@
 import { sequelize } from './database';
 import { getHasher } from '../core/security/hasher';
+import { DifficultyLevelEnum } from '../domains/question-bank/entities/enums/DifficultyLevels';
 import { QuestionTypeEnum } from '../domains/question-bank/entities/enums/QuestionType';
 import {
     Subject,
@@ -7,10 +8,578 @@ import {
     SubTopic as Subtopic,
     SubjectTopic,
 } from '../infrastructure/question-bank/models';
+import Question from '../infrastructure/question-bank/models/Question';
 import QuestionType from '../infrastructure/question-bank/models/QuestionType';
 import TeacherSubject from '../infrastructure/question-bank/models/TeacherSubject';
-import { User, Teacher } from '../infrastructure/user/models';
+import { Student, Teacher, User } from '../infrastructure/user/models';
 import { Roles } from '../shared/enums/rolesEnum';
+
+type QuestionSeed = {
+    type: QuestionTypeEnum;
+    difficulty: DifficultyLevelEnum;
+    body: string;
+    options?: Array<{ text: string; isCorrect: boolean }>;
+    response?: string | null;
+};
+
+type SubtopicSeed = {
+    name: string;
+    questions: QuestionSeed[];
+};
+
+type TopicSeed = {
+    title: string;
+    subtopics: SubtopicSeed[];
+};
+
+type SubjectSeed = {
+    name: string;
+    program: string;
+    leadTeacherEmail: string;
+    topics: TopicSeed[];
+};
+
+const teacherSeedData = [
+    {
+        name: 'Teacher One',
+        email: 'teacher1@example.com',
+        specialty: 'Bases de datos',
+        hasRoleSubjectLeader: true,
+        hasRoleExaminer: true,
+    },
+    {
+        name: 'Teacher Two',
+        email: 'teacher2@example.com',
+        specialty: 'Ingeniería de software',
+        hasRoleSubjectLeader: true,
+        hasRoleExaminer: true,
+    },
+    {
+        name: 'Teacher Three',
+        email: 'teacher3@example.com',
+        specialty: 'Matemáticas discretas',
+        hasRoleSubjectLeader: true,
+        hasRoleExaminer: true,
+    },
+] as const;
+
+const studentSeedData = [
+    { name: 'Ana Estudiante', email: 'student1@example.com', age: 20, course: 1 },
+    { name: 'Bruno Cadete', email: 'student2@example.com', age: 22, course: 2 },
+    { name: 'Carla Dev', email: 'student3@example.com', age: 21, course: 3 },
+    { name: 'Diego Tester', email: 'student4@example.com', age: 23, course: 4 },
+] as const;
+
+const subjectSeedData: SubjectSeed[] = [
+    {
+        name: 'Bases de Datos I',
+        program: 'Programa oficial Bases de Datos I 2024',
+        leadTeacherEmail: 'teacher1@example.com',
+        topics: [
+            {
+                title: 'Modelo relacional y diseño',
+                subtopics: [
+                    {
+                        name: 'Llaves primarias',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.EASY,
+                                body: '¿Qué requisito debe cumplir una llave primaria en una tabla relacional?',
+                                options: [
+                                    { text: 'Permitir valores duplicados', isCorrect: false },
+                                    { text: 'Aceptar valores NULL', isCorrect: false },
+                                    { text: 'Ser única y no nula', isCorrect: true },
+                                    { text: 'Cambiar en cada inserción', isCorrect: false },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.TRUE_FALSE,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: 'Una tabla puede definir varias llaves primarias al mismo tiempo.',
+                                options: [
+                                    { text: 'Verdadero', isCorrect: false },
+                                    { text: 'Falso', isCorrect: true },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'Normalización 3FN',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.ESSAY,
+                                difficulty: DifficultyLevelEnum.HARD,
+                                body: 'Explica el proceso para llevar una tabla desde 1FN hasta 3FN usando un ejemplo simple.',
+                                response:
+                                    'Debe describir eliminación de grupos repetitivos, claves parciales y dependencias transitivas.',
+                            },
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: '¿Qué problema mitiga la tercera forma normal?',
+                                options: [
+                                    {
+                                        text: 'Redundancias y dependencias transitivas',
+                                        isCorrect: true,
+                                    },
+                                    { text: 'La ausencia de índices', isCorrect: false },
+                                    { text: 'La falta de claves primarias', isCorrect: false },
+                                    { text: 'Los errores de transacciones', isCorrect: false },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'Consultas SELECT básicas',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.EASY,
+                                body: '¿Qué cláusula se utiliza para ordenar los resultados de una consulta SELECT?',
+                                options: [
+                                    { text: 'GROUP BY', isCorrect: false },
+                                    { text: 'WHERE', isCorrect: false },
+                                    { text: 'ORDER BY', isCorrect: true },
+                                    { text: 'HAVING', isCorrect: false },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.TRUE_FALSE,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: 'La cláusula WHERE se evalúa después de ORDER BY en SQL estándar.',
+                                options: [
+                                    { text: 'Verdadero', isCorrect: false },
+                                    { text: 'Falso', isCorrect: true },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                title: 'Transacciones y rendimiento',
+                subtopics: [
+                    {
+                        name: 'Propiedades ACID',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: '¿Qué propiedad ACID garantiza que una transacción completada permanezca almacenada?',
+                                options: [
+                                    { text: 'Atomicidad', isCorrect: false },
+                                    { text: 'Consistencia', isCorrect: false },
+                                    { text: 'Durabilidad', isCorrect: true },
+                                    { text: 'Aislamiento', isCorrect: false },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.ESSAY,
+                                difficulty: DifficultyLevelEnum.HARD,
+                                body: 'Describe cada letra del acrónimo ACID e indica qué riesgo mitiga.',
+                                response:
+                                    'Debe cubrir Atomicidad, Consistencia, Aislamiento y Durabilidad con un ejemplo por propiedad.',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'Control de concurrencia',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.TRUE_FALSE,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: 'El protocolo de dos fases evita por completo los interbloqueos.',
+                                options: [
+                                    { text: 'Verdadero', isCorrect: false },
+                                    { text: 'Falso', isCorrect: true },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.HARD,
+                                body: '¿Cuál es la causa más común de un deadlock en bases de datos?',
+                                options: [
+                                    { text: 'Lecturas repetidas', isCorrect: false },
+                                    {
+                                        text: 'Asignar y retener recursos en distinto orden',
+                                        isCorrect: true,
+                                    },
+                                    { text: 'Indices mal definidos', isCorrect: false },
+                                    { text: 'Falta de normalización', isCorrect: false },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'Índices y optimización',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: '¿Cuál es una ventaja principal de un índice B-Tree?',
+                                options: [
+                                    {
+                                        text: 'Inserciones desordenadas más lentas',
+                                        isCorrect: false,
+                                    },
+                                    { text: 'Búsquedas logarítmicas', isCorrect: true },
+                                    { text: 'Evita la fragmentación de disco', isCorrect: false },
+                                    { text: 'Solo almacena valores numéricos', isCorrect: false },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.ESSAY,
+                                difficulty: DifficultyLevelEnum.HARD,
+                                body: 'Enuncia dos escenarios en los que un índice compuesto mejora el rendimiento.',
+                                response:
+                                    'Debe mencionar filtros combinados y patrones de ordenamiento frecuentes.',
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    },
+    {
+        name: 'Programación I',
+        program: 'Programa introductorio de algoritmos y lógica 2024',
+        leadTeacherEmail: 'teacher2@example.com',
+        topics: [
+            {
+                title: 'Estructuras de control',
+                subtopics: [
+                    {
+                        name: 'Condicionales',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.EASY,
+                                body: '¿Qué palabra clave cierra un bloque if/else en la mayoría de lenguajes C-like?',
+                                options: [
+                                    { text: 'end', isCorrect: false },
+                                    { text: 'fi', isCorrect: false },
+                                    { text: '}', isCorrect: true },
+                                    { text: 'stop', isCorrect: false },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.ESSAY,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: 'Describe cuándo usarías una cadena de if/else versus una sentencia switch.',
+                                response:
+                                    'Debe comparar expresiones booleanas complejas frente a evaluaciones discretas.',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'Bucles',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.TRUE_FALSE,
+                                difficulty: DifficultyLevelEnum.EASY,
+                                body: 'Un bucle for conoce la cantidad de iteraciones antes de ejecutarse.',
+                                options: [
+                                    { text: 'Verdadero', isCorrect: true },
+                                    { text: 'Falso', isCorrect: false },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: '¿Qué diferencia fundamental existe entre while y do-while?',
+                                options: [
+                                    {
+                                        text: 'do-while evalúa la condición al final',
+                                        isCorrect: true,
+                                    },
+                                    { text: 'while no acepta break', isCorrect: false },
+                                    { text: 'do-while solo itera dos veces', isCorrect: false },
+                                    { text: 'while requiere contadores pares', isCorrect: false },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'Operadores lógicos',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: '¿Qué operador aplica cortocircuito al evaluar condiciones múltiples?',
+                                options: [
+                                    { text: 'AND (&)', isCorrect: false },
+                                    { text: 'OR (|)', isCorrect: false },
+                                    { text: 'AND lógico (&&)', isCorrect: true },
+                                    { text: 'XOR (^)', isCorrect: false },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.ESSAY,
+                                difficulty: DifficultyLevelEnum.HARD,
+                                body: 'Explica con un ejemplo cómo construir una tabla de verdad para una expresión compuesta.',
+                                response:
+                                    'Debe proponer una expresión y detallar fila a fila los resultados.',
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                title: 'Estructuras de datos básicas',
+                subtopics: [
+                    {
+                        name: 'Arreglos',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.EASY,
+                                body: '¿Cuál es el índice del primer elemento en un arreglo cero-indexado?',
+                                options: [
+                                    { text: '0', isCorrect: true },
+                                    { text: '1', isCorrect: false },
+                                    { text: '-1', isCorrect: false },
+                                    { text: 'Depende del compilador', isCorrect: false },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.ESSAY,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: 'Explica la diferencia entre un vector unidimensional y una matriz bidimensional.',
+                                response:
+                                    'Debe citar memoria contigua y acceso mediante un índice versus dos índices.',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'Cadenas',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: '¿Qué característica hace que las cadenas sean inmutables en muchos lenguajes?',
+                                options: [
+                                    { text: 'Se almacenan en disco', isCorrect: false },
+                                    {
+                                        text: 'Se comparten entre hilos sin bloqueo',
+                                        isCorrect: false,
+                                    },
+                                    {
+                                        text: 'No pueden modificarse después de creadas',
+                                        isCorrect: true,
+                                    },
+                                    { text: 'Solo aceptan números', isCorrect: false },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.TRUE_FALSE,
+                                difficulty: DifficultyLevelEnum.EASY,
+                                body: 'En C, una cadena puede representarse como un arreglo de caracteres terminado en \\0.',
+                                options: [
+                                    { text: 'Verdadero', isCorrect: true },
+                                    { text: 'Falso', isCorrect: false },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'Registros simples',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: '¿Qué palabra reservada define un registro (struct) en C?',
+                                options: [
+                                    { text: 'record', isCorrect: false },
+                                    { text: 'struct', isCorrect: true },
+                                    { text: 'class', isCorrect: false },
+                                    { text: 'object', isCorrect: false },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.ESSAY,
+                                difficulty: DifficultyLevelEnum.HARD,
+                                body: 'Modela un registro que represente a un estudiante y explica cada campo.',
+                                response:
+                                    'Debe incluir nombre, código, promedio y justificar por qué cada campo es necesario.',
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    },
+    {
+        name: 'Matemáticas Discretas',
+        program: 'Programa Matemáticas Discretas 2024',
+        leadTeacherEmail: 'teacher3@example.com',
+        topics: [
+            {
+                title: 'Lógica proposicional',
+                subtopics: [
+                    {
+                        name: 'Tablas de verdad',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.EASY,
+                                body: '¿Cuántas filas tiene la tabla de verdad de una proposición con dos variables?',
+                                options: [
+                                    { text: '2', isCorrect: false },
+                                    { text: '4', isCorrect: true },
+                                    { text: '8', isCorrect: false },
+                                    { text: '16', isCorrect: false },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.TRUE_FALSE,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: 'Dos proposiciones son equivalentes si todas las filas de su tabla coinciden.',
+                                options: [
+                                    { text: 'Verdadero', isCorrect: true },
+                                    { text: 'Falso', isCorrect: false },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'Implicaciones',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: '¿En qué caso una implicación p->q es falsa?',
+                                options: [
+                                    {
+                                        text: 'Cuando p es falsa y q es verdadera',
+                                        isCorrect: false,
+                                    },
+                                    { text: 'Cuando p es verdadera y q es falsa', isCorrect: true },
+                                    { text: 'Cuando ambas son falsas', isCorrect: false },
+                                    { text: 'Nunca es falsa', isCorrect: false },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.ESSAY,
+                                difficulty: DifficultyLevelEnum.HARD,
+                                body: 'Demuestra con la tabla de verdad la equivalencia entre p->q y NOT p OR q.',
+                                response:
+                                    'Debe construir la tabla y resaltar las columnas idénticas para ambas expresiones.',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'Equivalencias',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: '¿Cuál es la forma normal disyuntiva de (p AND q) OR r?',
+                                options: [
+                                    { text: 'p AND (q OR r)', isCorrect: false },
+                                    { text: '(p AND q) OR r', isCorrect: true },
+                                    { text: '(p OR q) AND r', isCorrect: false },
+                                    { text: '(p OR r) AND (q OR r)', isCorrect: false },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.ESSAY,
+                                difficulty: DifficultyLevelEnum.HARD,
+                                body: 'Explica cómo aplicar leyes de De Morgan para simplificar NOT (p OR NOT q).',
+                                response: 'Debe demostrar que equivale a NOT p AND q.',
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                title: 'Teoría de conjuntos',
+                subtopics: [
+                    {
+                        name: 'Operaciones básicas',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.EASY,
+                                body: 'Si A={1,2} y B={2,3}, ¿cuál es A U B?',
+                                options: [
+                                    { text: '{1,2,3}', isCorrect: true },
+                                    { text: '{2}', isCorrect: false },
+                                    { text: '{1,3}', isCorrect: false },
+                                    { text: '{1,2}', isCorrect: false },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.TRUE_FALSE,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: 'La intersección de conjuntos disjuntos es el conjunto vacío.',
+                                options: [
+                                    { text: 'Verdadero', isCorrect: true },
+                                    { text: 'Falso', isCorrect: false },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'Relaciones',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: 'Una relación es reflexiva si...',
+                                options: [
+                                    {
+                                        text: 'Cada elemento se relaciona consigo mismo',
+                                        isCorrect: true,
+                                    },
+                                    { text: 'No existen elementos repetidos', isCorrect: false },
+                                    { text: 'Todos los pares son simétricos', isCorrect: false },
+                                    {
+                                        text: 'Solo hay un elemento en el conjunto',
+                                        isCorrect: false,
+                                    },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.ESSAY,
+                                difficulty: DifficultyLevelEnum.HARD,
+                                body: 'Propón una relación que sea reflexiva y simétrica pero no transitiva.',
+                                response:
+                                    'Debe dar un ejemplo concreto sobre un conjunto pequeño y justificar cada propiedad.',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'Funciones',
+                        questions: [
+                            {
+                                type: QuestionTypeEnum.MCQ,
+                                difficulty: DifficultyLevelEnum.MEDIUM,
+                                body: '¿Qué caracteriza a una función biyectiva?',
+                                options: [
+                                    {
+                                        text: 'Es inyectiva y sobreyectiva a la vez',
+                                        isCorrect: true,
+                                    },
+                                    { text: 'Solo es inyectiva', isCorrect: false },
+                                    { text: 'Solo es sobreyectiva', isCorrect: false },
+                                    { text: 'Es constante', isCorrect: false },
+                                ],
+                            },
+                            {
+                                type: QuestionTypeEnum.ESSAY,
+                                difficulty: DifficultyLevelEnum.HARD,
+                                body: 'Describe cómo construir la inversa de una función biyectiva.',
+                                response:
+                                    'Debe explicar la inversión de pares ordenados y el dominio/resultante.',
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    },
+];
 
 async function seed() {
     await sequelize.authenticate();
@@ -19,8 +588,9 @@ async function seed() {
     try {
         const hasher = getHasher();
         const adminPasswordHash = await hasher.hash('123456789C');
+        const teacherPasswordHash = await hasher.hash('profesor123');
+        const studentPasswordHash = await hasher.hash('estudiante123');
 
-        // Admin user
         await User.findOrCreate({
             where: { email: 'admin@gmail.com' },
             defaults: {
@@ -32,93 +602,191 @@ async function seed() {
             transaction: t,
         });
 
-        // Teacher user + profile
-        const teacherEmail = 'teacher1@example.com';
-        const teacherPasswordHash = await hasher.hash('profesor123');
+        const teacherProfilesByEmail = new Map<string, Teacher>();
+        for (const teacherSeed of teacherSeedData) {
+            const [user] = await User.findOrCreate({
+                where: { email: teacherSeed.email },
+                defaults: {
+                    name: teacherSeed.name,
+                    email: teacherSeed.email,
+                    passwordHash: teacherPasswordHash,
+                    role: Roles.TEACHER,
+                },
+                transaction: t,
+            });
 
-        const [teacherUser] = await User.findOrCreate({
-            where: { email: teacherEmail },
-            defaults: {
-                name: 'Teacher One',
-                email: teacherEmail,
-                passwordHash: teacherPasswordHash,
-                role: Roles.TEACHER,
-            },
-            transaction: t,
-        });
+            if (user.role !== Roles.TEACHER) {
+                user.set('role', Roles.TEACHER);
+                await user.save({ transaction: t });
+            }
 
-        const [teacherProfile] = await Teacher.findOrCreate({
-            where: { userId: teacherUser.id },
-            defaults: {
-                userId: teacherUser.id,
-                specialty: 'Bases de datos',
-                hasRoleSubjectLeader: true,
-                hasRoleExaminer: true,
-            },
-            transaction: t,
-        });
+            const [teacherProfile] = await Teacher.findOrCreate({
+                where: { userId: user.id },
+                defaults: {
+                    userId: user.id,
+                    specialty: teacherSeed.specialty,
+                    hasRoleSubjectLeader: teacherSeed.hasRoleSubjectLeader,
+                    hasRoleExaminer: teacherSeed.hasRoleExaminer,
+                },
+                transaction: t,
+            });
 
-        // Subject
-        const [subject] = await Subject.findOrCreate({
-            where: { name: 'Bases de Datos I' },
-            defaults: {
-                name: 'Bases de Datos I',
-                program: 'Programa de BD I',
-                leadTeacherId: teacherProfile.id,
-            },
-            transaction: t,
-        });
-
-        // Asegurar que el líder sea el teacher del seed
-        if (!subject.getDataValue('leadTeacherId')) {
-            subject.set('leadTeacherId', teacherProfile.id);
-            await subject.save({ transaction: t });
+            teacherProfilesByEmail.set(teacherSeed.email, teacherProfile);
         }
 
-        // Relación Teacher ↔ Subject
-        await TeacherSubject.findOrCreate({
-            where: { teacherId: teacherProfile.id, subjectId: subject.id },
-            defaults: { teacherId: teacherProfile.id, subjectId: subject.id },
-            transaction: t,
-        });
-
-        // Topic
-        const [topic] = await Topic.findOrCreate({
-            where: { title: 'Modelo relacional' },
-            defaults: { title: 'Modelo relacional' },
-            transaction: t,
-        });
-
-        // SubjectTopic
-        await SubjectTopic.findOrCreate({
-            where: { subjectId: subject.id, topicId: topic.id },
-            defaults: { subjectId: subject.id, topicId: topic.id },
-            transaction: t,
-        });
-
-        // Subtopic
-        const [subtopic] = await Subtopic.findOrCreate({
-            where: { topicId: topic.id, name: 'Llaves primarias' },
-            defaults: { topicId: topic.id, name: 'Llaves primarias' },
-            transaction: t,
-        });
-
-        // Question types (MCQ, TRUE_FALSE, ESSAY)
-        for (const name of Object.values(QuestionTypeEnum)) {
-            await QuestionType.findOrCreate({
-                where: { name },
-                defaults: { name },
+        for (const studentSeed of studentSeedData) {
+            const [user] = await User.findOrCreate({
+                where: { email: studentSeed.email },
+                defaults: {
+                    name: studentSeed.name,
+                    email: studentSeed.email,
+                    passwordHash: studentPasswordHash,
+                    role: Roles.STUDENT,
+                },
                 transaction: t,
+            });
+
+            if (user.role !== Roles.STUDENT) {
+                user.set('role', Roles.STUDENT);
+                await user.save({ transaction: t });
+            }
+
+            await Student.findOrCreate({
+                where: { userId: user.id },
+                defaults: {
+                    userId: user.id,
+                    age: studentSeed.age,
+                    course: studentSeed.course,
+                },
+                transaction: t,
+            });
+        }
+
+        for (const qt of Object.values(QuestionTypeEnum)) {
+            await QuestionType.findOrCreate({
+                where: { name: qt },
+                defaults: { name: qt },
+                transaction: t,
+            });
+        }
+
+        const questionTypeRows = await QuestionType.findAll({ transaction: t });
+        const questionTypeMap = questionTypeRows.reduce<Record<QuestionTypeEnum, string>>(
+            (acc, row) => {
+                acc[row.getDataValue('name') as QuestionTypeEnum] = row.getDataValue('id');
+                return acc;
+            },
+            {} as Record<QuestionTypeEnum, string>,
+        );
+
+        const subjectSummaries: Array<{ name: string; topics: number; questions: number }> = [];
+
+        for (const subjectSeed of subjectSeedData) {
+            const teacherProfile = teacherProfilesByEmail.get(subjectSeed.leadTeacherEmail);
+            if (!teacherProfile) {
+                throw new Error(`No se encontró el profesor líder para ${subjectSeed.name}`);
+            }
+
+            const [subject] = await Subject.findOrCreate({
+                where: { name: subjectSeed.name },
+                defaults: {
+                    name: subjectSeed.name,
+                    program: subjectSeed.program,
+                    leadTeacherId: teacherProfile.id,
+                },
+                transaction: t,
+            });
+
+            if (
+                subject.getDataValue('leadTeacherId') !== teacherProfile.id ||
+                subject.getDataValue('program') !== subjectSeed.program
+            ) {
+                subject.set({
+                    leadTeacherId: teacherProfile.id,
+                    program: subjectSeed.program,
+                });
+                await subject.save({ transaction: t });
+            }
+
+            await TeacherSubject.findOrCreate({
+                where: { teacherId: teacherProfile.id, subjectId: subject.id },
+                defaults: { teacherId: teacherProfile.id, subjectId: subject.id },
+                transaction: t,
+            });
+
+            let createdQuestions = 0;
+
+            for (const topicSeed of subjectSeed.topics) {
+                const [topic] = await Topic.findOrCreate({
+                    where: { title: topicSeed.title },
+                    defaults: { title: topicSeed.title },
+                    transaction: t,
+                });
+
+                await SubjectTopic.findOrCreate({
+                    where: { subjectId: subject.id, topicId: topic.id },
+                    defaults: { subjectId: subject.id, topicId: topic.id },
+                    transaction: t,
+                });
+
+                for (const subtopicSeed of topicSeed.subtopics) {
+                    const [subtopic] = await Subtopic.findOrCreate({
+                        where: { topicId: topic.id, name: subtopicSeed.name },
+                        defaults: { topicId: topic.id, name: subtopicSeed.name },
+                        transaction: t,
+                    });
+
+                    for (const questionSeed of subtopicSeed.questions) {
+                        const questionTypeId = questionTypeMap[questionSeed.type];
+                        if (!questionTypeId) {
+                            throw new Error(`No existe el tipo de pregunta ${questionSeed.type}`);
+                        }
+
+                        const payload = {
+                            authorId: teacherProfile.id,
+                            questionTypeId,
+                            subTopicId: subtopic.id,
+                            difficulty: questionSeed.difficulty,
+                            body: questionSeed.body,
+                            options: questionSeed.options ?? null,
+                            response: questionSeed.response ?? null,
+                        };
+
+                        const [question, created] = await Question.findOrCreate({
+                            where: {
+                                subTopicId: subtopic.id,
+                                body: questionSeed.body,
+                            },
+                            defaults: payload,
+                            transaction: t,
+                        });
+
+                        if (!created) {
+                            await question.update(payload, { transaction: t });
+                        } else {
+                            createdQuestions += 1;
+                        }
+                    }
+                }
+            }
+
+            subjectSummaries.push({
+                name: subject.getDataValue('name'),
+                topics: subjectSeed.topics.length,
+                questions: createdQuestions,
             });
         }
 
         await t.commit();
         console.log('Seed completado con éxito.');
         console.log('Usuario admin -> email: admin@gmail.com | password: 123456789C');
-        console.log('Usuario profesor -> email: teacher1@example.com | password: profesor123');
-        console.log(`Subject "Bases de Datos I" id: ${subject.id}`);
-        console.log(`Topic "Modelo relacional" id: ${topic.id}`);
-        console.log(`Subtopic "Llaves primarias" id: ${subtopic.id}`);
+        console.log('Profesores -> password: profesor123');
+        console.log('Estudiantes -> password: estudiante123');
+        subjectSummaries.forEach((summary) => {
+            console.log(
+                `- ${summary.name}: ${summary.topics} temas, ${summary.questions} nuevas preguntas`,
+            );
+        });
     } catch (err) {
         await t.rollback();
         console.error('Seed falló:', err);
