@@ -5,6 +5,7 @@ import { ExamDetailRead } from '../../schemas/examSchema';
 
 type Input = {
     examId: string;
+    currentUserId: string;
 };
 
 export class RequestExamReviewCommand extends BaseCommand<
@@ -16,7 +17,7 @@ export class RequestExamReviewCommand extends BaseCommand<
     }
 
     protected async executeBusinessLogic(input: Input): Promise<RetrieveOneSchema<ExamDetailRead>> {
-        const detail = await this.svc.requestExamReview(input.examId);
+        const detail = await this.svc.requestExamReview(input.examId, input.currentUserId);
         return new RetrieveOneSchema(detail, 'Revisión de examen solicitada', true);
     }
 }

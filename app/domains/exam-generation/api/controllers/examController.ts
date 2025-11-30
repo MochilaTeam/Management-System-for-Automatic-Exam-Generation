@@ -23,6 +23,7 @@ import {
     examIdParamsSchema,
     listExamsQuerySchema,
     rejectExamCommandSchema,
+    requestExamReviewCommandSchema,
     updateExamCommandSchema,
 } from '../../schemas/examSchema';
 
@@ -141,10 +142,19 @@ export async function updateExam(req: Request, res: Response, next: NextFunction
     }
 }
 
-export async function requestExamReview(req: Request, res: Response, next: NextFunction) {
+export async function requestExamReview(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction,
+) {
     try {
         const { examId } = examIdParamsSchema.parse(req.params);
-        const result = await makeRequestExamReviewCommand().execute({ examId });
+        const currentUserId = ensureCurrentUserId(req);
+        const payload = requestExamReviewCommandSchema.parse({
+            examId,
+            currentUserId,
+        });
+        const result = await makeRequestExamReviewCommand().execute(payload);
         res.status(200).json(result);
     } catch (err) {
         next(err);

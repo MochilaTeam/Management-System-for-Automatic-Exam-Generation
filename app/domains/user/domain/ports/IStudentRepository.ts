@@ -8,6 +8,8 @@ export type StudentFilters = {
     active?: boolean;
     filter?: string;
     email?: string;
+    course?: string;
+    studentIds?: string[];
 };
 
 export type Sort = {
@@ -29,10 +31,10 @@ export interface IStudentRepository {
 
     existsBy(filters: { userId?: string }): Promise<boolean>;
 
-    createProfile(input: { userId: string; age: number; course: number }): Promise<StudentRead>;
+    createProfile(input: { userId: string; age: number; course: string }): Promise<StudentRead>;
     updateProfile(
         id: string,
-        patch: { age?: number; course?: number },
+        patch: { age?: number; course?: string },
     ): Promise<StudentRead | null>;
     deleteById(id: string): Promise<boolean>;
 }

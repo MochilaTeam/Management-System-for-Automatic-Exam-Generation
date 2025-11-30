@@ -18,7 +18,7 @@ export const createStudentCommandSchema = z
         email: z.email().transform((s) => s.trim().toLowerCase()),
         password: z.string().min(8),
         age: z.coerce.number().int().min(0),
-        course: z.coerce.number().int().min(0),
+        course: z.string().min(1),
     })
     .strict();
 
@@ -37,7 +37,7 @@ export const updateStudentCommandSchema = z
         password: z.string().min(8).optional(),
 
         age: z.coerce.number().int().min(0).optional(),
-        course: z.coerce.number().int().min(0).optional(),
+        course: z.string().min(1).optional(),
     })
     .strict()
     .refine((obj) => Object.keys(obj).length > 0, {
@@ -49,14 +49,14 @@ export const studentCreateSchema = z
     .object({
         userId: z.uuid(),
         age: z.coerce.number().int().min(0),
-        course: z.coerce.number().int().min(0),
+        course: z.string().min(1),
     })
     .strict();
 
 export const studentUpdateSchema = z
     .object({
         age: z.coerce.number().int().min(0).optional(),
-        course: z.coerce.number().int().min(0).optional(),
+        course: z.string().min(1).optional(),
     })
     .strict()
     .refine((obj) => Object.keys(obj).length > 0, {
@@ -72,7 +72,7 @@ export const studentReadSchema = z
         email: z.string().email(),
         role: z.enum(Roles),
         age: z.number().int().min(0),
-        course: z.number().int().min(0),
+        course: z.string(),
     })
     .strict();
 
@@ -82,6 +82,7 @@ export const listStudentsQuerySchema = z
         active: booleanFromQuery.optional(),
         email: z.email().optional(),
         userId: z.uuid().optional(),
+        course: z.string().optional(),
         filter: z
             .string()
             .transform((s) => s.trim())

@@ -10,7 +10,7 @@ import { QuestionRepository } from '../../../infrastructure/question-bank/reposi
 import { SubjectRepository } from '../../../infrastructure/question-bank/repositories/subjectRepository';
 import { SubtopicRepository } from '../../../infrastructure/question-bank/repositories/subtopicRepository';
 
-function getQuestionRepo() {
+export function makeQuestionRepository() {
     return new QuestionRepository(QuestionModel);
 }
 
@@ -24,7 +24,7 @@ function getSubjectRepo() {
 
 function getService() {
     return new QuestionService({
-        questionRepo: getQuestionRepo(),
+        questionRepo: makeQuestionRepository(),
         subtopicRepo: getSubtopicRepo(),
         subjectRepo: getSubjectRepo(),
     });

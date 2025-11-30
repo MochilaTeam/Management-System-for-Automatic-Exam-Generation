@@ -205,6 +205,7 @@ export const rejectExamCommandSchema = acceptExamCommandSchema;
 export const requestExamReviewCommandSchema = z
     .object({
         examId: uuid(),
+        currentUserId: uuid(),
     })
     .strict();
 

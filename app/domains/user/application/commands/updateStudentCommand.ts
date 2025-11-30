@@ -28,7 +28,7 @@ export class UpdateStudentCommand extends BaseCommand<
                 throw new NotFoundError({ message: 'STUDENT_NOT_FOUND' });
             }
 
-            const studentPatch: { age?: number; course?: number } = {};
+            const studentPatch: { age?: number; course?: string } = {};
             if (input.patch.age !== undefined) studentPatch.age = input.patch.age;
             if (input.patch.course !== undefined) studentPatch.course = input.patch.course;
 
