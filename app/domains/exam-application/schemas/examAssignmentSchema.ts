@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { ExamStatusEnum } from '../../exam-generation/entities/enums/ExamStatusEnum';
 import { AssignedExamStatus } from '../entities/enums/AssignedExamStatus';
+import { ExamStatusEnum } from '../entities/enums/ExamStatusEnum';
 
 // ===== Params =====
 export const examIdParamsSchema = z
@@ -12,10 +12,10 @@ export const examIdParamsSchema = z
 
 export type ExamIdParams = z.infer<typeof examIdParamsSchema>;
 
-// ===== Body for assigning exam to course =====
+// ===== Body for assigning exam to selected students =====
 export const assignExamToCourseBodySchema = z
     .object({
-        course: z.string(), //TODO: implementar enum para cursos
+        studentIds: z.array(z.string().uuid()).min(1),
         applicationDate: z
             .string()
             .datetime()
@@ -26,15 +26,9 @@ export const assignExamToCourseBodySchema = z
 
 export type AssignExamToCourseBody = z.infer<typeof assignExamToCourseBodySchema>;
 
-export const createExamAssignmentCommandSchema = z
-    .object({
+export const createExamAssignmentCommandSchema = assignExamToCourseBodySchema
+    .extend({
         examId: z.string().uuid(),
-        course: z.string(), //TODO: implementar enum para cursos
-        applicationDate: z
-            .string()
-            .datetime()
-            .transform((str) => new Date(str)),
-        durationMinutes: z.number().int().min(1).max(480), // Máximo 8 horas
         currentUserId: z.string().uuid(),
     })
     .strict();
@@ -60,7 +54,7 @@ export type ListStudentExamsQuery = z.infer<typeof listStudentExamsQuerySchema>;
 export const assignExamToCourseResponseSchema = z
     .object({
         examId: z.string().uuid(),
-        course: z.string().uuid(),
+        assignedStudentIds: z.array(z.string().uuid()),
         assignmentsCreated: z.number().int().min(0),
         applicationDate: z.date(),
         durationMinutes: z.number().int().min(1),

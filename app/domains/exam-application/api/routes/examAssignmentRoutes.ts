@@ -12,14 +12,15 @@ const router = Router();
  * /exams/{examId}/assign-to-course:
  *   post:
  *     tags: [Exam Assignment]
- *     summary: Asignar un examen aprobado a un curso¡
+ *     summary: Asignar un examen aprobado a estudiantes específicos
  *     description: |
- *       Este endpoint permite a un profesor asignar un examen con estado APPROVED a todos los estudiantes de un curso.
+ *       Este endpoint permite a un profesor asignar un examen con estado APPROVED a una lista controlada de estudiantes.
+ *       Los estudiantes deben enviarse en el body como un arreglo `studentIds`.
  *
  *       **Lógica interna (a implementar):**
  *       1. Validar que el examen existe y tiene estado APPROVED
- *       2. Validar que el profesor tiene permisos sobre el curso
- *       3. Obtener todos los estudiantes activos del curso
+ *       2. Validar que el profesor tiene permisos sobre la asignatura del examen
+ *       3. Validar que la lista de estudiantes exista y esté activa
  *       4. Crear un registro ExamAssignment por cada estudiante con:
  *          - studentId: ID del estudiante
  *          - examId: ID del examen
@@ -28,7 +29,7 @@ const router = Router();
  *          - applicationDate: fecha de aplicación
  *          - status: PENDING (inicialmente)
  *       5. Cambiar el estado del examen de APPROVED a PUBLISHED
- *       6. Retornar el número de asignaciones creadas y detalles del examen
+ *       6. Retornar la cantidad de asignaciones creadas y detalles del examen
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -47,9 +48,7 @@ const router = Router();
  *             $ref: '#/components/schemas/AssignExamToCourseInput'
  *     responses:
  *       201:
- *         description: Examen asignado correctamente a todos los estudiantes del curso
- *         content:
- *           application/json:
+ *         description: Examen asignado correctamente a los estudiantes seleccionados
  *         content:
  *           application/json:
  *             schema:
@@ -74,9 +73,9 @@ const router = Router();
  *                   type: string
  *                   examples:
  *                     - El examen debe tener estado APPROVED para ser asignado
- *                     - El curso no tiene estudiantes activos
+ *                     - La lista de estudiantes no contiene alumnos válidos
  *       404:
- *         description: Examen o curso no encontrado
+ *         description: Examen o estudiantes no encontrados
  *         content:
  *           application/json:
  *             schema:
@@ -89,7 +88,7 @@ const router = Router();
  *                   type: string
  *                   example: Examen no encontrado
  *       403:
- *         description: El profesor no tiene permisos sobre el curso
+ *         description: El profesor no tiene permisos sobre la asignatura
  *         content:
  *           application/json:
  *             schema:
@@ -100,7 +99,7 @@ const router = Router();
  *                   example: false
  *                 message:
  *                   type: string
- *                   example: No tienes permisos para asignar exámenes a este curso
+ *                   example: No tienes permisos para asignar exámenes a esta asignatura
  */
 
 router.post(
@@ -112,7 +111,7 @@ router.post(
 
 /**
  * @openapi
- * /exams/my-assignments:+
+ * /exams/my-assignments:
  *   get:
  *     tags: [Exam Assignment]
  *     summary: Listar mis exámenes asignados

@@ -19,11 +19,11 @@ export class CreateExamAssignmentCommand extends BaseCommand<
     ): Promise<RetrieveOneSchema<AssignExamToCourseResponse>> {
         const item = await this.svc.createExamAssignment(
             input.examId,
-            input.course,
+            input.studentIds,
             input.currentUserId,
             input.applicationDate,
             input.durationMinutes,
         );
-        return new RetrieveOneSchema(item, 'Exam assigned to course', true);
+        return new RetrieveOneSchema(item, 'Exam assigned to students', true);
     }
 }

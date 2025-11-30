@@ -5,15 +5,17 @@
  *     AssignExamToCourseInput:
  *       type: object
  *       required:
- *         - courseId
+ *         - studentIds
  *         - applicationDate
  *         - durationMinutes
  *       properties:
- *         courseId:
- *           type: string
- *           format: uuid
- *           description: ID del curso al que se asignará el examen
- *           example: "123e4567-e89b-12d3-a456-426614174000"
+ *         studentIds:
+ *           type: array
+ *           minItems: 1
+ *           description: Lista de IDs de estudiantes a los que se asignará el examen
+ *           items:
+ *             type: string
+ *             format: uuid
  *         applicationDate:
  *           type: string
  *           format: date-time
@@ -25,32 +27,18 @@
  *           maximum: 480
  *           description: Duración del examen en minutos (máximo 8 horas)
  *           example: 90
- *         allowLateSubmission:
- *           type: boolean
- *           default: false
- *           description: Indica si se permite entrega tardía
- *           example: false
- *         lateSubmissionPenalty:
- *           type: number
- *           minimum: 0
- *           maximum: 100
- *           nullable: true
- *           description: Penalización en porcentaje por entrega tardía
- *           example: 10
- *         instructions:
- *           type: string
- *           nullable: true
- *           description: Instrucciones especiales para los estudiantes
- *           example: "Favor de leer cuidadosamente cada pregunta antes de responder"
  *     AssignExamToCourseResponse:
  *       type: object
  *       properties:
  *         examId:
  *           type: string
  *           format: uuid
- *         courseId:
- *           type: string
- *           format: uuid
+ *         assignedStudentIds:
+ *           type: array
+ *           description: IDs de los estudiantes a los que se asignó el examen
+ *           items:
+ *             type: string
+ *             format: uuid
  *         assignmentsCreated:
  *           type: integer
  *           description: Número de estudiantes a los que se les asignó el examen
@@ -100,17 +88,28 @@
  *     ExamResponseInput:
  *       type: object
  *       required:
+ *         - examId
  *         - examQuestionId
  *       properties:
+ *         examId:
+ *           type: string
+ *           format: uuid
+ *           description: ID del examen
  *         examQuestionId:
  *           type: string
  *           format: uuid
  *           description: ID de la pregunta del examen (ExamQuestion)
- *         selectedOptionId:
- *           type: string
- *           format: uuid
+ *         selectedOptions:
+ *           type: array
  *           nullable: true
- *           description: ID de la opción seleccionada (para preguntas de selección)
+ *           description: Opciones seleccionadas por el estudiante
+ *           items:
+ *             type: object
+ *             properties:
+ *               text:
+ *                 type: string
+ *               isCorrect:
+ *                 type: boolean
  *         textAnswer:
  *           type: string
  *           nullable: true
@@ -121,16 +120,25 @@
  *         id:
  *           type: string
  *           format: uuid
+ *         examId:
+ *           type: string
+ *           format: uuid
  *         examQuestionId:
  *           type: string
  *           format: uuid
  *         studentId:
  *           type: string
  *           format: uuid
- *         selectedOptionId:
- *           type: string
- *           format: uuid
+ *         selectedOptions:
+ *           type: array
  *           nullable: true
+ *           items:
+ *             type: object
+ *             properties:
+ *               text:
+ *                 type: string
+ *               isCorrect:
+ *                 type: boolean
  *         textAnswer:
  *           type: string
  *           nullable: true

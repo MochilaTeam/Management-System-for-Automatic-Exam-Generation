@@ -3,7 +3,11 @@ import { Router } from 'express';
 import { authenticate } from '../../../../core/middlewares/authenticate';
 import { requireRoles } from '../../../../core/middlewares/authorize';
 import { Roles } from '../../../../shared/enums/rolesEnum';
-import { createExamResponse } from '../controllers/examResponseControllers';
+import {
+    createExamResponse,
+    getExamResponseByIndex,
+    updateExamResponse,
+} from '../controllers/examResponseControllers';
 
 const router = Router();
 
@@ -24,8 +28,8 @@ const router = Router();
  *       4. Calcular `autoPoints`:
  *          - Obtener la `Question` original.
  *          - Si es selección múltiple/única:
- *            - Comparar `selectedOptionId` con las opciones correctas de la pregunta.
- *            - Si coincide, asignar puntos totales de la pregunta (o parciales según lógica).
+ *            - Comparar `selectedOptions` con las opciones correctas de la pregunta.
+ *            - Si coinciden, asignar puntos totales de la pregunta (o parciales según lógica).
  *            - Si no, 0 puntos.
  *          - Si es texto libre: `autoPoints` = 0 (requiere calificación manual).
  *       5. Crear registro en `ExamResponses` con `answeredAt` = now().
@@ -51,6 +55,48 @@ const router = Router();
  *         description: No autorizado o no asignado al examen
  */
 router.post('/exams/responses', authenticate, requireRoles(Roles.STUDENT), createExamResponse);
+
+/**
+ * @openapi
+ * /exams/{examId}/responses/{questionIndex}:
+ *   get:
+ *     tags: [Exam Responses]
+ *     summary: Obtener respuesta de una pregunta por índice
+ *     description: |
+ *       Dado el examen y el orden de la pregunta dentro de la prueba, retorna la respuesta registrada por el estudiante autenticado.
+ *       Valida que el estudiante tenga el examen asignado.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: examId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: path
+ *         name: questionIndex
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Posición (1-based) de la pregunta dentro del examen
+ *     responses:
+ *       200:
+ *         description: Respuesta encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ExamResponseSuccessResponse'
+ *       404:
+ *         description: No se encontró la pregunta o no hay respuesta
+ */
+router.get(
+    '/exams/:examId/responses/:questionIndex',
+    authenticate,
+    requireRoles(Roles.STUDENT),
+    getExamResponseByIndex,
+);
 
 /**
  * @openapi

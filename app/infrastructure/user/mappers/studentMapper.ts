@@ -64,12 +64,14 @@ export const StudentMapper = {
         active?: boolean;
         filter?: string;
         course?: string;
+        studentIds?: string[];
     }): { where: WhereOptions<Attributes<Student>>; userWhere?: WhereOptions<Attributes<User>> } {
         const where: WhereOptions<Attributes<Student>> = {};
         const userWhere: WhereOptions<Attributes<User>> = {};
 
         if (filters.userId) where.userId = filters.userId;
         if (filters.course) where.course = filters.course;
+        if (filters.studentIds?.length) where.id = { [Op.in]: filters.studentIds };
         if (filters.email) userWhere.email = filters.email;
         if (filters.active !== undefined) userWhere.active = filters.active;
         if (filters.role) userWhere.role = filters.role;

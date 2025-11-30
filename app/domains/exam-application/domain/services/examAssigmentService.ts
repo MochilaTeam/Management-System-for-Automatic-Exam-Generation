@@ -41,7 +41,7 @@ export class ExamAssignmentService extends BaseDomainService {
 
     async createExamAssignment(
         examId: string,
-        course: string,
+        studentIds: string[],
         currentUserId: string,
         applicationDate: Date,
         durationMinutes: number,
@@ -55,12 +55,23 @@ export class ExamAssignmentService extends BaseDomainService {
             //Validar que el profesor puede asignar el examen
             const teacherId = await this.ensureTeacherCanAssignExam(examId, currentUserId);
 
-            //Obtener todos los estudiantes de el curso
-            const students = await this.getStudentsByCourse(course);
+            //Validar estudiantes por id
+            const uniqueStudentIds = [...new Set(studentIds)];
+            const students = await this.getStudentsByIds(uniqueStudentIds);
 
             if (students.length === 0) {
-                this.raiseBusinessRuleError(operation, 'EL CURSO NO TIENE ESTUDIANTES ACTIVOS', {
-                    entity: 'Course',
+                this.raiseBusinessRuleError(operation, 'NO SE ENCONTRARON ESTUDIANTES VALIDOS', {
+                    entity: 'Student',
+                });
+            }
+
+            const missingStudentIds = uniqueStudentIds.filter(
+                (id) => !students.some((student) => student.id === id),
+            );
+            if (missingStudentIds.length > 0) {
+                this.raiseBusinessRuleError(operation, 'ALGUNOS ESTUDIANTES NO EXISTEN', {
+                    entity: 'Student',
+                    details: { missingStudentIds },
                 });
             }
 
@@ -79,7 +90,7 @@ export class ExamAssignmentService extends BaseDomainService {
             //Devolver la respuesta
             const result: AssignExamToCourseResponse = {
                 examId,
-                course,
+                assignedStudentIds: students.map((student) => student.id),
                 assignmentsCreated: students.length,
                 applicationDate,
                 durationMinutes,
@@ -128,16 +139,18 @@ export class ExamAssignmentService extends BaseDomainService {
         return teacher.id;
     }
 
-    private async getStudentsByCourse(course: string): Promise<StudentRead[]> {
-        const students = await this.studentRepo.list({
+    private async getStudentsByIds(studentIds: string[]): Promise<StudentRead[]> {
+        if (studentIds.length === 0) {
+            return [];
+        }
+
+        return this.studentRepo.list({
             filters: {
-                course: course,
+                studentIds,
             },
-            limit: 1000,
+            limit: studentIds.length,
             offset: 0,
         });
-
-        return students;
     }
 
     private async createAssignmentsForStudents(params: {

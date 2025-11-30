@@ -62,4 +62,21 @@ export class ExamQuestionRepository
             tx,
         );
     }
+
+    async getById(id: string, tx?: Transaction): Promise<ExamQuestionRead | null> {
+        const row = await this.model.findByPk(id, { transaction: this.effTx(tx) });
+        return row ? ExamQuestionMapper.toRead(row) : null;
+    }
+
+    async findByExamIdAndIndex(
+        examId: string,
+        questionIndex: number,
+        tx?: Transaction,
+    ): Promise<ExamQuestionRead | null> {
+        const row = await this.model.findOne({
+            where: { examId, questionIndex },
+            transaction: this.effTx(tx),
+        });
+        return row ? ExamQuestionMapper.toRead(row) : null;
+    }
 }

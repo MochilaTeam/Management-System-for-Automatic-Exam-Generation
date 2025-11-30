@@ -9,6 +9,7 @@ export type StudentFilters = {
     filter?: string;
     email?: string;
     course?: string;
+    studentIds?: string[];
 };
 
 export type Sort = {
