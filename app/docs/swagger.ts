@@ -365,6 +365,19 @@ const createAutomaticExamInputSchema = {
     ],
 };
 
+const examDecisionInputSchema = {
+    type: 'object',
+    properties: {
+        comment: {
+            type: 'string',
+            maxLength: 2000,
+            description: 'Comentario del revisor que se guardará en las observaciones del examen.',
+            example: 'Revisado. Proceder a publicar.',
+        },
+    },
+    additionalProperties: false,
+};
+
 const automaticExamPreviewSchemaDoc = {
     type: 'object',
     properties: {
@@ -694,6 +707,7 @@ const swaggerDefinition = {
             Exam: examBaseSchema,
             CreateManualExamInput: createManualExamInputSchema,
             CreateAutomaticExamInput: createAutomaticExamInputSchema,
+            ExamDecisionInput: examDecisionInputSchema,
             AutomaticExamPreview: automaticExamPreviewSchemaDoc,
             UpdateExamInput: updateExamInputSchema,
             ListExamsResponse: listExamsResponseSchema,

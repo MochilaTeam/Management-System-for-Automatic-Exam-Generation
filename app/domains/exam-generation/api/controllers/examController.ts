@@ -15,12 +15,14 @@ import {
 import { AuthenticatedRequest } from '../../../../shared/types/http/AuthenticatedRequest';
 import { DifficultyLevelEnum } from '../../../question-bank/entities/enums/DifficultyLevels';
 import {
+    acceptExamCommandSchema,
     createAutomaticExamCommandSchema,
     createAutomaticExamSchema,
     createManualExamCommandSchema,
     createManualExamSchema,
     examIdParamsSchema,
     listExamsQuerySchema,
+    rejectExamCommandSchema,
     updateExamCommandSchema,
 } from '../../schemas/examSchema';
 
@@ -153,7 +155,12 @@ export async function acceptExam(req: AuthenticatedRequest, res: Response, next:
     try {
         const { examId } = examIdParamsSchema.parse(req.params);
         const currentUserId = ensureCurrentUserId(req);
-        const result = await makeAcceptExamCommand().execute({ examId, currentUserId });
+        const payload = acceptExamCommandSchema.parse({
+            examId,
+            currentUserId,
+            comment: req.body?.comment,
+        });
+        const result = await makeAcceptExamCommand().execute(payload);
         res.status(200).json(result);
     } catch (err) {
         next(err);
@@ -164,7 +171,12 @@ export async function rejectExam(req: AuthenticatedRequest, res: Response, next:
     try {
         const { examId } = examIdParamsSchema.parse(req.params);
         const currentUserId = ensureCurrentUserId(req);
-        const result = await makeRejectExamCommand().execute({ examId, currentUserId });
+        const payload = rejectExamCommandSchema.parse({
+            examId,
+            currentUserId,
+            comment: req.body?.comment,
+        });
+        const result = await makeRejectExamCommand().execute(payload);
         res.status(200).json(result);
     } catch (err) {
         next(err);

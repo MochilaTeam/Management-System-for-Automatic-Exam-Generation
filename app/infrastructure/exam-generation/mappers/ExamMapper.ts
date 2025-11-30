@@ -80,6 +80,7 @@ export const ExamMapper = {
         if (filters.difficulty) where.difficulty = filters.difficulty;
         if (filters.examStatus) where.examStatus = filters.examStatus;
         if (filters.authorId) where.authorId = filters.authorId;
+        if (filters.validatorId) where.validatorId = filters.validatorId;
         if (filters.title) {
             where.title = { [Op.like]: `%${filters.title}%` } as never;
         }
