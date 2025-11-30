@@ -18,6 +18,12 @@ export const requestExamRegradeBodySchema = z
 
 export type RequestExamRegradeBody = z.infer<typeof requestExamRegradeBodySchema>;
 
+export const requestExamRegradeCommandSchema = requestExamRegradeBodySchema.extend({
+    currentUserId: z.string().uuid(),
+});
+
+export type RequestExamRegradeCommandSchema = z.infer<typeof requestExamRegradeCommandSchema>;
+
 // ===== Params =====
 export const regradeIdParamsSchema = z
     .object({
