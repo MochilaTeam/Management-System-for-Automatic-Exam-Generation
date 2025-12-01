@@ -49,7 +49,9 @@ type SubjectSeed = {
 
 type QuestionMeta = {
     id: string;
+    subjectId: string;
     topicId: string;
+    subtopicId: string;
     difficulty: DifficultyLevelEnum;
 };
 
@@ -752,6 +754,7 @@ async function seed() {
     const questionMetaBySubjectId = new Map<string, QuestionMeta[]>();
     const subjectsByName = new Map<string, Subject>();
     const leadTeacherBySubjectId = new Map<string, Teacher>();
+    const topicIdsBySubjectId = new Map<string, Set<string>>();
     const studentsByEmail = new Map<string, Student>();
     const examSummaries: string[] = [];
 
@@ -872,6 +875,7 @@ async function seed() {
             const subjectQuestionMeta: QuestionMeta[] = [];
             leadTeacherBySubjectId.set(subject.id, teacherProfile);
             subjectsByName.set(subjectSeed.name, subject);
+            const topicIdsForSubject = new Set<string>();
 
             if (
                 subject.getDataValue('leadTeacherId') !== teacherProfile.id ||
@@ -939,9 +943,13 @@ async function seed() {
 
                         subjectQuestionMeta.push({
                             id: question.getDataValue('id'),
+                            subjectId: subject.id,
                             topicId: topic.id,
+                            subtopicId: subtopic.id,
                             difficulty: questionSeed.difficulty,
                         });
+
+                        topicIdsForSubject.add(topic.id);
 
                         if (!created) {
                             await question.update(payload, { transaction: t });
@@ -953,6 +961,7 @@ async function seed() {
             }
 
             questionMetaBySubjectId.set(subject.id, subjectQuestionMeta);
+            topicIdsBySubjectId.set(subject.id, topicIdsForSubject);
 
             subjectSummaries.push({
                 name: subject.getDataValue('name'),
@@ -999,15 +1008,25 @@ async function seed() {
                 continue;
             }
 
+            const sanitizedTopicIds = topicIdsBySubjectId.get(subject.id) ?? new Set<string>();
+            const filteredSelected = selected.filter((meta) => sanitizedTopicIds.has(meta.topicId));
+            if (filteredSelected.length !== selected.length) {
+                throw new Error(
+                    `Seleccion inadvertida de preguntas fuera de la asignatura ${subject.name}`,
+                );
+            }
+
+            const finalSelected = filteredSelected;
+
             const topicCounts = new Map<string, number>();
-            selected.forEach((meta) =>
+            finalSelected.forEach((meta) =>
                 topicCounts.set(meta.topicId, (topicCounts.get(meta.topicId) ?? 0) + 1),
             );
 
             const topicProportion = Object.fromEntries(
                 Array.from(topicCounts.entries()).map(([topicId, count]) => [
                     topicId,
-                    Number((count / selected.length).toFixed(2)),
+                    Number((count / finalSelected.length).toFixed(2)),
                 ]),
             );
 
@@ -1015,8 +1034,8 @@ async function seed() {
                 mode: 'manual-seed',
                 subjectId: subject.id,
                 difficulty: examTemplate.difficulty,
-                questionIds: selected.map((item) => item.id),
-                topicIds: Array.from(new Set(selected.map((item) => item.topicId))),
+                questionIds: finalSelected.map((item) => item.id),
+                topicIds: Array.from(new Set(finalSelected.map((item) => item.topicId))),
             };
 
             const teacherProfile = leadTeacherBySubjectId.get(subject.id);
@@ -1037,7 +1056,7 @@ async function seed() {
                 authorId: teacherProfile.id,
                 validatorId: shouldValidate ? teacherProfile.id : null,
                 observations: 'Evaluación cargada desde seed automatizado',
-                questionCount: selected.length,
+                questionCount: finalSelected.length,
                 topicProportion,
                 topicCoverage,
                 validatedAt: shouldValidate ? new Date() : null,
@@ -1045,7 +1064,7 @@ async function seed() {
 
             const createdExam = await Exam.create(examPayload, { transaction: t });
 
-            const examQuestionRows = selected.map((questionMeta, idx) => ({
+            const examQuestionRows = finalSelected.map((questionMeta, idx) => ({
                 examId: createdExam.id,
                 questionId: questionMeta.id,
                 questionIndex: idx + 1,
@@ -1177,7 +1196,7 @@ async function seed() {
             }
 
             examSummaries.push(
-                `- ${createdExam.title} (${createdExam.examStatus}) · ${selected.length} preguntas · materia ${examTemplate.subjectName}`,
+                `- ${createdExam.title} (${createdExam.examStatus}) · ${finalSelected.length} preguntas · materia ${examTemplate.subjectName}`,
             );
         }
 

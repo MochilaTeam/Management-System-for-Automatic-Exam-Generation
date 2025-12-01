@@ -4,6 +4,7 @@ import { ExamCreate, ExamRead, ExamUpdate, ListExamsQuerySchema } from '../../sc
 
 export type ExamFilters = {
     subjectId?: string;
+    subjectIds?: string[];
     difficulty?: DifficultyLevelEnum;
     examStatus?: ExamStatusEnum;
     authorId?: string;
