@@ -13,6 +13,9 @@ import QuestionType from '../infrastructure/question-bank/models/QuestionType';
 import TeacherSubject from '../infrastructure/question-bank/models/TeacherSubject';
 import { Student, Teacher, User } from '../infrastructure/user/models';
 import { Roles } from '../shared/enums/rolesEnum';
+import Exam from '../infrastructure/exam-generation/models/Exam';
+import ExamQuestion from '../infrastructure/exam-generation/models/ExamQuestion';
+import { ExamStatusEnum } from '../domains/exam-application/entities/enums/ExamStatusEnum';
 
 type QuestionSeed = {
     type: QuestionTypeEnum;
@@ -38,6 +41,86 @@ type SubjectSeed = {
     leadTeacherEmail: string;
     topics: TopicSeed[];
 };
+
+type QuestionMeta = {
+    id: string;
+    topicId: string;
+    difficulty: DifficultyLevelEnum;
+};
+
+type ExamSeed = {
+    subjectName: string;
+    title: string;
+    questionCount: number;
+    difficulty: DifficultyLevelEnum;
+    examStatus: ExamStatusEnum;
+    startIndex: number;
+};
+
+const questionScoreByDifficulty: Record<DifficultyLevelEnum, number> = {
+    [DifficultyLevelEnum.EASY]: 2,
+    [DifficultyLevelEnum.MEDIUM]: 3,
+    [DifficultyLevelEnum.HARD]: 4,
+};
+
+const examSeedData: ExamSeed[] = [
+    {
+        subjectName: 'Bases de Datos I',
+        title: 'Parcial 1 - Modelo relacional',
+        questionCount: 6,
+        difficulty: DifficultyLevelEnum.MEDIUM,
+        examStatus: ExamStatusEnum.DRAFT,
+        startIndex: 0,
+    },
+    {
+        subjectName: 'Bases de Datos I',
+        title: 'Parcial 2 - Consultas y rendimiento',
+        questionCount: 7,
+        difficulty: DifficultyLevelEnum.MEDIUM,
+        examStatus: ExamStatusEnum.UNDER_REVIEW,
+        startIndex: 4,
+    },
+    {
+        subjectName: 'Bases de Datos I',
+        title: 'Examen Final - Transacciones y ACID',
+        questionCount: 8,
+        difficulty: DifficultyLevelEnum.HARD,
+        examStatus: ExamStatusEnum.APPROVED,
+        startIndex: 8,
+    },
+    {
+        subjectName: 'Programación I',
+        title: 'Parcial 1 - Lógica y control',
+        questionCount: 6,
+        difficulty: DifficultyLevelEnum.EASY,
+        examStatus: ExamStatusEnum.DRAFT,
+        startIndex: 0,
+    },
+    {
+        subjectName: 'Programación I',
+        title: 'Parcial 2 - Estructuras y cadenas',
+        questionCount: 7,
+        difficulty: DifficultyLevelEnum.MEDIUM,
+        examStatus: ExamStatusEnum.APPROVED,
+        startIndex: 5,
+    },
+    {
+        subjectName: 'Matemáticas Discretas',
+        title: 'Evaluación 1 - Lógica proposicional',
+        questionCount: 5,
+        difficulty: DifficultyLevelEnum.MEDIUM,
+        examStatus: ExamStatusEnum.APPROVED,
+        startIndex: 0,
+    },
+    {
+        subjectName: 'Matemáticas Discretas',
+        title: 'Evaluación Final - Conjuntos y funciones',
+        questionCount: 6,
+        difficulty: DifficultyLevelEnum.HARD,
+        examStatus: ExamStatusEnum.PUBLISHED,
+        startIndex: 4,
+    },
+];
 
 const teacherSeedData = [
     {
@@ -584,6 +667,10 @@ const subjectSeedData: SubjectSeed[] = [
 async function seed() {
     await sequelize.authenticate();
     const t = await sequelize.transaction();
+    const questionMetaBySubjectId = new Map<string, QuestionMeta[]>();
+    const subjectsByName = new Map<string, Subject>();
+    const leadTeacherBySubjectId = new Map<string, Teacher>();
+    const examSummaries: string[] = [];
 
     try {
         const hasher = getHasher();
@@ -697,6 +784,10 @@ async function seed() {
                 transaction: t,
             });
 
+            const subjectQuestionMeta: QuestionMeta[] = [];
+            leadTeacherBySubjectId.set(subject.id, teacherProfile);
+            subjectsByName.set(subjectSeed.name, subject);
+
             if (
                 subject.getDataValue('leadTeacherId') !== teacherProfile.id ||
                 subject.getDataValue('program') !== subjectSeed.program
@@ -761,6 +852,12 @@ async function seed() {
                             transaction: t,
                         });
 
+                        subjectQuestionMeta.push({
+                            id: question.getDataValue('id'),
+                            topicId: topic.id,
+                            difficulty: questionSeed.difficulty,
+                        });
+
                         if (!created) {
                             await question.update(payload, { transaction: t });
                         } else {
@@ -770,11 +867,107 @@ async function seed() {
                 }
             }
 
+            questionMetaBySubjectId.set(subject.id, subjectQuestionMeta);
+
             subjectSummaries.push({
                 name: subject.getDataValue('name'),
                 topics: subjectSeed.topics.length,
                 questions: createdQuestions,
             });
+        }
+
+        for (const examTemplate of examSeedData) {
+            const subject = subjectsByName.get(examTemplate.subjectName);
+            if (!subject) {
+                examSummaries.push(`- ${examTemplate.title} (ignorado: asignatura no encontrada)`);
+                continue;
+            }
+
+            const allQuestions = questionMetaBySubjectId.get(subject.id) ?? [];
+            if (allQuestions.length < examTemplate.questionCount) {
+                examSummaries.push(
+                    `- ${examTemplate.title} (ignorado: no hay suficientes preguntas)`,
+                );
+                continue;
+            }
+
+            const selected: QuestionMeta[] = [];
+            const seen = new Set<string>();
+            const normalizedStart = examTemplate.startIndex % allQuestions.length;
+            let pointer = normalizedStart;
+            while (selected.length < examTemplate.questionCount && seen.size < allQuestions.length) {
+                const candidate = allQuestions[pointer % allQuestions.length];
+                if (!seen.has(candidate.id)) {
+                    seen.add(candidate.id);
+                    selected.push(candidate);
+                }
+                pointer += 1;
+            }
+
+            if (selected.length < examTemplate.questionCount) {
+                examSummaries.push(
+                    `- ${examTemplate.title} (ignorado: no se alcanzó la cantidad solicitada)`,
+                );
+                continue;
+            }
+
+            const topicCounts = new Map<string, number>();
+            selected.forEach((meta) =>
+                topicCounts.set(meta.topicId, (topicCounts.get(meta.topicId) ?? 0) + 1),
+            );
+
+            const topicProportion = Object.fromEntries(
+                Array.from(topicCounts.entries()).map(([topicId, count]) => [
+                    topicId,
+                    Number((count / selected.length).toFixed(2)),
+                ]),
+            );
+
+            const topicCoverage = {
+                mode: 'manual-seed',
+                subjectId: subject.id,
+                difficulty: examTemplate.difficulty,
+                questionIds: selected.map((item) => item.id),
+                topicIds: Array.from(new Set(selected.map((item) => item.topicId))),
+            };
+
+            const teacherProfile = leadTeacherBySubjectId.get(subject.id);
+            if (!teacherProfile) {
+                examSummaries.push(`- ${examTemplate.title} (ignorado: sin docente asignado)`);
+                continue;
+            }
+
+            const shouldValidate =
+                examTemplate.examStatus === ExamStatusEnum.APPROVED ||
+                examTemplate.examStatus === ExamStatusEnum.PUBLISHED;
+
+            const examPayload = {
+                title: examTemplate.title,
+                subjectId: subject.id,
+                difficulty: examTemplate.difficulty,
+                examStatus: examTemplate.examStatus,
+                authorId: teacherProfile.id,
+                validatorId: shouldValidate ? teacherProfile.id : null,
+                observations: 'Evaluación cargada desde seed automatizado',
+                questionCount: selected.length,
+                topicProportion,
+                topicCoverage,
+                validatedAt: shouldValidate ? new Date() : null,
+            };
+
+            const createdExam = await Exam.create(examPayload, { transaction: t });
+
+            const examQuestionRows = selected.map((questionMeta, idx) => ({
+                examId: createdExam.id,
+                questionId: questionMeta.id,
+                questionIndex: idx + 1,
+                questionScore: questionScoreByDifficulty[questionMeta.difficulty] ?? 1,
+            }));
+            await ExamQuestion.bulkCreate(examQuestionRows, { transaction: t });
+
+            examSummaries.push(
+                `- ${createdExam.title} (${createdExam.examStatus}) · ${selected.length} preguntas · materia ${examTemplate.subjectName}`,
+            );
         }
 
         await t.commit();
@@ -787,6 +980,10 @@ async function seed() {
                 `- ${summary.name}: ${summary.topics} temas, ${summary.questions} nuevas preguntas`,
             );
         });
+        if (examSummaries.length) {
+            console.log('Exámenes generados:');
+            examSummaries.forEach((summary) => console.log(summary));
+        }
     } catch (err) {
         await t.rollback();
         console.error('Seed falló:', err);
