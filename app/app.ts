@@ -23,8 +23,8 @@ app.use(responseInterceptor);
 app.use('/API', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/API.json', (_req, res) => res.json(swaggerSpec));
 app.use(userRouter);
-app.use(examGenerationRouter);
 app.use(examApplicationDomainRouter);
+app.use(examGenerationRouter);
 app.use(questionBankRouter);
 
 const start = async () => {
