@@ -5,6 +5,19 @@ export default defineConfig({
     environment: "node",
     include: ["tests/**/*.test.ts"],
     passWithNoTests: false,
-    hookTimeout: 20000
-  }
+    hookTimeout: 20000,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      reportsDirectory: "./coverage",
+      // opcional: filtra solo código de app
+      include: ["app/**/*.{ts,tsx}"],
+      exclude: [
+        "tests/**/*",
+        "dist/**/*",
+        "node_modules/**/*",
+        "**/*.d.ts"
+      ],
+    },
+  },
 });

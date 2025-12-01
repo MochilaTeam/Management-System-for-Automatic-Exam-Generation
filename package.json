@@ -24,6 +24,7 @@
         "@types/swagger-ui-express": "^4.1.8",
         "@typescript-eslint/eslint-plugin": "^8.45.0",
         "@typescript-eslint/parser": "^8.45.0",
+        "@vitest/coverage-v8": "^4.0.14",
         "eslint": "^9.38.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-import-resolver-typescript": "^4.4.4",
@@ -31,12 +32,12 @@
         "eslint-plugin-prettier": "^5.5.4",
         "eslint-plugin-promise": "^7.2.1",
         "globals": "^16.4.0",
-        "patch-package": "^8.0.1",
         "husky": "^9.1.7",
+        "patch-package": "^8.0.1",
         "prettier": "^3.6.2",
         "supertest": "^7.1.4",
         "ts-node": "^10.9.2",
-        "vitest": "^4.0.8"
+        "vitest": "^4.0.14"
     },
     "scripts": {
         "dev": "nodemon",
@@ -47,7 +48,6 @@
         "build": "tsc",
         "prepare": "husky",
         "commit": "node scripts/commit-helper.js",
-
         "test": "vitest",
         "test:unit": "vitest run"
     }
