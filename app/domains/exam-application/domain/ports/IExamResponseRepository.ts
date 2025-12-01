@@ -28,4 +28,5 @@ export interface IExamResponseRepository {
     ): Promise<ExamResponseOutput | null>;
     update(data: UpdateExamResponseInput): Promise<ExamResponseOutput>;
     studentHasResponses(examId: string, studentId: string): Promise<boolean>;
+    listByExamAndStudent(examId: string, studentId: string): Promise<ExamResponseOutput[]>;
 }

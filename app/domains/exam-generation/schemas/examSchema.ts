@@ -15,6 +15,7 @@ export const examQuestionInputSchema = z
     .object({
         questionId: uuid(),
         questionIndex: z.number().int().min(1),
+        questionScore: z.number().positive(),
     })
     .strict();
 

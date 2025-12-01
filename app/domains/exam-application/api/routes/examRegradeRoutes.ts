@@ -3,8 +3,7 @@ import { Router } from 'express';
 import { authenticate } from '../../../../core/middlewares/authenticate';
 import { requireRoles } from '../../../../core/middlewares/authorize';
 import { Roles } from '../../../../shared/enums/rolesEnum';
-
-// import { requestExamRegrade } from '../controllers/examRegradeController';
+import { requestExamRegrade } from '../controllers/examRegradeController';
 
 const router = Router();
 

@@ -85,6 +85,11 @@
  *           type: integer
  *           description: Duración del examen en minutos
  *           example: 90
+ *         grade:
+ *           type: number
+ *           nullable: true
+ *           description: Nota final obtenida (si ya está evaluado)
+ *           example: 18.5
  *     ExamResponseInput:
  *       type: object
  *       required:
@@ -160,6 +165,28 @@
  *           example: true
  *         data:
  *           $ref: '#/components/schemas/ExamResponseOutput'
+ *     CalculateExamGradeResult:
+ *       type: object
+ *       properties:
+ *         assignmentId:
+ *           type: string
+ *           format: uuid
+ *         examId:
+ *           type: string
+ *           format: uuid
+ *         studentId:
+ *           type: string
+ *           format: uuid
+ *         finalGrade:
+ *           type: number
+ *         examTotalScore:
+ *           type: number
+ *       required:
+ *         - assignmentId
+ *         - examId
+ *         - studentId
+ *         - finalGrade
+ *         - examTotalScore
  *     RequestExamRegradeInput:
  *       type: object
  *       required:

@@ -99,6 +99,11 @@ export class ExamService extends BaseDomainService {
                     },
                 );
             }
+            if (q.questionScore <= 0) {
+                this.raiseValidationError(operation, 'La nota de la pregunta debe ser mayor a 0.', {
+                    entity: 'ExamQuestion',
+                });
+            }
             idSet.add(q.questionId);
             indexSet.add(q.questionIndex);
         }
@@ -433,6 +438,7 @@ export class ExamService extends BaseDomainService {
         const previewQuestions = shuffled.map((question, idx) => ({
             questionId: question.id,
             questionIndex: idx + 1,
+            questionScore: 1,
             difficulty: question.difficulty,
             questionTypeId: question.questionTypeId,
             subTopicId: question.subTopicId,

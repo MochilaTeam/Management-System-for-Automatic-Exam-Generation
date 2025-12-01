@@ -26,10 +26,12 @@ export class ExamQuestionRepository
                 examId: dto.examId,
                 questionId: dto.questionId,
                 questionIndex: dto.questionIndex,
+                questionScore: dto.questionScore,
             }),
             (dto) => ({
                 questionId: dto.questionId,
                 questionIndex: dto.questionIndex,
+                questionScore: dto.questionScore,
             }),
             defaultTx,
         );

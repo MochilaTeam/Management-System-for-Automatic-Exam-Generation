@@ -11,6 +11,7 @@ type ExamAssignmentWithIncludes = {
     status: AssignedExamStatus;
     applicationDate: Date;
     durationMinutes: number;
+    grade: string | number | null;
     exam?: {
         subjectId: string;
         subject?: {
@@ -48,6 +49,7 @@ export const ExamAssignmentMapper = {
             status: plain.status,
             applicationDate: plain.applicationDate,
             durationMinutes: plain.durationMinutes,
+            grade: plain.grade !== null && plain.grade !== undefined ? Number(plain.grade) : null,
         };
     },
 };
