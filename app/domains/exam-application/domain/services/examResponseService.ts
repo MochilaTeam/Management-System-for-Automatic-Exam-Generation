@@ -13,6 +13,7 @@ import {
     CreateExamResponseCommandSchema,
     ExamResponseOutput,
     GetExamResponseByIndexQuerySchema,
+    GetExamQuestionDetailQuerySchema,
     UpdateExamResponseCommandSchema,
 } from '../../schemas/examResponseSchema';
 import { IExamAssignmentRepository } from '../ports/IExamAssignmentRepository';
@@ -136,6 +137,33 @@ export class ExamResponseService extends BaseDomainService {
 
         this.logOperationSuccess(operation);
         return response;
+    }
+
+    async getQuestionDetailByIndex(
+        input: GetExamQuestionDetailQuerySchema,
+    ): Promise<QuestionDetail> {
+        const operation = 'get-question-detail-by-index';
+        this.logOperationStart(operation);
+
+        const student = await this.getStudentByUserId(input.user_id);
+        const assignment = await this.getAssignmentOrThrow(input.examId, student.id);
+        this.ensureAssignmentIsActive(assignment);
+
+        const examQuestion = await this.examQuestionRepo.findByExamIdAndIndex(
+            input.examId,
+            input.questionIndex,
+        );
+        if (!examQuestion) {
+            throw new NotFoundError({ message: 'No se encontró la pregunta solicitada' });
+        }
+
+        const questionDetail = await this.questionRepo.get_detail_by_id(examQuestion.questionId);
+        if (!questionDetail) {
+            throw new NotFoundError({ message: 'Pregunta original no encontrada' });
+        }
+
+        this.logOperationSuccess(operation);
+        return questionDetail;
     }
 
     private calculateAutoPoints(

@@ -64,6 +64,16 @@ export const getExamResponseByIndexQuerySchema = examResponseByIndexParamsSchema
 
 export type GetExamResponseByIndexQuerySchema = z.infer<typeof getExamResponseByIndexQuerySchema>;
 
+export const getExamQuestionDetailQuerySchema = examResponseByIndexParamsSchema
+    .extend({
+        user_id: z.string().uuid(),
+    })
+    .strict();
+
+export type GetExamQuestionDetailQuerySchema = z.infer<
+    typeof getExamQuestionDetailQuerySchema
+>;
+
 // ===== Response Schemas (Zod) =====
 export const examResponseOutputSchema = z
     .object({
