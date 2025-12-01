@@ -1,3 +1,8 @@
+import '../infrastructure/exam-application/models';
+import '../infrastructure/exam-generation/models';
+import '../infrastructure/question-bank/models';
+import '../infrastructure/user/models';
+
 import ExamAssignments from '../infrastructure/exam-application/models/ExamAssignment';
 import ExamRegrades from '../infrastructure/exam-application/models/ExamRegrade';
 import ExamResponses from '../infrastructure/exam-application/models/ExamResponse';
