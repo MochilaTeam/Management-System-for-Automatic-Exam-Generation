@@ -1,10 +1,8 @@
 import { RetrieveOneSchema } from '../../../../shared/domain/base_response';
 import { BaseQuery } from '../../../../shared/domain/base_use_case';
-import { ExamResponseService } from '../../domain/services/examResponseService';
 import { QuestionDetail } from '../../../question-bank/schemas/questionSchema';
-import {
-    GetExamQuestionDetailQuerySchema,
-} from '../../schemas/examResponseSchema';
+import { ExamResponseService } from '../../domain/services/examResponseService';
+import { GetExamQuestionDetailQuerySchema } from '../../schemas/examResponseSchema';
 
 export class GetExamQuestionDetailQuery extends BaseQuery<
     GetExamQuestionDetailQuerySchema,

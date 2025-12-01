@@ -295,7 +295,7 @@ export class ExamAssignmentService extends BaseDomainService {
             }
 
             const allowedStatuses = [AssignedExamStatus.ENABLED, AssignedExamStatus.SUBMITTED];
-            if(!allowedStatuses.includes(assignment.status)) {
+            if (!allowedStatuses.includes(assignment.status)) {
                 this.raiseBusinessRuleError(operation, 'EL EXAMEN NO ESTÁ LISTO PARA EVALUARSE', {
                     entity: 'ExamAssignment',
                 });
@@ -307,7 +307,7 @@ export class ExamAssignmentService extends BaseDomainService {
             );
 
             const updated = await this.examAssignmentRepo.findDetailedById(assignment.id);
-            if(!updated){
+            if (!updated) {
                 this.raiseNotFoundError(operation, 'ASIGNACIÓN NO ENCONTRADA', {
                     entity: 'ExamAssignment',
                 });

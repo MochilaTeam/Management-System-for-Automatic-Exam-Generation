@@ -92,7 +92,7 @@ router.post('/exams/responses', authenticate, requireRoles(Roles.STUDENT), creat
  *               $ref: '#/components/schemas/ExamResponseSuccessResponse'
  *       404:
  *         description: No se encontró la pregunta o no hay respuesta
-*/
+ */
 router.get(
     '/exams/:examId/responses/:questionIndex',
     authenticate,
