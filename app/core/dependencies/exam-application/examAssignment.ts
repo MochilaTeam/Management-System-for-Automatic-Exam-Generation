@@ -1,22 +1,22 @@
+import { makeExamQuestionRepository } from './examDependencies';
 import { CalculateExamGradeCommand } from '../../../domains/exam-application/application/commands/calculateExamGradeCommand';
 import { CreateExamAssignmentCommand } from '../../../domains/exam-application/application/commands/createExamAssignmentCommand';
+import { RequestExamRegradeCommand } from '../../../domains/exam-application/application/commands/requestExamRegradeCommand';
+import { SendExamToEvaluatorCommand } from '../../../domains/exam-application/application/commands/sendExamToEvaluatorCommand';
 import { ListEvaluatorExamsQuery } from '../../../domains/exam-application/application/queries/listEvaluatorExamsQuery';
 import { ListStudentExamsQuery } from '../../../domains/exam-application/application/queries/listStudentExamsQuery';
 import { ExamAssignmentService } from '../../../domains/exam-application/domain/services/examAssigmentService';
 import ExamAssignments from '../../../infrastructure/exam-application/models/ExamAssignment';
 import ExamRegrade from '../../../infrastructure/exam-application/models/ExamRegrade';
 import { ExamAssignmentRepository } from '../../../infrastructure/exam-application/repositories/ExamAssignmentRepository';
-import { ExamResponseRepository } from '../../../infrastructure/exam-application/repositories/ExamResponseRepository';
 import { ExamRegradeRepository } from '../../../infrastructure/exam-application/repositories/ExamRegradeRepository';
+import { ExamResponseRepository } from '../../../infrastructure/exam-application/repositories/ExamResponseRepository';
 import Exam from '../../../infrastructure/exam-generation/models/Exam';
 import { ExamRepository } from '../../../infrastructure/exam-generation/repositories/ExamRepository';
 import { TeacherSubjectLinkRepository } from '../../../infrastructure/question-bank/repositories/teacherSubjectLinkRepository';
 import { Student, Teacher } from '../../../infrastructure/user/models';
 import { StudentRepository } from '../../../infrastructure/user/repositories/StudentRepository';
 import { TeacherRepository } from '../../../infrastructure/user/repositories/TeacherRepository';
-import { RequestExamRegradeCommand } from '../../../domains/exam-application/application/commands/requestExamRegradeCommand';
-import { makeExamQuestionRepository } from './examDependencies';
-import { SendExamToEvaluatorCommand } from '../../../domains/exam-application/application/commands/sendExamToEvaluatorCommand';
 
 let _repo: ExamAssignmentRepository | null = null;
 let _examRegradeRepo: ExamRegradeRepository | null = null;

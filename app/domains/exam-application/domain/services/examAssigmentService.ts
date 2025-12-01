@@ -6,8 +6,8 @@ import { ITeacherRepository } from '../../../user/domain/ports/ITeacherRepositor
 import { ITeacherSubjectLinkRepository } from '../../../user/domain/ports/ITeacherSubjectLinkRepository';
 import { StudentRead } from '../../../user/schemas/studentSchema';
 import { AssignedExamStatus } from '../../entities/enums/AssignedExamStatus';
-import { ExamStatusEnum } from '../../entities/enums/ExamStatusEnum';
 import { ExamRegradesStatus } from '../../entities/enums/ExamRegradeStatus';
+import { ExamStatusEnum } from '../../entities/enums/ExamStatusEnum';
 import {
     AssignExamToCourseResponse,
     CalculateExamGradeCommandSchema,
@@ -24,8 +24,8 @@ import type {
     ExamAssignmentStatusSnapshot,
     IExamAssignmentRepository,
 } from '../ports/IExamAssignmentRepository';
-import type { IExamResponseRepository } from '../ports/IExamResponseRepository';
 import type { IExamRegradeRepository } from '../ports/IExamRegradeRepository';
+import type { IExamResponseRepository } from '../ports/IExamResponseRepository';
 
 type Deps = {
     examAssignmentRepo: IExamAssignmentRepository;
@@ -387,18 +387,20 @@ export class ExamAssignmentService extends BaseDomainService {
                 AssignedExamStatus.GRADED,
             ];
             if (!allowedStatuses.includes(assignment.status)) {
-                this.raiseBusinessRuleError(
-                    operation,
-                    'EL EXAMEN AÚN NO PUEDE SER CALIFICADO',
-                    { entity: 'ExamAssignment' },
-                );
+                this.raiseBusinessRuleError(operation, 'EL EXAMEN AÚN NO PUEDE SER CALIFICADO', {
+                    entity: 'ExamAssignment',
+                });
             }
 
             const examQuestions = await this.examQuestionRepo.listByExamId(response.examId);
             if (!examQuestions.length) {
-                this.raiseBusinessRuleError(operation, 'EL EXAMEN NO TIENE PREGUNTAS CONFIGURADAS', {
-                    entity: 'Exam',
-                });
+                this.raiseBusinessRuleError(
+                    operation,
+                    'EL EXAMEN NO TIENE PREGUNTAS CONFIGURADAS',
+                    {
+                        entity: 'Exam',
+                    },
+                );
             }
 
             const examTotalScoreRaw = examQuestions.reduce(

@@ -1,13 +1,14 @@
 import { NextFunction, Response } from 'express';
 
+import { makeCalculateExamGradeCommand } from '../../../../core/dependencies/exam-application/examAssignment';
 import {
     makeCreateExamResponseCommand,
     makeGetExamResponseByIndexQuery,
     makeUpdateExamResponseCommand,
 } from '../../../../core/dependencies/exam-application/examResponses';
-import { makeCalculateExamGradeCommand } from '../../../../core/dependencies/exam-application/examAssignment';
 import { UnauthorizedError } from '../../../../shared/exceptions/domainErrors';
 import { AuthenticatedRequest } from '../../../../shared/types/http/AuthenticatedRequest';
+import { calculateExamGradeCommandSchema } from '../../schemas/examAssignmentSchema';
 import {
     createExamResponseCommandSchema,
     examResponseByIndexParamsSchema,
@@ -15,7 +16,6 @@ import {
     responseIdParamsSchema,
     updateExamResponseCommandSchema,
 } from '../../schemas/examResponseSchema';
-import { calculateExamGradeCommandSchema } from '../../schemas/examAssignmentSchema';
 
 export async function createExamResponse(
     req: AuthenticatedRequest,

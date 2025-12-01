@@ -213,7 +213,14 @@ const examQuestionPreviewSchema = {
         },
         response: { type: 'string', nullable: true, example: 'Respuesta modelo' },
     },
-    required: ['questionId', 'questionIndex', 'questionScore', 'body', 'difficulty', 'questionTypeId'],
+    required: [
+        'questionId',
+        'questionIndex',
+        'questionScore',
+        'body',
+        'difficulty',
+        'questionTypeId',
+    ],
 };
 
 const examQuestionLinkSchema = {
@@ -290,8 +297,16 @@ const createManualExamInputSchema = {
                 required: ['questionId', 'questionIndex', 'questionScore'],
             },
             example: [
-                { questionId: '5f50d4d1-f0ac-4b6e-a40b-0a5c5c849f20', questionIndex: 1, questionScore: 5 },
-                { questionId: '1c21ac0a-445a-42b7-9b18-8b0979f765c1', questionIndex: 2, questionScore: 5 },
+                {
+                    questionId: '5f50d4d1-f0ac-4b6e-a40b-0a5c5c849f20',
+                    questionIndex: 1,
+                    questionScore: 5,
+                },
+                {
+                    questionId: '1c21ac0a-445a-42b7-9b18-8b0979f765c1',
+                    questionIndex: 2,
+                    questionScore: 5,
+                },
             ],
         },
     },
@@ -748,18 +763,18 @@ const swaggerDefinition = {
                         format: 'date-time',
                         description: 'Fecha y hora programada para el examen',
                     },
-        durationMinutes: {
-            type: 'integer',
-            description: 'Duración del examen en minutos',
-            example: 90,
-        },
-        grade: {
-            type: 'number',
-            nullable: true,
-            description: 'Nota final obtenida por el estudiante (si ya fue evaluado)',
-            example: 18.5,
-        },
-    },
+                    durationMinutes: {
+                        type: 'integer',
+                        description: 'Duración del examen en minutos',
+                        example: 90,
+                    },
+                    grade: {
+                        type: 'number',
+                        nullable: true,
+                        description: 'Nota final obtenida por el estudiante (si ya fue evaluado)',
+                        example: 18.5,
+                    },
+                },
             },
             ExamResponseInput: {
                 type: 'object',

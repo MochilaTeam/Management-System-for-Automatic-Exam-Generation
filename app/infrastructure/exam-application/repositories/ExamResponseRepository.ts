@@ -48,10 +48,7 @@ export class ExamResponseRepository implements IExamResponseRepository {
         return count > 0;
     }
 
-    async listByExamAndStudent(
-        examId: string,
-        studentId: string,
-    ): Promise<ExamResponseOutput[]> {
+    async listByExamAndStudent(examId: string, studentId: string): Promise<ExamResponseOutput[]> {
         const rows = await ExamResponses.findAll({ where: { examId, studentId } });
         return rows.map((row) => ExamResponseMapper.toOutput(row));
     }

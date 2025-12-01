@@ -40,7 +40,9 @@ export class ExamRegradeRepository implements IExamRegradeRepository {
                 where: {
                     examId,
                     studentId,
-                    status: { [Op.in]: [ExamRegradesStatus.REQUESTED, ExamRegradesStatus.IN_REVIEW] },
+                    status: {
+                        [Op.in]: [ExamRegradesStatus.REQUESTED, ExamRegradesStatus.IN_REVIEW],
+                    },
                 },
             });
             return row ? ExamRegradeMapper.toOutput(row) : null;

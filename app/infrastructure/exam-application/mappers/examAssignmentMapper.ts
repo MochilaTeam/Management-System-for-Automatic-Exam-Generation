@@ -45,11 +45,11 @@ export const ExamAssignmentMapper = {
             subjectId: plain.exam?.subjectId ?? '',
             subjectName: plain.exam?.subject?.name ?? 'Asigatura desconocida',
             teacherId: plain.professorId,
-        teacherName: plain.professor?.user?.name ?? 'Profesor desconocido',
-        status: plain.status,
-        applicationDate: plain.applicationDate,
-        durationMinutes: plain.durationMinutes,
-        grade: plain.grade !== null && plain.grade !== undefined ? Number(plain.grade) : null,
-    };
+            teacherName: plain.professor?.user?.name ?? 'Profesor desconocido',
+            status: plain.status,
+            applicationDate: plain.applicationDate,
+            durationMinutes: plain.durationMinutes,
+            grade: plain.grade !== null && plain.grade !== undefined ? Number(plain.grade) : null,
+        };
     },
 };
