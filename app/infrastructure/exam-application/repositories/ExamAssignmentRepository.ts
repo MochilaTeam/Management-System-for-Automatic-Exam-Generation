@@ -117,6 +117,33 @@ export class ExamAssignmentRepository implements IExamAssignmentRepository {
         }
     }
 
+    async updateGrade(
+        id: string,
+        params: { grade: number; status?: AssignedExamStatus },
+        tx?: Transaction,
+    ): Promise<void> {
+        const assignment = await this.model.findByPk(id, {
+            transaction: this.effTx(tx),
+        });
+        if (!assignment) {
+            throw new BaseDatabaseError({ message: 'Asignación no encontrada' });
+        }
+
+        try {
+            await assignment.update(
+                {
+                    grade: params.grade,
+                    ...(params.status ? { status: params.status } : {}),
+                },
+                { transaction: this.effTx(tx) },
+            );
+        } catch {
+            throw new BaseDatabaseError({
+                message: 'Error actualizando la calificación de la asignación',
+            });
+        }
+    }
+
     async findDetailedById(
         id: string,
         tx?: Transaction,

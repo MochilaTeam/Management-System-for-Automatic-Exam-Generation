@@ -4,6 +4,7 @@ import { authenticate } from '../../../../core/middlewares/authenticate';
 import { requireRoles } from '../../../../core/middlewares/authorize';
 import { Roles } from '../../../../shared/enums/rolesEnum';
 import {
+    calculateExamGrade,
     createExamResponse,
     getExamResponseByIndex,
     updateExamResponse,
@@ -145,6 +146,49 @@ router.put(
     authenticate,
     requireRoles(Roles.STUDENT),
     updateExamResponse,
+);
+
+/**
+ * @openapi
+ * /exams/responses/{responseId}/calculate-grade:
+ *   post:
+ *     tags: [Exam Responses]
+ *     summary: Calcular calificación final de un examen
+ *     description: |
+ *       Permite al docente asignado recalcular la nota final del examen para un estudiante,
+ *       usando los puntajes configurados para cada pregunta y las respuestas registradas.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: responseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Respuesta que disparará el recálculo (se usa para identificar el examen y estudiante)
+ *     responses:
+ *       200:
+ *         description: Nota final recalculada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/CalculateExamGradeResult'
+ *       403:
+ *         description: El docente no tiene permisos sobre este examen
+ *       404:
+ *         description: Respuesta o asignación no encontrada
+ */
+router.post(
+    '/exams/responses/:responseId/calculate-grade',
+    authenticate,
+    requireRoles(Roles.TEACHER),
+    calculateExamGrade,
 );
 
 export default router;

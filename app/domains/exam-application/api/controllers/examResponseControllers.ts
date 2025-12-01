@@ -5,6 +5,7 @@ import {
     makeGetExamResponseByIndexQuery,
     makeUpdateExamResponseCommand,
 } from '../../../../core/dependencies/exam-application/examResponses';
+import { makeCalculateExamGradeCommand } from '../../../../core/dependencies/exam-application/examAssignment';
 import { UnauthorizedError } from '../../../../shared/exceptions/domainErrors';
 import { AuthenticatedRequest } from '../../../../shared/types/http/AuthenticatedRequest';
 import {
@@ -14,6 +15,7 @@ import {
     responseIdParamsSchema,
     updateExamResponseCommandSchema,
 } from '../../schemas/examResponseSchema';
+import { calculateExamGradeCommandSchema } from '../../schemas/examAssignmentSchema';
 
 export async function createExamResponse(
     req: AuthenticatedRequest,
@@ -84,6 +86,30 @@ export async function getExamResponseByIndex(
 
         const result = await makeGetExamResponseByIndexQuery().execute(validatedQuery);
 
+        res.status(200).json(result);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function calculateExamGrade(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction,
+) {
+    try {
+        const currentUserId = req.user?.id;
+        if (!currentUserId) {
+            throw new UnauthorizedError({ message: 'No se encontró el id del usuario' });
+        }
+
+        const { responseId } = responseIdParamsSchema.parse(req.params);
+        const payload = calculateExamGradeCommandSchema.parse({
+            responseId,
+            currentUserId,
+        });
+
+        const result = await makeCalculateExamGradeCommand().execute(payload);
         res.status(200).json(result);
     } catch (err) {
         next(err);

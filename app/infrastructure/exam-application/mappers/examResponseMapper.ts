@@ -24,8 +24,8 @@ export const ExamResponseMapper = {
             studentId: row.studentId,
             selectedOptions: row.selectedOptions,
             textAnswer: row.textAnswer,
-            autoPoints: row.autoPoints,
-            manualPoints: row.manualPoints,
+            autoPoints: row.autoPoints !== null ? Number(row.autoPoints) : null,
+            manualPoints: row.manualPoints !== null ? Number(row.manualPoints) : null,
             answeredAt: row.answeredAt!,
         };
     },

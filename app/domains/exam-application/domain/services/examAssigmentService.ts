@@ -1,4 +1,5 @@
 import { BaseDomainService } from '../../../../shared/domain/base_service';
+import { IExamQuestionRepository } from '../../../exam-generation/domain/ports/IExamQuestionRepository';
 import { IExamRepository } from '../../../exam-generation/domain/ports/IExamRepository';
 import { IStudentRepository } from '../../../user/domain/ports/IStudentRepository';
 import { ITeacherRepository } from '../../../user/domain/ports/ITeacherRepository';
@@ -9,6 +10,8 @@ import { ExamStatusEnum } from '../../entities/enums/ExamStatusEnum';
 import { ExamRegradesStatus } from '../../entities/enums/ExamRegradeStatus';
 import {
     AssignExamToCourseResponse,
+    CalculateExamGradeCommandSchema,
+    CalculateExamGradeResult,
     ListEvaluatorExamsQuery,
     SendExamToEvaluatorCommandSchema,
     StudentExamAssignmentItem,
@@ -32,6 +35,7 @@ type Deps = {
     studentRepo: IStudentRepository;
     examResponseRepo: IExamResponseRepository;
     examRegradeRepo: IExamRegradeRepository;
+    examQuestionRepo: IExamQuestionRepository;
 };
 
 export class ExamAssignmentService extends BaseDomainService {
@@ -42,6 +46,7 @@ export class ExamAssignmentService extends BaseDomainService {
     private readonly studentRepo: IStudentRepository;
     private readonly examResponseRepo: IExamResponseRepository;
     private readonly examRegradeRepo: IExamRegradeRepository;
+    private readonly examQuestionRepo: IExamQuestionRepository;
 
     constructor({
         examAssignmentRepo,
@@ -51,6 +56,7 @@ export class ExamAssignmentService extends BaseDomainService {
         studentRepo,
         examResponseRepo,
         examRegradeRepo,
+        examQuestionRepo,
     }: Deps) {
         super();
         this.examAssignmentRepo = examAssignmentRepo;
@@ -60,6 +66,7 @@ export class ExamAssignmentService extends BaseDomainService {
         this.studentRepo = studentRepo;
         this.examResponseRepo = examResponseRepo;
         this.examRegradeRepo = examRegradeRepo;
+        this.examQuestionRepo = examQuestionRepo;
     }
 
     async createExamAssignment(
@@ -337,6 +344,107 @@ export class ExamAssignmentService extends BaseDomainService {
 
             this.logOperationSuccess(operation);
             return result;
+        } catch (error) {
+            this.logOperationError(operation, error as Error);
+            throw error;
+        }
+    }
+
+    async calculateExamGrade(
+        input: CalculateExamGradeCommandSchema,
+    ): Promise<CalculateExamGradeResult> {
+        const operation = 'calculate-exam-grade';
+        this.logOperationStart(operation);
+
+        try {
+            const teacher = await this.getTeacherByUserId(input.currentUserId, operation);
+            const response = await this.examResponseRepo.findById(input.responseId);
+            if (!response) {
+                this.raiseNotFoundError(operation, 'RESPUESTA NO ENCONTRADA', {
+                    entity: 'ExamResponse',
+                });
+            }
+
+            const assignment = await this.examAssignmentRepo.findByExamIdAndStudentId(
+                response.examId,
+                response.studentId,
+            );
+            if (!assignment) {
+                this.raiseNotFoundError(operation, 'ASIGNACIÓN NO ENCONTRADA', {
+                    entity: 'ExamAssignment',
+                });
+            }
+
+            if (assignment.teacherId !== teacher.id) {
+                this.raiseBusinessRuleError(operation, 'NO ERES EL DOCENTE ASIGNADO', {
+                    entity: 'ExamAssignment',
+                });
+            }
+
+            const allowedStatuses = [
+                AssignedExamStatus.IN_EVALUATION,
+                AssignedExamStatus.SUBMITTED,
+                AssignedExamStatus.GRADED,
+            ];
+            if (!allowedStatuses.includes(assignment.status)) {
+                this.raiseBusinessRuleError(
+                    operation,
+                    'EL EXAMEN AÚN NO PUEDE SER CALIFICADO',
+                    { entity: 'ExamAssignment' },
+                );
+            }
+
+            const examQuestions = await this.examQuestionRepo.listByExamId(response.examId);
+            if (!examQuestions.length) {
+                this.raiseBusinessRuleError(operation, 'EL EXAMEN NO TIENE PREGUNTAS CONFIGURADAS', {
+                    entity: 'Exam',
+                });
+            }
+
+            const examTotalScoreRaw = examQuestions.reduce(
+                (acc, question) => acc + Number(question.questionScore),
+                0,
+            );
+            if (examTotalScoreRaw <= 0) {
+                this.raiseBusinessRuleError(operation, 'LA NOTA TOTAL DEL EXAMEN ES INVÁLIDA', {
+                    entity: 'Exam',
+                });
+            }
+            const examTotalScore = Number(examTotalScoreRaw.toFixed(2));
+
+            const responses = await this.examResponseRepo.listByExamAndStudent(
+                response.examId,
+                response.studentId,
+            );
+            const questionMap = new Map(examQuestions.map((question) => [question.id, question]));
+            const obtainedScoreRaw = responses.reduce((acc, resp) => {
+                const question = questionMap.get(resp.examQuestionId);
+                if (!question) {
+                    return acc;
+                }
+                const awarded = resp.manualPoints ?? resp.autoPoints ?? 0;
+                const normalized = Math.min(
+                    Math.max(Number(awarded), 0),
+                    Number(question.questionScore),
+                );
+                return acc + normalized;
+            }, 0);
+
+            const finalGrade = Number(Math.min(obtainedScoreRaw, examTotalScore).toFixed(2));
+
+            await this.examAssignmentRepo.updateGrade(assignment.id, {
+                grade: finalGrade,
+                status: AssignedExamStatus.GRADED,
+            });
+
+            this.logOperationSuccess(operation);
+            return {
+                assignmentId: assignment.id,
+                examId: response.examId,
+                studentId: response.studentId,
+                finalGrade,
+                examTotalScore,
+            };
         } catch (error) {
             this.logOperationError(operation, error as Error);
             throw error;

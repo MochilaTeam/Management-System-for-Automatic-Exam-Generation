@@ -193,6 +193,7 @@ const examQuestionPreviewSchema = {
     properties: {
         questionId: { type: 'string', format: 'uuid' },
         questionIndex: { type: 'integer', example: 1 },
+        questionScore: { type: 'number', example: 5 },
         body: { type: 'string', example: 'Defina qué es la normalización en bases de datos.' },
         difficulty: { type: 'string', enum: ['EASY', 'MEDIUM', 'HARD'], example: 'MEDIUM' },
         questionTypeId: { type: 'string', format: 'uuid' },
@@ -212,7 +213,7 @@ const examQuestionPreviewSchema = {
         },
         response: { type: 'string', nullable: true, example: 'Respuesta modelo' },
     },
-    required: ['questionId', 'questionIndex', 'body', 'difficulty', 'questionTypeId'],
+    required: ['questionId', 'questionIndex', 'questionScore', 'body', 'difficulty', 'questionTypeId'],
 };
 
 const examQuestionLinkSchema = {
@@ -222,8 +223,9 @@ const examQuestionLinkSchema = {
         examId: { type: 'string', format: 'uuid' },
         questionId: { type: 'string', format: 'uuid' },
         questionIndex: { type: 'integer', example: 1 },
+        questionScore: { type: 'number', example: 5 },
     },
-    required: ['id', 'examId', 'questionId', 'questionIndex'],
+    required: ['id', 'examId', 'questionId', 'questionIndex', 'questionScore'],
 };
 
 const examBaseSchema = {
@@ -283,12 +285,13 @@ const createManualExamInputSchema = {
                 properties: {
                     questionId: { type: 'string', format: 'uuid' },
                     questionIndex: { type: 'integer', example: 1 },
+                    questionScore: { type: 'number', example: 5 },
                 },
-                required: ['questionId', 'questionIndex'],
+                required: ['questionId', 'questionIndex', 'questionScore'],
             },
             example: [
-                { questionId: '5f50d4d1-f0ac-4b6e-a40b-0a5c5c849f20', questionIndex: 1 },
-                { questionId: '1c21ac0a-445a-42b7-9b18-8b0979f765c1', questionIndex: 2 },
+                { questionId: '5f50d4d1-f0ac-4b6e-a40b-0a5c5c849f20', questionIndex: 1, questionScore: 5 },
+                { questionId: '1c21ac0a-445a-42b7-9b18-8b0979f765c1', questionIndex: 2, questionScore: 5 },
             ],
         },
     },
@@ -440,8 +443,9 @@ const updateExamInputSchema = {
                 properties: {
                     questionId: { type: 'string', format: 'uuid' },
                     questionIndex: { type: 'integer' },
+                    questionScore: { type: 'number' },
                 },
-                required: ['questionId', 'questionIndex'],
+                required: ['questionId', 'questionIndex', 'questionScore'],
             },
             description:
                 'Si se envía, sustituye completamente las preguntas del examen; la cantidad y métricas se recalculan.',
@@ -744,12 +748,18 @@ const swaggerDefinition = {
                         format: 'date-time',
                         description: 'Fecha y hora programada para el examen',
                     },
-                    durationMinutes: {
-                        type: 'integer',
-                        description: 'Duración del examen en minutos',
-                        example: 90,
-                    },
-                },
+        durationMinutes: {
+            type: 'integer',
+            description: 'Duración del examen en minutos',
+            example: 90,
+        },
+        grade: {
+            type: 'number',
+            nullable: true,
+            description: 'Nota final obtenida por el estudiante (si ya fue evaluado)',
+            example: 18.5,
+        },
+    },
             },
             ExamResponseInput: {
                 type: 'object',
@@ -822,6 +832,17 @@ const swaggerDefinition = {
                     success: { type: 'boolean', example: true },
                     data: { $ref: '#/components/schemas/ExamResponseOutput' },
                 },
+            },
+            CalculateExamGradeResult: {
+                type: 'object',
+                properties: {
+                    assignmentId: { type: 'string', format: 'uuid' },
+                    examId: { type: 'string', format: 'uuid' },
+                    studentId: { type: 'string', format: 'uuid' },
+                    finalGrade: { type: 'number' },
+                    examTotalScore: { type: 'number' },
+                },
+                required: ['assignmentId', 'examId', 'studentId', 'finalGrade', 'examTotalScore'],
             },
             RequestExamRegradeInput: {
                 type: 'object',

@@ -7,6 +7,7 @@ class ExamQuestion extends Model {
     public examId!: string;
     public questionId!: string;
     public questionIndex!: number;
+    public questionScore!: number;
 }
 ExamQuestion.init(
     {
@@ -32,6 +33,10 @@ ExamQuestion.init(
         },
         questionIndex: {
             type: DataTypes.INTEGER,
+            allowNull: false,
+        },
+        questionScore: {
+            type: DataTypes.DECIMAL(10, 2),
             allowNull: false,
         },
     },

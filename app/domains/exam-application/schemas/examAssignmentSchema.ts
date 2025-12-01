@@ -44,6 +44,27 @@ export const sendExamToEvaluatorCommandSchema = z
 
 export type SendExamToEvaluatorCommandSchema = z.infer<typeof sendExamToEvaluatorCommandSchema>;
 
+export const calculateExamGradeCommandSchema = z
+    .object({
+        responseId: z.string().uuid(),
+        currentUserId: z.string().uuid(),
+    })
+    .strict();
+
+export type CalculateExamGradeCommandSchema = z.infer<typeof calculateExamGradeCommandSchema>;
+
+export const calculateExamGradeResultSchema = z
+    .object({
+        assignmentId: z.string().uuid(),
+        examId: z.string().uuid(),
+        studentId: z.string().uuid(),
+        finalGrade: z.number(),
+        examTotalScore: z.number(),
+    })
+    .strict();
+
+export type CalculateExamGradeResult = z.infer<typeof calculateExamGradeResultSchema>;
+
 // ===== Query for listing student exams =====
 export const listStudentExamsQuerySchema = z
     .object({
@@ -94,6 +115,7 @@ export const studentExamAssignmentItemSchema = z
         status: z.nativeEnum(AssignedExamStatus),
         applicationDate: z.date(),
         durationMinutes: z.number().int().min(1),
+        grade: z.number().nullable(),
     })
     .strict();
 
