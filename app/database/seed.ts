@@ -191,37 +191,9 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
     'Examen Final - Transacciones y ACID': [
         {
             studentEmail: 'student1@example.com',
-            status: AssignedExamStatus.GRADED,
-            applicationDate: new Date('2024-06-01T09:00:00Z'),
-            durationMinutes: 120,
-            grade: 8.5,
-            responses: [
-                {
-                    questionIndex: 1,
-                    selectedOptions: [
-                        { text: 'Usar commit y rollback correctamente', isCorrect: true },
-                    ],
-                    autoPoints: 4,
-                    manualPoints: 4,
-                    answeredAt: new Date('2024-06-01T10:10:00Z'),
-                },
-                {
-                    questionIndex: 2,
-                    textAnswer:
-                        'Asegura que cada transacción respete ACID y no hay lecturas sucias.',
-                    autoPoints: 3,
-                    manualPoints: 3,
-                    answeredAt: new Date('2024-06-01T10:20:00Z'),
-                },
-            ],
-            regrade: {
-                reason: 'La segunda pregunta mencionaba estados adicionales y no se contaron los puntos parciales',
-                status: ExamRegradesStatus.REQUESTED,
-                requestedAt: new Date('2024-06-02T08:15:00Z'),
-                resolvedAt: null,
-                finalGrade: null,
-                reviewerEmail: 'teacher1@example.com',
-            },
+            status: AssignedExamStatus.ENABLED,
+            applicationDate: new Date('2024-01-01T08:00:00Z'),
+            durationMinutes: 1100000, // approx. 2.1 years to keep the exam active through 2026
         },
     ],
     'Parcial 2 - Estructuras y cadenas': [
@@ -246,7 +218,7 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
     'Evaluación Final - Conjuntos y funciones': [
         {
             studentEmail: 'student3@example.com',
-            status: AssignedExamStatus.DURING_SOLUTION,
+            status: AssignedExamStatus.PENDING,
             applicationDate: new Date('2024-06-10T08:00:00Z'),
             durationMinutes: 100,
             responses: [

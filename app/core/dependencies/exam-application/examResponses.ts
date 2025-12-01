@@ -2,6 +2,7 @@ import { makeExamAssignmentRepository } from './examAssignment';
 import { makeExamQuestionRepository } from './examDependencies';
 import { CreateExamResponseCommand } from '../../../domains/exam-application/application/commands/createExamResponseCommand';
 import { UpdateExamResponseCommand } from '../../../domains/exam-application/application/commands/updateExamResponseCommand';
+import { GetExamQuestionDetailQuery } from '../../../domains/exam-application/application/queries/getExamQuestionDetailQuery';
 import { GetExamResponseByIndexQuery } from '../../../domains/exam-application/application/queries/getExamResponseByIndexQuery';
 import { ExamResponseService } from '../../../domains/exam-application/domain/services/examResponseService';
 import { ExamResponseRepository } from '../../../infrastructure/exam-application/repositories/ExamResponseRepository';
@@ -14,6 +15,7 @@ let _svc: ExamResponseService | null = null;
 let _createCmd: CreateExamResponseCommand | null = null;
 let _updateCmd: UpdateExamResponseCommand | null = null;
 let _getByIndexQuery: GetExamResponseByIndexQuery | null = null;
+let _getQuestionDetailQuery: GetExamQuestionDetailQuery | null = null;
 
 // Repository
 export function makeExamResponseRepository() {
@@ -59,4 +61,10 @@ export function makeGetExamResponseByIndexQuery() {
     if (_getByIndexQuery) return _getByIndexQuery;
     _getByIndexQuery = new GetExamResponseByIndexQuery(makeExamResponseService());
     return _getByIndexQuery;
+}
+
+export function makeGetExamQuestionDetailQuery() {
+    if (_getQuestionDetailQuery) return _getQuestionDetailQuery;
+    _getQuestionDetailQuery = new GetExamQuestionDetailQuery(makeExamResponseService());
+    return _getQuestionDetailQuery;
 }
