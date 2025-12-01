@@ -1,7 +1,15 @@
 import { sequelize } from './database';
 import { getHasher } from '../core/security/hasher';
+import { AssignedExamStatus } from '../domains/exam-application/entities/enums/AssignedExamStatus';
+import { ExamRegradesStatus } from '../domains/exam-application/entities/enums/ExamRegradeStatus';
+import { ExamStatusEnum } from '../domains/exam-application/entities/enums/ExamStatusEnum';
 import { DifficultyLevelEnum } from '../domains/question-bank/entities/enums/DifficultyLevels';
 import { QuestionTypeEnum } from '../domains/question-bank/entities/enums/QuestionType';
+import ExamAssignment from '../infrastructure/exam-application/models/ExamAssignment';
+import ExamRegrade from '../infrastructure/exam-application/models/ExamRegrade';
+import ExamResponse from '../infrastructure/exam-application/models/ExamResponse';
+import Exam from '../infrastructure/exam-generation/models/Exam';
+import ExamQuestion from '../infrastructure/exam-generation/models/ExamQuestion';
 import {
     Subject,
     Topic,
@@ -13,9 +21,6 @@ import QuestionType from '../infrastructure/question-bank/models/QuestionType';
 import TeacherSubject from '../infrastructure/question-bank/models/TeacherSubject';
 import { Student, Teacher, User } from '../infrastructure/user/models';
 import { Roles } from '../shared/enums/rolesEnum';
-import Exam from '../infrastructure/exam-generation/models/Exam';
-import ExamQuestion from '../infrastructure/exam-generation/models/ExamQuestion';
-import { ExamStatusEnum } from '../domains/exam-application/entities/enums/ExamStatusEnum';
 
 type QuestionSeed = {
     type: QuestionTypeEnum;
@@ -152,6 +157,111 @@ const studentSeedData = [
     { name: 'Carla Dev', email: 'student3@example.com', age: 21, course: 3 },
     { name: 'Diego Tester', email: 'student4@example.com', age: 23, course: 4 },
 ] as const;
+
+type ExamResponseSeed = {
+    questionIndex: number;
+    selectedOptions?: Array<{ text: string; isCorrect: boolean }>;
+    textAnswer?: string;
+    autoPoints?: number | null;
+    manualPoints?: number | null;
+    answeredAt: Date;
+};
+
+type ExamRegradeSeed = {
+    reason: string;
+    status: ExamRegradesStatus;
+    requestedAt: Date;
+    resolvedAt: Date | null;
+    finalGrade: number | null;
+    reviewerEmail?: string;
+};
+
+type ExamAssignmentSeed = {
+    studentEmail: string;
+    status: AssignedExamStatus;
+    applicationDate: Date;
+    durationMinutes: number;
+    grade?: number | null;
+    professorEmail?: string;
+    responses?: ExamResponseSeed[];
+    regrade?: ExamRegradeSeed;
+};
+
+const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
+    'Examen Final - Transacciones y ACID': [
+        {
+            studentEmail: 'student1@example.com',
+            status: AssignedExamStatus.GRADED,
+            applicationDate: new Date('2024-06-01T09:00:00Z'),
+            durationMinutes: 120,
+            grade: 8.5,
+            responses: [
+                {
+                    questionIndex: 1,
+                    selectedOptions: [
+                        { text: 'Usar commit y rollback correctamente', isCorrect: true },
+                    ],
+                    autoPoints: 4,
+                    manualPoints: 4,
+                    answeredAt: new Date('2024-06-01T10:10:00Z'),
+                },
+                {
+                    questionIndex: 2,
+                    textAnswer:
+                        'Asegura que cada transacción respete ACID y no hay lecturas sucias.',
+                    autoPoints: 3,
+                    manualPoints: 3,
+                    answeredAt: new Date('2024-06-01T10:20:00Z'),
+                },
+            ],
+            regrade: {
+                reason: 'La segunda pregunta mencionaba estados adicionales y no se contaron los puntos parciales',
+                status: ExamRegradesStatus.REQUESTED,
+                requestedAt: new Date('2024-06-02T08:15:00Z'),
+                resolvedAt: null,
+                finalGrade: null,
+                reviewerEmail: 'teacher1@example.com',
+            },
+        },
+    ],
+    'Parcial 2 - Estructuras y cadenas': [
+        {
+            studentEmail: 'student2@example.com',
+            status: AssignedExamStatus.IN_EVALUATION,
+            applicationDate: new Date('2024-06-05T09:30:00Z'),
+            durationMinutes: 90,
+            responses: [
+                {
+                    questionIndex: 1,
+                    selectedOptions: [
+                        { text: 'Aplicar una pila para invertir cadenas', isCorrect: true },
+                    ],
+                    autoPoints: 3,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-06-05T10:10:00Z'),
+                },
+            ],
+        },
+    ],
+    'Evaluación Final - Conjuntos y funciones': [
+        {
+            studentEmail: 'student3@example.com',
+            status: AssignedExamStatus.DURING_SOLUTION,
+            applicationDate: new Date('2024-06-10T08:00:00Z'),
+            durationMinutes: 100,
+            responses: [
+                {
+                    questionIndex: 1,
+                    textAnswer:
+                        'Una función es biyectiva cuando es inyectiva y sobreyectiva al mismo tiempo.',
+                    autoPoints: 0,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-06-10T09:05:00Z'),
+                },
+            ],
+        },
+    ],
+};
 
 const subjectSeedData: SubjectSeed[] = [
     {
@@ -670,6 +780,7 @@ async function seed() {
     const questionMetaBySubjectId = new Map<string, QuestionMeta[]>();
     const subjectsByName = new Map<string, Subject>();
     const leadTeacherBySubjectId = new Map<string, Teacher>();
+    const studentsByEmail = new Map<string, Student>();
     const examSummaries: string[] = [];
 
     try {
@@ -738,7 +849,7 @@ async function seed() {
                 await user.save({ transaction: t });
             }
 
-            await Student.findOrCreate({
+            const [studentProfile] = await Student.findOrCreate({
                 where: { userId: user.id },
                 defaults: {
                     userId: user.id,
@@ -747,6 +858,8 @@ async function seed() {
                 },
                 transaction: t,
             });
+
+            studentsByEmail.set(studentSeed.email, studentProfile);
         }
 
         for (const qt of Object.values(QuestionTypeEnum)) {
@@ -895,7 +1008,10 @@ async function seed() {
             const seen = new Set<string>();
             const normalizedStart = examTemplate.startIndex % allQuestions.length;
             let pointer = normalizedStart;
-            while (selected.length < examTemplate.questionCount && seen.size < allQuestions.length) {
+            while (
+                selected.length < examTemplate.questionCount &&
+                seen.size < allQuestions.length
+            ) {
                 const candidate = allQuestions[pointer % allQuestions.length];
                 if (!seen.has(candidate.id)) {
                     seen.add(candidate.id);
@@ -964,6 +1080,129 @@ async function seed() {
                 questionScore: questionScoreByDifficulty[questionMeta.difficulty] ?? 1,
             }));
             await ExamQuestion.bulkCreate(examQuestionRows, { transaction: t });
+
+            const examQuestions = await ExamQuestion.findAll({
+                where: { examId: createdExam.id },
+                transaction: t,
+            });
+            const questionByIndex = new Map<number, ExamQuestion>();
+            examQuestions.forEach((item) => questionByIndex.set(item.questionIndex, item));
+
+            const assignmentSpecs = assignmentSeedByExamTitle[createdExam.title] ?? [];
+            if (assignmentSpecs.length > 0) {
+                for (const assignmentSpec of assignmentSpecs) {
+                    const studentProfile = studentsByEmail.get(assignmentSpec.studentEmail);
+                    if (!studentProfile) {
+                        continue;
+                    }
+
+                    const professorProfileForAssignment = assignmentSpec.professorEmail
+                        ? teacherProfilesByEmail.get(assignmentSpec.professorEmail)
+                        : teacherProfile;
+                    if (!professorProfileForAssignment) {
+                        continue;
+                    }
+
+                    const [examAssignmentRow] = await ExamAssignment.findOrCreate({
+                        where: {
+                            studentId: studentProfile.id,
+                            examId: createdExam.id,
+                            professorId: professorProfileForAssignment.id,
+                        },
+                        defaults: {
+                            durationMinutes: assignmentSpec.durationMinutes,
+                            applicationDate: assignmentSpec.applicationDate,
+                            status: assignmentSpec.status,
+                            grade: assignmentSpec.grade ?? null,
+                        },
+                        transaction: t,
+                    });
+
+                    const assignmentUpdate: Record<string, unknown> = {
+                        durationMinutes: assignmentSpec.durationMinutes,
+                        applicationDate: assignmentSpec.applicationDate,
+                        status: assignmentSpec.status,
+                    };
+                    if (typeof assignmentSpec.grade !== 'undefined') {
+                        assignmentUpdate.grade = assignmentSpec.grade;
+                    }
+                    examAssignmentRow.set(assignmentUpdate);
+                    await examAssignmentRow.save({ transaction: t });
+
+                    if (assignmentSpec.responses) {
+                        for (const responseSpec of assignmentSpec.responses) {
+                            const examQuestion = questionByIndex.get(responseSpec.questionIndex);
+                            if (!examQuestion) {
+                                continue;
+                            }
+
+                            const [responseRow] = await ExamResponse.findOrCreate({
+                                where: {
+                                    studentId: studentProfile.id,
+                                    examQuestionId: examQuestion.id,
+                                },
+                                defaults: {
+                                    examId: createdExam.id,
+                                    selectedOptions: responseSpec.selectedOptions ?? null,
+                                    textAnswer: responseSpec.textAnswer ?? null,
+                                    autoPoints: responseSpec.autoPoints ?? null,
+                                    manualPoints:
+                                        typeof responseSpec.manualPoints !== 'undefined'
+                                            ? responseSpec.manualPoints
+                                            : null,
+                                    answeredAt: responseSpec.answeredAt,
+                                },
+                                transaction: t,
+                            });
+
+                            responseRow.set({
+                                examId: createdExam.id,
+                                selectedOptions: responseSpec.selectedOptions ?? null,
+                                textAnswer: responseSpec.textAnswer ?? null,
+                                autoPoints: responseSpec.autoPoints ?? null,
+                                manualPoints:
+                                    typeof responseSpec.manualPoints !== 'undefined'
+                                        ? responseSpec.manualPoints
+                                        : null,
+                                answeredAt: responseSpec.answeredAt,
+                            });
+                            await responseRow.save({ transaction: t });
+                        }
+                    }
+
+                    if (assignmentSpec.regrade) {
+                        const reviewerProfile = assignmentSpec.regrade.reviewerEmail
+                            ? teacherProfilesByEmail.get(assignmentSpec.regrade.reviewerEmail)
+                            : professorProfileForAssignment;
+                        const reviewerId = reviewerProfile?.id ?? professorProfileForAssignment.id;
+
+                        const [regradeRow] = await ExamRegrade.findOrCreate({
+                            where: {
+                                studentId: studentProfile.id,
+                                examId: createdExam.id,
+                                professorId: reviewerId,
+                                reason: assignmentSpec.regrade.reason,
+                            },
+                            defaults: {
+                                status: assignmentSpec.regrade.status,
+                                requestedAt: assignmentSpec.regrade.requestedAt,
+                                resolvedAt: assignmentSpec.regrade.resolvedAt,
+                                finalGrade: assignmentSpec.regrade.finalGrade,
+                            },
+                            transaction: t,
+                        });
+
+                        regradeRow.set({
+                            status: assignmentSpec.regrade.status,
+                            requestedAt: assignmentSpec.regrade.requestedAt,
+                            resolvedAt: assignmentSpec.regrade.resolvedAt,
+                            finalGrade: assignmentSpec.regrade.finalGrade,
+                            reason: assignmentSpec.regrade.reason,
+                        });
+                        await regradeRow.save({ transaction: t });
+                    }
+                }
+            }
 
             examSummaries.push(
                 `- ${createdExam.title} (${createdExam.examStatus}) · ${selected.length} preguntas · materia ${examTemplate.subjectName}`,

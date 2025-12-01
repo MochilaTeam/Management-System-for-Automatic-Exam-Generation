@@ -9,7 +9,8 @@ import { createDatabaseIfNotExists } from './database/database';
 import { connect } from './database/database';
 import { syncTables } from './database/init';
 import { swaggerSpec } from './docs/swagger';
-import { examApplicationRouter } from './domains/exam-generation/main';
+import { examApplicationRouter as examApplicationDomainRouter } from './domains/exam-application/main';
+import { examGenerationRouter } from './domains/exam-generation/main';
 import { questionBankRouter } from './domains/question-bank/main';
 import { userRouter } from './domains/user/main';
 
@@ -22,7 +23,8 @@ app.use(responseInterceptor);
 app.use('/API', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/API.json', (_req, res) => res.json(swaggerSpec));
 app.use(userRouter);
-app.use(examApplicationRouter);
+app.use(examGenerationRouter);
+app.use(examApplicationDomainRouter);
 app.use(questionBankRouter);
 
 const start = async () => {
