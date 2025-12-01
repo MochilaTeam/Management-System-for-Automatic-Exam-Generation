@@ -213,6 +213,7 @@ export const requestExamReviewCommandSchema = z
 export const listExamsQuerySchema = z
     .object({
         subjectId: uuid().optional(),
+        subjectIds: z.array(uuid()).optional(),
         difficulty: z.nativeEnum(DifficultyLevelEnum).optional(),
         examStatus: z.nativeEnum(ExamStatusEnum).optional(),
         authorId: uuid().optional(),

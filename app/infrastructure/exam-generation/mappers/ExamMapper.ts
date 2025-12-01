@@ -77,6 +77,9 @@ export const ExamMapper = {
         if (!filters) return where;
 
         if (filters.subjectId) where.subjectId = filters.subjectId;
+        else if (filters.subjectIds && filters.subjectIds.length > 0) {
+            where.subjectId = { [Op.in]: filters.subjectIds };
+        }
         if (filters.difficulty) where.difficulty = filters.difficulty;
         if (filters.examStatus) where.examStatus = filters.examStatus;
         if (filters.authorId) where.authorId = filters.authorId;
