@@ -150,7 +150,7 @@ router.post(
  *         name: status
  *         schema:
  *           type: string
- *           enum: [PENDING, ENABLED, DURING_SOLUTION, IN_EVALUATION, SUBMITTED, GRADED, CANCELLED]
+ *           enum: [PENDING, ENABLED, IN_EVALUATION, SUBMITTED, GRADED, CANCELLED]
  *         description: Filtrar por estado de la asignación
  *       - in: query
  *         name: subjectId
@@ -199,7 +199,7 @@ router.get('/exams/my-assignments', authenticate, requireRoles(Roles.STUDENT), l
  *     summary: Enviar examen a evaluación
  *     description: |
  *       Permite a un estudiante marcar su examen como listo para evaluación, cambiando el estado
- *       de DURING_SOLUTION a IN_EVALUATION.
+ *       de ENABLED o SUBMITTED a IN_EVALUATION.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -222,7 +222,7 @@ router.get('/exams/my-assignments', authenticate, requireRoles(Roles.STUDENT), l
  *                 data:
  *                   $ref: '#/components/schemas/StudentExamAssignmentListResponse'
  *       400:
- *         description: El examen no está en estado DURING_SOLUTION
+ *         description: El examen no está en un estado válido para evaluación
  *       404:
  *         description: Asignación de examen no encontrada
  */

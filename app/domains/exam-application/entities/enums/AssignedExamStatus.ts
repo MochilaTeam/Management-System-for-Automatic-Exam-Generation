@@ -1,7 +1,6 @@
 export enum AssignedExamStatus {
     PENDING = 'PENDING',
     ENABLED = 'ENABLED',
-    DURING_SOLUTION = 'DURING_SOLUTION',
     IN_EVALUATION = 'IN_EVALUATION',
     SUBMITTED = 'SUBMITTED',
     GRADED = 'GRADED',

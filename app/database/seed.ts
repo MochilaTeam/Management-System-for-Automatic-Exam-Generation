@@ -246,7 +246,7 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
     'Evaluación Final - Conjuntos y funciones': [
         {
             studentEmail: 'student3@example.com',
-            status: AssignedExamStatus.DURING_SOLUTION,
+            status: AssignedExamStatus.ENABLED,
             applicationDate: new Date('2024-06-10T08:00:00Z'),
             durationMinutes: 100,
             responses: [
