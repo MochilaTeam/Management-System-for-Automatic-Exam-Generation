@@ -46,6 +46,9 @@
         "seed": "sudo docker compose exec app npx tsx app/database/seed.ts",
         "build": "tsc",
         "prepare": "husky",
-        "commit": "node scripts/commit-helper.js"
+        "commit": "node scripts/commit-helper.js",
+
+        "test": "vitest",
+        "test:unit": "vitest run"
     }
 }
