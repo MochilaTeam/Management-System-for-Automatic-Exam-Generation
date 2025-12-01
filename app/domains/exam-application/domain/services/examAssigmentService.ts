@@ -6,17 +6,23 @@ import { ITeacherSubjectLinkRepository } from '../../../user/domain/ports/ITeach
 import { StudentRead } from '../../../user/schemas/studentSchema';
 import { AssignedExamStatus } from '../../entities/enums/AssignedExamStatus';
 import { ExamStatusEnum } from '../../entities/enums/ExamStatusEnum';
+import { ExamRegradesStatus } from '../../entities/enums/ExamRegradeStatus';
 import {
     AssignExamToCourseResponse,
     ListEvaluatorExamsQuery,
     SendExamToEvaluatorCommandSchema,
     StudentExamAssignmentItem,
 } from '../../schemas/examAssignmentSchema';
+import {
+    ExamRegradeOutput,
+    RequestExamRegradeCommandSchema,
+} from '../../schemas/examRegradeSchema';
 import type {
     ExamAssignmentStatusSnapshot,
     IExamAssignmentRepository,
 } from '../ports/IExamAssignmentRepository';
 import type { IExamResponseRepository } from '../ports/IExamResponseRepository';
+import type { IExamRegradeRepository } from '../ports/IExamRegradeRepository';
 
 type Deps = {
     examAssignmentRepo: IExamAssignmentRepository;
@@ -25,6 +31,7 @@ type Deps = {
     teacherSubjectLinkRepo: ITeacherSubjectLinkRepository;
     studentRepo: IStudentRepository;
     examResponseRepo: IExamResponseRepository;
+    examRegradeRepo: IExamRegradeRepository;
 };
 
 export class ExamAssignmentService extends BaseDomainService {
@@ -34,6 +41,7 @@ export class ExamAssignmentService extends BaseDomainService {
     private readonly teacherSubjectLinkRepo: ITeacherSubjectLinkRepository;
     private readonly studentRepo: IStudentRepository;
     private readonly examResponseRepo: IExamResponseRepository;
+    private readonly examRegradeRepo: IExamRegradeRepository;
 
     constructor({
         examAssignmentRepo,
@@ -42,6 +50,7 @@ export class ExamAssignmentService extends BaseDomainService {
         teacherSubjectLinkRepo,
         studentRepo,
         examResponseRepo,
+        examRegradeRepo,
     }: Deps) {
         super();
         this.examAssignmentRepo = examAssignmentRepo;
@@ -50,6 +59,7 @@ export class ExamAssignmentService extends BaseDomainService {
         this.teacherSubjectLinkRepo = teacherSubjectLinkRepo;
         this.studentRepo = studentRepo;
         this.examResponseRepo = examResponseRepo;
+        this.examRegradeRepo = examRegradeRepo;
     }
 
     async createExamAssignment(
@@ -330,6 +340,81 @@ export class ExamAssignmentService extends BaseDomainService {
         } catch (error) {
             this.logOperationError(operation, error as Error);
             throw error;
+        }
+    }
+
+    async requestExamRegrade(input: RequestExamRegradeCommandSchema): Promise<ExamRegradeOutput> {
+        const operation = 'request-exam-regrade';
+        this.logOperationStart(operation);
+
+        try {
+            const student = await this.getStudentByUserId(input.currentUserId, operation);
+            const assignment = await this.examAssignmentRepo.findByExamIdAndStudentId(
+                input.examId,
+                student.id,
+            );
+
+            if (!assignment) {
+                this.raiseNotFoundError(operation, 'ASIGNACIÓN NO ENCONTRADA', {
+                    entity: 'ExamAssignment',
+                });
+            }
+
+            if (assignment.status !== AssignedExamStatus.GRADED) {
+                this.raiseBusinessRuleError(operation, 'EL EXAMEN AÚN NO HA SIDO CALIFICADO', {
+                    entity: 'ExamAssignment',
+                });
+            }
+
+            const existing = await this.examRegradeRepo.findActiveByExamAndStudent(
+                input.examId,
+                student.id,
+            );
+            if (existing) {
+                this.raiseBusinessRuleError(operation, 'YA EXISTE UNA SOLICITUD ACTIVA', {
+                    entity: 'ExamRegrade',
+                });
+            }
+
+            const teacher = await this.teacherRepo.get_by_id(input.professorId);
+            if (!teacher) {
+                this.raiseNotFoundError(operation, 'PROFESOR NO ENCONTRADO', {
+                    entity: 'Teacher',
+                });
+            }
+
+            await this.ensureTeacherCanReviewExam(operation, teacher.id, assignment.subjectId);
+
+            const regrade = await this.examRegradeRepo.create({
+                examId: input.examId,
+                studentId: student.id,
+                professorId: teacher.id,
+                reason: input.reason ?? null,
+                status: ExamRegradesStatus.REQUESTED,
+                requestedAt: new Date(),
+            });
+
+            this.logOperationSuccess(operation);
+            return regrade;
+        } catch (error) {
+            this.logOperationError(operation, error as Error);
+            throw error;
+        }
+    }
+
+    private async ensureTeacherCanReviewExam(
+        operation: string,
+        teacherId: string,
+        subjectId: string,
+    ) {
+        const assignments = await this.teacherSubjectLinkRepo.getAssignments(teacherId);
+        const canReview =
+            assignments.teachingSubjectIds.includes(subjectId) ||
+            assignments.leadSubjectIds.includes(subjectId);
+        if (!canReview) {
+            this.raiseBusinessRuleError(operation, 'PROFESOR NO ASIGNADO A LA MATERIA', {
+                entity: 'Subject',
+            });
         }
     }
 
