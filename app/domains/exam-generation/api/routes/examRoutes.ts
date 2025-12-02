@@ -22,9 +22,9 @@ const router = Router();
  *       - Exams
  *     summary: Listar exámenes parametrizados
  *     description: |
- *       Si el request incluye un token válido de profesor y no se especifica `subjectId` ni `subjectIds`,
- *       la respuesta se restringe a las asignaturas que dicta ese profesor. De lo contrario se pueden usar
- *       los filtros disponibles para consultar cualquier examen.
+ *       Si el request incluye un token válido de profesor, la respuesta se restringe a las asignaturas
+ *       que dicta ese profesor (los filtros `subjectId`/`subjectIds` se intersectan con sus asignaciones).
+ *       Otros roles pueden usar los filtros disponibles para consultar cualquier examen.
  *     parameters:
  *       - in: query
  *         name: subjectId

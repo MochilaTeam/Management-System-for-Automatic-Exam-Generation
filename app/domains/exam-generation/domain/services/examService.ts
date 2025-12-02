@@ -49,6 +49,7 @@ export class ExamService extends BaseDomainService {
             offset: params.offset,
             filters: {
                 subjectId: params.subjectId,
+                subjectIds: params.subjectIds,
                 difficulty: params.difficulty,
                 examStatus: params.examStatus,
                 authorId: params.authorId,
