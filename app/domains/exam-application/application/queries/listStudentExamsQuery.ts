@@ -28,6 +28,7 @@ export class ListStudentExamsQuery extends BaseQuery<
             status: input.status,
             subjectId: input.subjectId,
             teacherId: input.teacherId,
+            examTitle: input.examTitle,
         });
 
         return new PaginatedSchema(items, { limit, offset, total });

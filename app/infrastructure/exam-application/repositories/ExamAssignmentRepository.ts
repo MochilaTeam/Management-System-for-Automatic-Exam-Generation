@@ -1,4 +1,4 @@
-import { ModelStatic, Transaction, WhereOptions, Includeable } from 'sequelize';
+import { ModelStatic, Transaction, WhereOptions, Includeable, Op } from 'sequelize';
 
 import type {
     IExamAssignmentRepository,
@@ -17,7 +17,7 @@ export class ExamAssignmentRepository implements IExamAssignmentRepository {
     constructor(
         private readonly model: ModelStatic<ExamAssignments>,
         private readonly defaultTx?: Transaction,
-    ) {}
+    ) { }
 
     static withTx(model: ModelStatic<ExamAssignments>, tx: Transaction) {
         return new ExamAssignmentRepository(model, tx);
@@ -54,6 +54,9 @@ export class ExamAssignmentRepository implements IExamAssignmentRepository {
             }
             if (criteria.filters?.subjectId) {
                 examWhere.subjectId = criteria.filters.subjectId;
+            }
+            if (criteria.filters?.examTitle) {
+                examWhere.title = { [Op.like]: `%${criteria.filters.examTitle}%` };
             }
 
             const limit = criteria.limit ?? 10;

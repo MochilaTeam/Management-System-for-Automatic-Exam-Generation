@@ -231,6 +231,7 @@ export class ExamAssignmentService extends BaseDomainService {
         status?: AssignedExamStatus;
         subjectId?: string;
         teacherId?: string;
+        examTitle?: string;
     }) {
         const operation = 'list-student-exams';
         this.logOperationStart(operation);
@@ -264,6 +265,7 @@ export class ExamAssignmentService extends BaseDomainService {
                     status: input.status,
                     subjectId: input.subjectId,
                     teacherId: input.teacherId,
+                    examTitle: input.examTitle,
                 },
             });
 
@@ -559,15 +561,6 @@ export class ExamAssignmentService extends BaseDomainService {
 
         if (now < snapshot.applicationDate) {
             return AssignedExamStatus.PENDING;
-        }
-
-        const hasResponses = await this.examResponseRepo.studentHasResponses(
-            snapshot.examId,
-            snapshot.studentId,
-        );
-
-        if (hasResponses) {
-            return AssignedExamStatus.SUBMITTED;
         }
 
         const durationMinutes = snapshot.durationMinutes ?? 0;

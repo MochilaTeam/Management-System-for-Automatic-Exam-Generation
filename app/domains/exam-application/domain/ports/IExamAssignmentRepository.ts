@@ -14,6 +14,7 @@ export type ExamAssignmentFilters = {
     status?: AssignedExamStatus;
     subjectId?: string;
     teacherId?: string;
+    examTitle?: string;
 };
 
 export type ListExamAssignmentsCriteria = {

@@ -28,7 +28,6 @@ app.use(examGenerationRouter);
 app.use(questionBankRouter);
 
 const start = async () => {
-    await createDatabaseIfNotExists();
     await connect();
     await syncTables();
 
