@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { authenticate } from '../../../../core/middlewares/authenticate';
 import { requireRoles } from '../../../../core/middlewares/authorize';
 import { Roles } from '../../../../shared/enums/rolesEnum';
-import { requestExamRegrade } from '../controllers/examRegradeController';
+import { listPendingExamRegrades, requestExamRegrade } from '../controllers/examRegradeController';
 
 const router = Router();
 
@@ -78,6 +78,52 @@ router.post(
     authenticate,
     requireRoles(Roles.STUDENT),
     requestExamRegrade,
+);
+
+/**
+ * @openapi
+ * /exams/regrade-requests/pending:
+ *   get:
+ *     tags: [Exam Regrade]
+ *     summary: Listar exámenes con solicitudes de recalificación pendientes
+ *     description: Permite a un profesor revisar los exámenes que tienen solicitudes de recalificación en estado REQUESTED o IN_REVIEW junto con la razón proporcionada por el estudiante.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Solicitudes pendientes obtenidas correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/PendingExamRegradeListItem'
+ *                 meta:
+ *                   $ref: '#/components/schemas/PaginationMeta'
+ *       403:
+ *         description: No autorizado (el usuario no es profesor)
+ */
+router.get(
+    '/exams/regrade-requests/pending',
+    authenticate,
+    requireRoles(Roles.TEACHER),
+    listPendingExamRegrades,
 );
 
 export default router;
