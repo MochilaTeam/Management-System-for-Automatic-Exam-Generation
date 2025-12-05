@@ -749,7 +749,6 @@ const swaggerDefinition = {
                         enum: [
                             'PENDING',
                             'ENABLED',
-                            'DURING_SOLUTION',
                             'IN_EVALUATION',
                             'SUBMITTED',
                             'GRADED',

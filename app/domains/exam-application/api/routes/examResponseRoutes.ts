@@ -6,6 +6,7 @@ import { Roles } from '../../../../shared/enums/rolesEnum';
 import {
     calculateExamGrade,
     createExamResponse,
+    getExamQuestionDetail,
     getExamResponseByIndex,
     updateExamResponse,
 } from '../controllers/examResponseControllers';
@@ -97,6 +98,55 @@ router.get(
     authenticate,
     requireRoles(Roles.STUDENT),
     getExamResponseByIndex,
+);
+
+/**
+ * @openapi
+ * /exams/{examId}/questions/{questionIndex}:
+ *   get:
+ *     tags: [Exam Responses]
+ *     summary: Obtener detalle de la pregunta del examen
+ *     description: |
+ *       Retorna el `QuestionDetail` original correspondiente a la posición indicada dentro del examen,
+ *       siempre que el estudiante tenga la asignación activa y el examen esté en curso.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: examId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: path
+ *         name: questionIndex
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Orden (1-based) de la pregunta dentro del examen
+ *     responses:
+ *       200:
+ *         description: Información de la pregunta obtenida
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Question'
+ *       403:
+ *         description: No autorizado o el estudiante no tiene el examen activo
+ *       404:
+ *         description: No se encontró la pregunta o el examen no contiene ese índice
+ */
+router.get(
+    '/exams/:examId/questions/:questionIndex',
+    authenticate,
+    requireRoles(Roles.STUDENT),
+    getExamQuestionDetail,
 );
 
 /**

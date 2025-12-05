@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">92.85% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>13/14</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">92.85% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>13/14</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -168,7 +168,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -182,8 +182,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -195,8 +195,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -208,26 +208,26 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -251,8 +251,8 @@ export class QuestionTypeRepository
     extends BaseRepository&lt;QuestionType, QuestionTypeRead, QuestionTypeCreate, QuestionTypeUpdate&gt;
     implements IQuestionTypeRepository
 {
-<span class="fstat-no" title="function not covered" >    constructor(m</span>odel: ModelStatic&lt;QuestionType&gt;, defaultTx?: Transaction) {
-<span class="cstat-no" title="statement not covered" >        super(</span>
+    constructor(model: ModelStatic&lt;QuestionType&gt;, defaultTx?: Transaction) {
+        super(
             model,
             QuestionTypeMapper.toRead.bind(QuestionTypeMapper),
             QuestionTypeMapper.toCreateAttrs.bind(QuestionTypeMapper),
@@ -261,13 +261,13 @@ export class QuestionTypeRepository
         );
     }
 &nbsp;
-    static <span class="fstat-no" title="function not covered" >withTx(m</span>odel: ModelStatic&lt;QuestionType&gt;, tx: Transaction) {
+    static withTx(model: ModelStatic&lt;QuestionType&gt;, tx: Transaction) {
 <span class="cstat-no" title="statement not covered" >        return new QuestionTypeRepository(model, tx);</span>
     }
 &nbsp;
-    async <span class="fstat-no" title="function not covered" >paginate(c</span>riteria: ListQuestionTypesCriteria, tx?: Transaction) {
-        const opts = <span class="cstat-no" title="statement not covered" >QuestionTypeMapper.toOptions(criteria);</span>
-<span class="cstat-no" title="statement not covered" >        return this.paginateByOptions(</span>
+    async paginate(criteria: ListQuestionTypesCriteria, tx?: Transaction) {
+        const opts = QuestionTypeMapper.toOptions(criteria);
+        return this.paginateByOptions(
             {
                 where: opts.where,
                 order: opts.order,
@@ -278,9 +278,9 @@ export class QuestionTypeRepository
         );
     }
 &nbsp;
-    async <span class="fstat-no" title="function not covered" >list(c</span>riteria: ListQuestionTypesCriteria, tx?: Transaction): Promise&lt;QuestionTypeRead[]&gt; {
-        const opts = <span class="cstat-no" title="statement not covered" >QuestionTypeMapper.toOptions(criteria);</span>
-<span class="cstat-no" title="statement not covered" >        return this.listByOptions(</span>
+    async list(criteria: ListQuestionTypesCriteria, tx?: Transaction): Promise&lt;QuestionTypeRead[]&gt; {
+        const opts = QuestionTypeMapper.toOptions(criteria);
+        return this.listByOptions(
             {
                 where: opts.where,
                 order: opts.order,
@@ -291,27 +291,27 @@ export class QuestionTypeRepository
         );
     }
 &nbsp;
-    async <span class="fstat-no" title="function not covered" >existsByName(n</span>ame: string, tx?: Transaction): Promise&lt;boolean&gt; {
-<span class="cstat-no" title="statement not covered" >        try {</span>
-            const count = <span class="cstat-no" title="statement not covered" >await this.model.count({</span>
+    async existsByName(name: string, tx?: Transaction): Promise&lt;boolean&gt; {
+        try {
+            const count = await this.model.count({
                 where: { name },
                 transaction: this.effTx(tx),
             });
-<span class="cstat-no" title="statement not covered" >            return count &gt; 0;</span>
+            return count &gt; 0;
         } catch (e) {
-<span class="cstat-no" title="statement not covered" >            return this.raiseError(e, this.model.name);</span>
+            return this.raiseError(e, this.model.name);
         }
     }
 &nbsp;
-    async <span class="fstat-no" title="function not covered" >deleteById(i</span>d: string, tx?: Transaction): Promise&lt;boolean&gt; {
-<span class="cstat-no" title="statement not covered" >        try {</span>
-            const deleted = <span class="cstat-no" title="statement not covered" >await this.model.destroy({</span>
+    async deleteById(id: string, tx?: Transaction): Promise&lt;boolean&gt; {
+        try {
+            const deleted = await this.model.destroy({
                 where: { id },
                 transaction: this.effTx(tx),
             });
-<span class="cstat-no" title="statement not covered" >            return deleted &gt; 0;</span>
+            return deleted &gt; 0;
         } catch (e) {
-<span class="cstat-no" title="statement not covered" >            return this.raiseError(e, this.model.name);</span>
+            return this.raiseError(e, this.model.name);
         }
     }
 }
@@ -322,7 +322,7 @@ export class QuestionTypeRepository
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-01T14:27:13.412Z
+                at 2025-12-05T04:48:37.957Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

@@ -3,6 +3,7 @@ import { NextFunction, Response } from 'express';
 import { makeCalculateExamGradeCommand } from '../../../../core/dependencies/exam-application/examAssignment';
 import {
     makeCreateExamResponseCommand,
+    makeGetExamQuestionDetailQuery,
     makeGetExamResponseByIndexQuery,
     makeUpdateExamResponseCommand,
 } from '../../../../core/dependencies/exam-application/examResponses';
@@ -12,6 +13,7 @@ import { calculateExamGradeCommandSchema } from '../../schemas/examAssignmentSch
 import {
     createExamResponseCommandSchema,
     examResponseByIndexParamsSchema,
+    getExamQuestionDetailQuerySchema,
     getExamResponseByIndexQuerySchema,
     responseIdParamsSchema,
     updateExamResponseCommandSchema,
@@ -86,6 +88,30 @@ export async function getExamResponseByIndex(
 
         const result = await makeGetExamResponseByIndexQuery().execute(validatedQuery);
 
+        res.status(200).json(result);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function getExamQuestionDetail(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction,
+) {
+    try {
+        const currentUserId = req.user?.id;
+        if (!currentUserId) {
+            throw new UnauthorizedError({ message: 'No se encontró el id del usuario' });
+        }
+
+        const params = examResponseByIndexParamsSchema.parse(req.params);
+        const validatedQuery = getExamQuestionDetailQuerySchema.parse({
+            ...params,
+            user_id: currentUserId,
+        });
+
+        const result = await makeGetExamQuestionDetailQuery().execute(validatedQuery);
         res.status(200).json(result);
     } catch (err) {
         next(err);

@@ -22,7 +22,7 @@ ExamQuestion.init(
             allowNull: false,
             references: { model: 'Exams', key: 'id' },
             onUpdate: 'CASCADE',
-            onDelete: 'RESTRICT',
+            onDelete: 'CASCADE',
         },
         questionId: {
             type: DataTypes.UUID,

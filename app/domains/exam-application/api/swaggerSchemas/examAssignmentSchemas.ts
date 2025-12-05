@@ -74,7 +74,7 @@
  *           example: "Juan Pérez"
  *         status:
  *           type: string
- *           enum: [PENDING, ENABLED, DURING_SOLUTION, IN_EVALUATION, SUBMITTED, GRADED, CANCELLED]
+ *           enum: [PENDING, ENABLED, IN_EVALUATION, SUBMITTED, GRADED, CANCELLED]
  *           description: Estado de la asignación
  *           example: "PENDING"
  *         applicationDate:

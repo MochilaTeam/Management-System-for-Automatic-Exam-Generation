@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">77.77% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>7/9</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">77.77% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>7/9</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -138,25 +138,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -166,26 +161,31 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -208,20 +208,20 @@
 import { QuestionTypeEnum } from '../entities/enums/QuestionType';
 &nbsp;
 // Params
-export const questionTypeIdParamsSchema = <span class="cstat-no" title="statement not covered" >z</span>
+export const questionTypeIdParamsSchema = z
     .object({
         questionTypeId: z.string().uuid(),
     })
     .strict();
 &nbsp;
 // Commands
-export const createQuestionTypeCommandSchema = <span class="cstat-no" title="statement not covered" >z</span>
+export const createQuestionTypeCommandSchema = z
     .object({
         name: z.nativeEnum(QuestionTypeEnum),
     })
     .strict();
 &nbsp;
-export const updateQuestionTypeCommandSchema = <span class="cstat-no" title="statement not covered" >z</span>
+export const updateQuestionTypeCommandSchema = z
     .object({
         name: z.nativeEnum(QuestionTypeEnum).optional(),
     })
@@ -231,13 +231,13 @@ export const updateQuestionTypeCommandSchema = <span class="cstat-no" title="sta
     });
 &nbsp;
 // PERSISTENCE DTOs (hacia repos desde el servicio)
-export const questionTypeCreateSchema = <span class="cstat-no" title="statement not covered" >z</span>
+export const questionTypeCreateSchema = z
     .object({
         name: z.nativeEnum(QuestionTypeEnum),
     })
     .strict();
 &nbsp;
-export const questionTypeUpdateSchema = <span class="cstat-no" title="statement not covered" >z</span>
+export const questionTypeUpdateSchema = z
     .object({
         name: z.nativeEnum(QuestionTypeEnum).optional(),
     })
@@ -247,7 +247,7 @@ export const questionTypeUpdateSchema = <span class="cstat-no" title="statement 
     });
 &nbsp;
 // Read
-export const questionTypeReadSchema = <span class="cstat-no" title="statement not covered" >z</span>
+export const questionTypeReadSchema = z
     .object({
         id: z.string().uuid(),
         name: z.nativeEnum(QuestionTypeEnum),
@@ -255,7 +255,7 @@ export const questionTypeReadSchema = <span class="cstat-no" title="statement no
     .strict();
 &nbsp;
 // Queries
-export const listQuestionTypesQuerySchema = <span class="cstat-no" title="statement not covered" >z</span>
+export const listQuestionTypesQuerySchema = z
     .object({
         name: z.nativeEnum(QuestionTypeEnum).optional(),
         limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -280,7 +280,7 @@ export type ListQuestionTypes = z.infer&lt;typeof listQuestionTypesQuerySchema&g
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-01T14:27:13.279Z
+                at 2025-12-05T04:48:37.854Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

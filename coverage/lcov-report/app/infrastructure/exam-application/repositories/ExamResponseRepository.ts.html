@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">94.11% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/17</span>
+                <span class='fraction'>16/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>4/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">93.75% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>15/16</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -129,48 +129,48 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import {
@@ -183,49 +183,49 @@ import { ExamResponseMapper } from '../mappers/examResponseMapper';
 import ExamResponses from '../models/ExamResponse';
 &nbsp;
 export class ExamResponseRepository implements IExamResponseRepository {
-    async <span class="fstat-no" title="function not covered" >create(d</span>ata: CreateExamResponseInput): Promise&lt;ExamResponseOutput&gt; {
-        const attrs = <span class="cstat-no" title="statement not covered" >ExamResponseMapper.toCreateAttrs(data);</span>
-        const response = <span class="cstat-no" title="statement not covered" >await ExamResponses.create(attrs);</span>
-<span class="cstat-no" title="statement not covered" >        return ExamResponseMapper.toOutput(response);</span>
+    async create(data: CreateExamResponseInput): Promise&lt;ExamResponseOutput&gt; {
+        const attrs = ExamResponseMapper.toCreateAttrs(data);
+        const response = await ExamResponses.create(attrs);
+        return ExamResponseMapper.toOutput(response);
     }
 &nbsp;
-    async <span class="fstat-no" title="function not covered" >findById(r</span>esponseId: string): Promise&lt;ExamResponseOutput | null&gt; {
-        const response = <span class="cstat-no" title="statement not covered" >await ExamResponses.findByPk(responseId);</span>
-<span class="cstat-no" title="statement not covered" >        return response ? ExamResponseMapper.toOutput(response) : null;</span>
+    async findById(responseId: string): Promise&lt;ExamResponseOutput | null&gt; {
+        const response = await ExamResponses.findByPk(responseId);
+        return response ? ExamResponseMapper.toOutput(response) : null;
     }
 &nbsp;
-    async <span class="fstat-no" title="function not covered" >findByExamQuestionAndStudent(</span>
+    async findByExamQuestionAndStudent(
         examQuestionId: string,
         studentId: string,
     ): Promise&lt;ExamResponseOutput | null&gt; {
-        const response = <span class="cstat-no" title="statement not covered" >await ExamResponses.findOne({ where: { examQuestionId, studentId } });</span>
-<span class="cstat-no" title="statement not covered" >        return response ? ExamResponseMapper.toOutput(response) : null;</span>
+        const response = await ExamResponses.findOne({ where: { examQuestionId, studentId } });
+        return response ? ExamResponseMapper.toOutput(response) : <span class="branch-1 cbranch-no" title="branch not covered" >null;</span>
     }
 &nbsp;
-    async <span class="fstat-no" title="function not covered" >update(d</span>ata: UpdateExamResponseInput): Promise&lt;ExamResponseOutput&gt; {
-        const response = <span class="cstat-no" title="statement not covered" >await ExamResponses.findByPk(data.responseId);</span>
-<span class="cstat-no" title="statement not covered" >        if (!response) {</span>
+    async update(data: UpdateExamResponseInput): Promise&lt;ExamResponseOutput&gt; {
+        const response = await ExamResponses.findByPk(data.responseId);
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (!response) {
 <span class="cstat-no" title="statement not covered" >            throw new Error('Exam response not found');</span>
         }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >        await response.update({</span>
+        await response.update({
             selectedOptions: data.selectedOptions,
             textAnswer: data.textAnswer,
             autoPoints: data.autoPoints,
             answeredAt: data.answeredAt,
         });
 &nbsp;
-<span class="cstat-no" title="statement not covered" >        return ExamResponseMapper.toOutput(response);</span>
+        return ExamResponseMapper.toOutput(response);
     }
 &nbsp;
-    async <span class="fstat-no" title="function not covered" >studentHasResponses(e</span>xamId: string, studentId: string): Promise&lt;boolean&gt; {
-        const count = <span class="cstat-no" title="statement not covered" >await ExamResponses.count({ where: { examId, studentId } });</span>
-<span class="cstat-no" title="statement not covered" >        return count &gt; 0;</span>
+    async studentHasResponses(examId: string, studentId: string): Promise&lt;boolean&gt; {
+        const count = await ExamResponses.count({ where: { examId, studentId } });
+        return count &gt; 0;
     }
 &nbsp;
-    async <span class="fstat-no" title="function not covered" >listByExamAndStudent(e</span>xamId: string, studentId: string): Promise&lt;ExamResponseOutput[]&gt; {
-        const rows = <span class="cstat-no" title="statement not covered" >await ExamResponses.findAll({ where: { examId, studentId } });</span>
-<span class="cstat-no" title="statement not covered" >        return rows.map(<span class="fstat-no" title="function not covered" >(r</span>ow) =&gt; <span class="cstat-no" title="statement not covered" >ExamResponseMapper.toOutput(row))</span>;</span>
+    async listByExamAndStudent(examId: string, studentId: string): Promise&lt;ExamResponseOutput[]&gt; {
+        const rows = await ExamResponses.findAll({ where: { examId, studentId } });
+        return rows.map((row) =&gt; ExamResponseMapper.toOutput(row));
     }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -235,7 +235,7 @@ export class ExamResponseRepository implements IExamResponseRepository {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-01T14:27:13.412Z
+                at 2025-12-05T04:48:37.957Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

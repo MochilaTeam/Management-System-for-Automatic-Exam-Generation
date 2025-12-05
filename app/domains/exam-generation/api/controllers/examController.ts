@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 
+import { get_jwt_config } from '../../../../core/config/jwt';
 import {
     makeAcceptExamCommand,
     makeCreateAutomaticExamCommand,
@@ -12,6 +14,11 @@ import {
     makeRequestExamReviewCommand,
     makeUpdateExamCommand,
 } from '../../../../core/dependencies/exam-application/examDependencies';
+import { getAccessToken } from '../../../../core/middlewares/helpers/getAccessToken';
+import { TeacherSubjectLinkRepository } from '../../../../infrastructure/question-bank/repositories/teacherSubjectLinkRepository';
+import { Teacher } from '../../../../infrastructure/user/models';
+import { PaginatedSchema } from '../../../../shared/domain/base_response';
+import { Roles } from '../../../../shared/enums/rolesEnum';
 import { AuthenticatedRequest } from '../../../../shared/types/http/AuthenticatedRequest';
 import { DifficultyLevelEnum } from '../../../question-bank/entities/enums/DifficultyLevels';
 import {
@@ -67,10 +74,72 @@ function normalizeSubtopicDistribution(payload: AutomaticExamRequest) {
     }));
 }
 
+const JWT_CONFIG = get_jwt_config();
+
+type MaybeAuthUser = { id: string; roles: Roles[] };
+
+function tryGetAuthenticatedUser(req: Request): MaybeAuthUser | null {
+    const token = getAccessToken(req);
+    if (!token) return null;
+
+    try {
+        const decoded = jwt.verify(token, JWT_CONFIG.accessSecret, {
+            issuer: JWT_CONFIG.issuer,
+            audience: JWT_CONFIG.audience,
+        }) as jwt.JwtPayload & { roles?: Roles[] };
+
+        if (!decoded?.sub) {
+            return null;
+        }
+
+        return {
+            id: String(decoded.sub),
+            roles: Array.isArray(decoded.roles) ? decoded.roles : [],
+        };
+    } catch {
+        return null;
+    }
+}
+
 export async function listExams(req: Request, res: Response, next: NextFunction) {
     try {
         const dto = listExamsQuerySchema.parse(req.query);
-        const result = await makeListExamsQuery().execute(dto);
+        const payload = { ...dto };
+        const authUser = tryGetAuthenticatedUser(req);
+        if (authUser && authUser.roles.includes(Roles.TEACHER)) {
+            const teacher = await Teacher.findOne({ where: { userId: authUser.id } });
+            const limit = payload.limit ?? 20;
+            const offset = payload.offset ?? 0;
+            if (!teacher) {
+                const emptyResult = new PaginatedSchema([], { limit, offset, total: 0 });
+                return res.status(200).json(emptyResult);
+            }
+
+            const teacherSubjectRepo = new TeacherSubjectLinkRepository();
+            const assignments = await teacherSubjectRepo.getAssignments(teacher.id);
+            const allowedSubjectIds = assignments.teachingSubjectIds;
+            const requestedSubjectIds =
+                payload.subjectId !== undefined
+                    ? [payload.subjectId]
+                    : payload.subjectIds && payload.subjectIds.length > 0
+                      ? payload.subjectIds
+                      : null;
+
+            const effectiveSubjectIds =
+                requestedSubjectIds?.filter((id) => allowedSubjectIds.includes(id)) ??
+                allowedSubjectIds;
+            const dedupedSubjectIds = Array.from(new Set(effectiveSubjectIds));
+
+            if (dedupedSubjectIds.length === 0) {
+                const emptyResult = new PaginatedSchema([], { limit, offset, total: 0 });
+                return res.status(200).json(emptyResult);
+            }
+
+            payload.subjectIds = dedupedSubjectIds;
+            delete (payload as { subjectId?: string }).subjectId;
+        }
+
+        const result = await makeListExamsQuery().execute(payload);
         res.status(200).json(result);
     } catch (err) {
         next(err);

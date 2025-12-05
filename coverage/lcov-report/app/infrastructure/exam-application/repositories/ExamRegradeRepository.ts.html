@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">77.77% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>7/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">77.77% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>7/9</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -131,21 +131,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -153,10 +143,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -165,7 +154,18 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -186,11 +186,11 @@ import { ExamRegradeMapper } from '../mappers/examRegradeMapper';
 import ExamRegrades from '../models/ExamRegrade';
 &nbsp;
 export class ExamRegradeRepository implements IExamRegradeRepository {
-<span class="fstat-no" title="function not covered" >    constructor(private readonly <span class="cstat-no" title="statement not covered" >m</span>odel: ModelStatic&lt;ExamRegrades&gt;) {</span>}
+    constructor(private readonly model: ModelStatic&lt;ExamRegrades&gt;) {}
 &nbsp;
-    async <span class="fstat-no" title="function not covered" >create(i</span>nput: CreateExamRegradeInput): Promise&lt;ExamRegradeOutput&gt; {
-<span class="cstat-no" title="statement not covered" >        try {</span>
-            const created = <span class="cstat-no" title="statement not covered" >await this.model.create({</span>
+    async create(input: CreateExamRegradeInput): Promise&lt;ExamRegradeOutput&gt; {
+        try {
+            const created = await this.model.create({
                 examId: input.examId,
                 studentId: input.studentId,
                 professorId: input.professorId,
@@ -198,7 +198,7 @@ export class ExamRegradeRepository implements IExamRegradeRepository {
                 status: input.status,
                 requestedAt: input.requestedAt,
             });
-<span class="cstat-no" title="statement not covered" >            return ExamRegradeMapper.toOutput(created);</span>
+            return ExamRegradeMapper.toOutput(created);
         } catch {
 <span class="cstat-no" title="statement not covered" >            throw new BaseDatabaseError({</span>
                 message: 'Error creando la solicitud de recalificación',
@@ -206,12 +206,12 @@ export class ExamRegradeRepository implements IExamRegradeRepository {
         }
     }
 &nbsp;
-    async <span class="fstat-no" title="function not covered" >findActiveByExamAndStudent(</span>
+    async findActiveByExamAndStudent(
         examId: string,
         studentId: string,
     ): Promise&lt;ExamRegradeOutput | null&gt; {
-<span class="cstat-no" title="statement not covered" >        try {</span>
-            const row = <span class="cstat-no" title="statement not covered" >await this.model.findOne({</span>
+        try {
+            const row = await this.model.findOne({
                 where: {
                     examId,
                     studentId,
@@ -220,7 +220,7 @@ export class ExamRegradeRepository implements IExamRegradeRepository {
                     },
                 },
             });
-<span class="cstat-no" title="statement not covered" >            return row ? ExamRegradeMapper.toOutput(row) : null;</span>
+            return row ? ExamRegradeMapper.toOutput(row) : null;
         } catch {
 <span class="cstat-no" title="statement not covered" >            throw new BaseDatabaseError({</span>
                 message: 'Error buscando solicitudes de recalificación activas',
@@ -235,7 +235,7 @@ export class ExamRegradeRepository implements IExamRegradeRepository {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-01T14:27:13.412Z
+                at 2025-12-05T04:48:37.957Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

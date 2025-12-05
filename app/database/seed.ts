@@ -1,7 +1,15 @@
 import { sequelize } from './database';
 import { getHasher } from '../core/security/hasher';
+import { AssignedExamStatus } from '../domains/exam-application/entities/enums/AssignedExamStatus';
+import { ExamRegradesStatus } from '../domains/exam-application/entities/enums/ExamRegradeStatus';
+import { ExamStatusEnum } from '../domains/exam-application/entities/enums/ExamStatusEnum';
 import { DifficultyLevelEnum } from '../domains/question-bank/entities/enums/DifficultyLevels';
 import { QuestionTypeEnum } from '../domains/question-bank/entities/enums/QuestionType';
+import ExamAssignment from '../infrastructure/exam-application/models/ExamAssignment';
+import ExamRegrade from '../infrastructure/exam-application/models/ExamRegrade';
+import ExamResponse from '../infrastructure/exam-application/models/ExamResponse';
+import Exam from '../infrastructure/exam-generation/models/Exam';
+import ExamQuestion from '../infrastructure/exam-generation/models/ExamQuestion';
 import {
     Subject,
     Topic,
@@ -39,6 +47,88 @@ type SubjectSeed = {
     topics: TopicSeed[];
 };
 
+type QuestionMeta = {
+    id: string;
+    subjectId: string;
+    topicId: string;
+    subtopicId: string;
+    difficulty: DifficultyLevelEnum;
+};
+
+type ExamSeed = {
+    subjectName: string;
+    title: string;
+    questionCount: number;
+    difficulty: DifficultyLevelEnum;
+    examStatus: ExamStatusEnum;
+    startIndex: number;
+};
+
+const questionScoreByDifficulty: Record<DifficultyLevelEnum, number> = {
+    [DifficultyLevelEnum.EASY]: 2,
+    [DifficultyLevelEnum.MEDIUM]: 3,
+    [DifficultyLevelEnum.HARD]: 4,
+};
+
+const examSeedData: ExamSeed[] = [
+    {
+        subjectName: 'Bases de Datos I',
+        title: 'Parcial 1 - Modelo relacional',
+        questionCount: 6,
+        difficulty: DifficultyLevelEnum.MEDIUM,
+        examStatus: ExamStatusEnum.DRAFT,
+        startIndex: 0,
+    },
+    {
+        subjectName: 'Bases de Datos I',
+        title: 'Parcial 2 - Consultas y rendimiento',
+        questionCount: 7,
+        difficulty: DifficultyLevelEnum.MEDIUM,
+        examStatus: ExamStatusEnum.UNDER_REVIEW,
+        startIndex: 4,
+    },
+    {
+        subjectName: 'Bases de Datos I',
+        title: 'Examen Final - Transacciones y ACID',
+        questionCount: 8,
+        difficulty: DifficultyLevelEnum.HARD,
+        examStatus: ExamStatusEnum.APPROVED,
+        startIndex: 8,
+    },
+    {
+        subjectName: 'Programación I',
+        title: 'Parcial 1 - Lógica y control',
+        questionCount: 6,
+        difficulty: DifficultyLevelEnum.EASY,
+        examStatus: ExamStatusEnum.DRAFT,
+        startIndex: 0,
+    },
+    {
+        subjectName: 'Programación I',
+        title: 'Parcial 2 - Estructuras y cadenas',
+        questionCount: 7,
+        difficulty: DifficultyLevelEnum.MEDIUM,
+        examStatus: ExamStatusEnum.APPROVED,
+        startIndex: 5,
+    },
+    {
+        subjectName: 'Matemáticas Discretas',
+        title: 'Evaluación 1 - Lógica proposicional',
+        questionCount: 5,
+        difficulty: DifficultyLevelEnum.MEDIUM,
+        examStatus: ExamStatusEnum.APPROVED,
+        startIndex: 0,
+    },
+    {
+        subjectName: 'Matemáticas Discretas',
+        title: 'Evaluación Final - Conjuntos y funciones',
+        questionCount: 6,
+        difficulty: DifficultyLevelEnum.HARD,
+        examStatus: ExamStatusEnum.PUBLISHED,
+        startIndex: 4,
+    },
+];
+
 const teacherSeedData = [
     {
         name: 'Teacher One',
@@ -69,6 +159,83 @@ const studentSeedData = [
     { name: 'Carla Dev', email: 'student3@example.com', age: 21, course: 3 },
     { name: 'Diego Tester', email: 'student4@example.com', age: 23, course: 4 },
 ] as const;
+
+type ExamResponseSeed = {
+    questionIndex: number;
+    selectedOptions?: Array<{ text: string; isCorrect: boolean }>;
+    textAnswer?: string;
+    autoPoints?: number | null;
+    manualPoints?: number | null;
+    answeredAt: Date;
+};
+
+type ExamRegradeSeed = {
+    reason: string;
+    status: ExamRegradesStatus;
+    requestedAt: Date;
+    resolvedAt: Date | null;
+    finalGrade: number | null;
+    reviewerEmail?: string;
+};
+
+type ExamAssignmentSeed = {
+    studentEmail: string;
+    status: AssignedExamStatus;
+    applicationDate: Date;
+    durationMinutes: number;
+    grade?: number | null;
+    professorEmail?: string;
+    responses?: ExamResponseSeed[];
+    regrade?: ExamRegradeSeed;
+};
+
+const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
+    'Examen Final - Transacciones y ACID': [
+        {
+            studentEmail: 'student1@example.com',
+            status: AssignedExamStatus.ENABLED,
+            applicationDate: new Date('2024-01-01T08:00:00Z'),
+            durationMinutes: 1100000, // approx. 2.1 years to keep the exam active through 2026
+        },
+    ],
+    'Parcial 2 - Estructuras y cadenas': [
+        {
+            studentEmail: 'student2@example.com',
+            status: AssignedExamStatus.IN_EVALUATION,
+            applicationDate: new Date('2024-06-05T09:30:00Z'),
+            durationMinutes: 90,
+            responses: [
+                {
+                    questionIndex: 1,
+                    selectedOptions: [
+                        { text: 'Aplicar una pila para invertir cadenas', isCorrect: true },
+                    ],
+                    autoPoints: 3,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-06-05T10:10:00Z'),
+                },
+            ],
+        },
+    ],
+    'Evaluación Final - Conjuntos y funciones': [
+        {
+            studentEmail: 'student3@example.com',
+            status: AssignedExamStatus.PENDING,
+            applicationDate: new Date('2024-06-10T08:00:00Z'),
+            durationMinutes: 100,
+            responses: [
+                {
+                    questionIndex: 1,
+                    textAnswer:
+                        'Una función es biyectiva cuando es inyectiva y sobreyectiva al mismo tiempo.',
+                    autoPoints: 0,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-06-10T09:05:00Z'),
+                },
+            ],
+        },
+    ],
+};
 
 const subjectSeedData: SubjectSeed[] = [
     {
@@ -584,6 +751,12 @@ const subjectSeedData: SubjectSeed[] = [
 async function seed() {
     await sequelize.authenticate();
     const t = await sequelize.transaction();
+    const questionMetaBySubjectId = new Map<string, QuestionMeta[]>();
+    const subjectsByName = new Map<string, Subject>();
+    const leadTeacherBySubjectId = new Map<string, Teacher>();
+    const topicIdsBySubjectId = new Map<string, Set<string>>();
+    const studentsByEmail = new Map<string, Student>();
+    const examSummaries: string[] = [];
 
     try {
         const hasher = getHasher();
@@ -651,7 +824,7 @@ async function seed() {
                 await user.save({ transaction: t });
             }
 
-            await Student.findOrCreate({
+            const [studentProfile] = await Student.findOrCreate({
                 where: { userId: user.id },
                 defaults: {
                     userId: user.id,
@@ -660,6 +833,8 @@ async function seed() {
                 },
                 transaction: t,
             });
+
+            studentsByEmail.set(studentSeed.email, studentProfile);
         }
 
         for (const qt of Object.values(QuestionTypeEnum)) {
@@ -696,6 +871,11 @@ async function seed() {
                 },
                 transaction: t,
             });
+
+            const subjectQuestionMeta: QuestionMeta[] = [];
+            leadTeacherBySubjectId.set(subject.id, teacherProfile);
+            subjectsByName.set(subjectSeed.name, subject);
+            const topicIdsForSubject = new Set<string>();
 
             if (
                 subject.getDataValue('leadTeacherId') !== teacherProfile.id ||
@@ -761,6 +941,16 @@ async function seed() {
                             transaction: t,
                         });
 
+                        subjectQuestionMeta.push({
+                            id: question.getDataValue('id'),
+                            subjectId: subject.id,
+                            topicId: topic.id,
+                            subtopicId: subtopic.id,
+                            difficulty: questionSeed.difficulty,
+                        });
+
+                        topicIdsForSubject.add(topic.id);
+
                         if (!created) {
                             await question.update(payload, { transaction: t });
                         } else {
@@ -770,11 +960,244 @@ async function seed() {
                 }
             }
 
+            questionMetaBySubjectId.set(subject.id, subjectQuestionMeta);
+            topicIdsBySubjectId.set(subject.id, topicIdsForSubject);
+
             subjectSummaries.push({
                 name: subject.getDataValue('name'),
                 topics: subjectSeed.topics.length,
                 questions: createdQuestions,
             });
+        }
+
+        for (const examTemplate of examSeedData) {
+            const subject = subjectsByName.get(examTemplate.subjectName);
+            if (!subject) {
+                examSummaries.push(`- ${examTemplate.title} (ignorado: asignatura no encontrada)`);
+                continue;
+            }
+
+            const allQuestions = questionMetaBySubjectId.get(subject.id) ?? [];
+            if (allQuestions.length < examTemplate.questionCount) {
+                examSummaries.push(
+                    `- ${examTemplate.title} (ignorado: no hay suficientes preguntas)`,
+                );
+                continue;
+            }
+
+            const selected: QuestionMeta[] = [];
+            const seen = new Set<string>();
+            const normalizedStart = examTemplate.startIndex % allQuestions.length;
+            let pointer = normalizedStart;
+            while (
+                selected.length < examTemplate.questionCount &&
+                seen.size < allQuestions.length
+            ) {
+                const candidate = allQuestions[pointer % allQuestions.length];
+                if (!seen.has(candidate.id)) {
+                    seen.add(candidate.id);
+                    selected.push(candidate);
+                }
+                pointer += 1;
+            }
+
+            if (selected.length < examTemplate.questionCount) {
+                examSummaries.push(
+                    `- ${examTemplate.title} (ignorado: no se alcanzó la cantidad solicitada)`,
+                );
+                continue;
+            }
+
+            const sanitizedTopicIds = topicIdsBySubjectId.get(subject.id) ?? new Set<string>();
+            const filteredSelected = selected.filter((meta) => sanitizedTopicIds.has(meta.topicId));
+            if (filteredSelected.length !== selected.length) {
+                throw new Error(
+                    `Seleccion inadvertida de preguntas fuera de la asignatura ${subject.name}`,
+                );
+            }
+
+            const finalSelected = filteredSelected;
+
+            const topicCounts = new Map<string, number>();
+            finalSelected.forEach((meta) =>
+                topicCounts.set(meta.topicId, (topicCounts.get(meta.topicId) ?? 0) + 1),
+            );
+
+            const topicProportion = Object.fromEntries(
+                Array.from(topicCounts.entries()).map(([topicId, count]) => [
+                    topicId,
+                    Number((count / finalSelected.length).toFixed(2)),
+                ]),
+            );
+
+            const topicCoverage = {
+                mode: 'manual-seed',
+                subjectId: subject.id,
+                difficulty: examTemplate.difficulty,
+                questionIds: finalSelected.map((item) => item.id),
+                topicIds: Array.from(new Set(finalSelected.map((item) => item.topicId))),
+            };
+
+            const teacherProfile = leadTeacherBySubjectId.get(subject.id);
+            if (!teacherProfile) {
+                examSummaries.push(`- ${examTemplate.title} (ignorado: sin docente asignado)`);
+                continue;
+            }
+
+            const shouldValidate =
+                examTemplate.examStatus === ExamStatusEnum.APPROVED ||
+                examTemplate.examStatus === ExamStatusEnum.PUBLISHED;
+
+            const examPayload = {
+                title: examTemplate.title,
+                subjectId: subject.id,
+                difficulty: examTemplate.difficulty,
+                examStatus: examTemplate.examStatus,
+                authorId: teacherProfile.id,
+                validatorId: shouldValidate ? teacherProfile.id : null,
+                observations: 'Evaluación cargada desde seed automatizado',
+                questionCount: finalSelected.length,
+                topicProportion,
+                topicCoverage,
+                validatedAt: shouldValidate ? new Date() : null,
+            };
+
+            const createdExam = await Exam.create(examPayload, { transaction: t });
+
+            const examQuestionRows = finalSelected.map((questionMeta, idx) => ({
+                examId: createdExam.id,
+                questionId: questionMeta.id,
+                questionIndex: idx + 1,
+                questionScore: questionScoreByDifficulty[questionMeta.difficulty] ?? 1,
+            }));
+            await ExamQuestion.bulkCreate(examQuestionRows, { transaction: t });
+
+            const examQuestions = await ExamQuestion.findAll({
+                where: { examId: createdExam.id },
+                transaction: t,
+            });
+            const questionByIndex = new Map<number, ExamQuestion>();
+            examQuestions.forEach((item) => questionByIndex.set(item.questionIndex, item));
+
+            const assignmentSpecs = assignmentSeedByExamTitle[createdExam.title] ?? [];
+            if (assignmentSpecs.length > 0) {
+                for (const assignmentSpec of assignmentSpecs) {
+                    const studentProfile = studentsByEmail.get(assignmentSpec.studentEmail);
+                    if (!studentProfile) {
+                        continue;
+                    }
+
+                    const professorProfileForAssignment = assignmentSpec.professorEmail
+                        ? teacherProfilesByEmail.get(assignmentSpec.professorEmail)
+                        : teacherProfile;
+                    if (!professorProfileForAssignment) {
+                        continue;
+                    }
+
+                    const [examAssignmentRow] = await ExamAssignment.findOrCreate({
+                        where: {
+                            studentId: studentProfile.id,
+                            examId: createdExam.id,
+                            professorId: professorProfileForAssignment.id,
+                        },
+                        defaults: {
+                            durationMinutes: assignmentSpec.durationMinutes,
+                            applicationDate: assignmentSpec.applicationDate,
+                            status: assignmentSpec.status,
+                            grade: assignmentSpec.grade ?? null,
+                        },
+                        transaction: t,
+                    });
+
+                    const assignmentUpdate: Record<string, unknown> = {
+                        durationMinutes: assignmentSpec.durationMinutes,
+                        applicationDate: assignmentSpec.applicationDate,
+                        status: assignmentSpec.status,
+                    };
+                    if (typeof assignmentSpec.grade !== 'undefined') {
+                        assignmentUpdate.grade = assignmentSpec.grade;
+                    }
+                    examAssignmentRow.set(assignmentUpdate);
+                    await examAssignmentRow.save({ transaction: t });
+
+                    if (assignmentSpec.responses) {
+                        for (const responseSpec of assignmentSpec.responses) {
+                            const examQuestion = questionByIndex.get(responseSpec.questionIndex);
+                            if (!examQuestion) {
+                                continue;
+                            }
+
+                            const [responseRow] = await ExamResponse.findOrCreate({
+                                where: {
+                                    studentId: studentProfile.id,
+                                    examQuestionId: examQuestion.id,
+                                },
+                                defaults: {
+                                    examId: createdExam.id,
+                                    selectedOptions: responseSpec.selectedOptions ?? null,
+                                    textAnswer: responseSpec.textAnswer ?? null,
+                                    autoPoints: responseSpec.autoPoints ?? null,
+                                    manualPoints:
+                                        typeof responseSpec.manualPoints !== 'undefined'
+                                            ? responseSpec.manualPoints
+                                            : null,
+                                    answeredAt: responseSpec.answeredAt,
+                                },
+                                transaction: t,
+                            });
+
+                            responseRow.set({
+                                examId: createdExam.id,
+                                selectedOptions: responseSpec.selectedOptions ?? null,
+                                textAnswer: responseSpec.textAnswer ?? null,
+                                autoPoints: responseSpec.autoPoints ?? null,
+                                manualPoints:
+                                    typeof responseSpec.manualPoints !== 'undefined'
+                                        ? responseSpec.manualPoints
+                                        : null,
+                                answeredAt: responseSpec.answeredAt,
+                            });
+                            await responseRow.save({ transaction: t });
+                        }
+                    }
+
+                    if (assignmentSpec.regrade) {
+                        const reviewerProfile = assignmentSpec.regrade.reviewerEmail
+                            ? teacherProfilesByEmail.get(assignmentSpec.regrade.reviewerEmail)
+                            : professorProfileForAssignment;
+                        const reviewerId = reviewerProfile?.id ?? professorProfileForAssignment.id;
+
+                        const [regradeRow] = await ExamRegrade.findOrCreate({
+                            where: {
+                                studentId: studentProfile.id,
+                                examId: createdExam.id,
+                                professorId: reviewerId,
+                                reason: assignmentSpec.regrade.reason,
+                            },
+                            defaults: {
+                                status: assignmentSpec.regrade.status,
+                                requestedAt: assignmentSpec.regrade.requestedAt,
+                                resolvedAt: assignmentSpec.regrade.resolvedAt,
+                                finalGrade: assignmentSpec.regrade.finalGrade,
+                            },
+                            transaction: t,
+                        });
+
+                        regradeRow.set({
+                            status: assignmentSpec.regrade.status,
+                            requestedAt: assignmentSpec.regrade.requestedAt,
+                            resolvedAt: assignmentSpec.regrade.resolvedAt,
+                            finalGrade: assignmentSpec.regrade.finalGrade,
+                            reason: assignmentSpec.regrade.reason,
+                        });
+                        await regradeRow.save({ transaction: t });
+                    }
+                }
+            }
+
+            examSummaries.push(
+                `- ${createdExam.title} (${createdExam.examStatus}) · ${finalSelected.length} preguntas · materia ${examTemplate.subjectName}`,
+            );
         }
 
         await t.commit();
@@ -787,6 +1210,10 @@ async function seed() {
                 `- ${summary.name}: ${summary.topics} temas, ${summary.questions} nuevas preguntas`,
             );
         });
+        if (examSummaries.length) {
+            console.log('Exámenes generados:');
+            examSummaries.forEach((summary) => console.log(summary));
+        }
     } catch (err) {
         await t.rollback();
         console.error('Seed falló:', err);
