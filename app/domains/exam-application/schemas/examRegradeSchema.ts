@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { StudentExamAssignmentItem } from './examAssignmentSchema';
 import { ExamRegradesStatus } from '../entities/enums/ExamRegradeStatus';
 
 // ===== Body for requesting exam regrade =====
@@ -23,6 +24,16 @@ export const requestExamRegradeCommandSchema = requestExamRegradeBodySchema.exte
 });
 
 export type RequestExamRegradeCommandSchema = z.infer<typeof requestExamRegradeCommandSchema>;
+
+export const listPendingExamRegradesQuerySchema = z
+    .object({
+        currentUserId: z.string().uuid(),
+        page: z.coerce.number().int().min(1).default(1),
+        limit: z.coerce.number().int().min(1).max(50).default(10),
+    })
+    .strict();
+
+export type ListPendingExamRegradesQuery = z.infer<typeof listPendingExamRegradesQuerySchema>;
 
 // ===== Params =====
 export const regradeIdParamsSchema = z
@@ -49,3 +60,10 @@ export const examRegradeOutputSchema = z
     .strict();
 
 export type ExamRegradeOutput = z.infer<typeof examRegradeOutputSchema>;
+
+export type PendingExamRegradeItem = StudentExamAssignmentItem & {
+    regradeId: string;
+    reason: string | null;
+    requestedAt: Date;
+    regradeStatus: ExamRegradesStatus;
+};

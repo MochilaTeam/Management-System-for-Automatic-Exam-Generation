@@ -775,6 +775,37 @@ const swaggerDefinition = {
                     },
                 },
             },
+            PendingExamRegradeListItem: {
+                allOf: [
+                    { $ref: '#/components/schemas/StudentExamAssignmentListResponse' },
+                    {
+                        type: 'object',
+                        properties: {
+                            regradeId: {
+                                type: 'string',
+                                format: 'uuid',
+                                description: 'ID de la solicitud de recalificación',
+                            },
+                            reason: {
+                                type: 'string',
+                                nullable: true,
+                                description: 'Motivo proporcionado por el estudiante',
+                            },
+                            requestedAt: {
+                                type: 'string',
+                                format: 'date-time',
+                                description: 'Fecha en la que se solicitó la recalificación',
+                            },
+                            regradeStatus: {
+                                type: 'string',
+                                enum: ['REQUESTED', 'IN_REVIEW'],
+                                description: 'Estado actual de la solicitud de recalificación',
+                            },
+                        },
+                        required: ['regradeId', 'requestedAt', 'regradeStatus'],
+                    },
+                ],
+            },
             ExamResponseInput: {
                 type: 'object',
                 required: ['examId', 'examQuestionId'],

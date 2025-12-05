@@ -4,6 +4,7 @@ import { CreateExamAssignmentCommand } from '../../../domains/exam-application/a
 import { RequestExamRegradeCommand } from '../../../domains/exam-application/application/commands/requestExamRegradeCommand';
 import { SendExamToEvaluatorCommand } from '../../../domains/exam-application/application/commands/sendExamToEvaluatorCommand';
 import { ListEvaluatorExamsQuery } from '../../../domains/exam-application/application/queries/listEvaluatorExamsQuery';
+import { ListPendingExamRegradesQuery } from '../../../domains/exam-application/application/queries/listPendingExamRegradesQuery';
 import { ListStudentExamsQuery } from '../../../domains/exam-application/application/queries/listStudentExamsQuery';
 import { ExamAssignmentService } from '../../../domains/exam-application/domain/services/examAssigmentService';
 import ExamAssignments from '../../../infrastructure/exam-application/models/ExamAssignment';
@@ -25,6 +26,7 @@ let _createCmd: CreateExamAssignmentCommand | null = null;
 let _sendExamToEvaluatorCmd: SendExamToEvaluatorCommand | null = null;
 let _listStudentExamsQuery: ListStudentExamsQuery | null = null;
 let _listEvaluatorExamsQuery: ListEvaluatorExamsQuery | null = null;
+let _listPendingExamRegradesQuery: ListPendingExamRegradesQuery | null = null;
 let _requestExamRegradeCmd: RequestExamRegradeCommand | null = null;
 let _calculateExamGradeCmd: CalculateExamGradeCommand | null = null;
 
@@ -103,4 +105,10 @@ export function makeListEvaluatorExamsQuery() {
     if (_listEvaluatorExamsQuery) return _listEvaluatorExamsQuery;
     _listEvaluatorExamsQuery = new ListEvaluatorExamsQuery(makeExamAssignmentService());
     return _listEvaluatorExamsQuery;
+}
+
+export function makeListPendingExamRegradesQuery() {
+    if (_listPendingExamRegradesQuery) return _listPendingExamRegradesQuery;
+    _listPendingExamRegradesQuery = new ListPendingExamRegradesQuery(makeExamAssignmentService());
+    return _listPendingExamRegradesQuery;
 }
