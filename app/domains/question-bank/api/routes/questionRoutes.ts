@@ -1,5 +1,7 @@
 import { Router } from 'express';
 
+import { requireRoles } from '../../../../core/middlewares/authorize';
+import { Roles } from '../../../../shared/enums/rolesEnum';
 import {
     createQuestion,
     deleteQuestion,
@@ -7,8 +9,6 @@ import {
     listQuestions,
     updateQuestion,
 } from '../controllers/questionController';
-import { requireRoles } from '../../../../core/middlewares/authorize';
-import { Roles } from '../../../../shared/enums/rolesEnum';
 
 const router = Router();
 

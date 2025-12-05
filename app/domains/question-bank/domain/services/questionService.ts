@@ -334,7 +334,7 @@ export class QuestionService extends BaseDomainService {
         return { list: items, total };
     }
 
-    async get_detail_by_id(id: string, currentUserId: string): Promise<QuestionDetail | null> {
+    async get_detail_by_id(id: string): Promise<QuestionDetail | null> {
         const question = await this.repo.get_detail_by_id(id);
         if (!question) return null;
         return question;
