@@ -29,6 +29,7 @@ export interface ITeacherRepository {
     get_by_id(id: string): Promise<TeacherRead | null>;
     list(criteria: ListTeachersCriteria): Promise<TeacherRead[]>;
     paginate(criteria: ListTeachersCriteria): Promise<Page<TeacherRead>>;
+    findByIds(ids: string[]): Promise<TeacherRead[]>;
 
     existsBy(filters: { userId?: string }): Promise<boolean>;
 

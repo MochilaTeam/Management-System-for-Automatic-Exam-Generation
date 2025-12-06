@@ -104,6 +104,18 @@ export class TeacherRepository
         );
     }
 
+    async findByIds(ids: string[], tx?: Transaction): Promise<TeacherRead[]> {
+        if (ids.length === 0) return [];
+        const include: Includeable[] = [{ model: User, as: 'user' }];
+        return this.listByOptions(
+            {
+                where: { id: ids },
+                include,
+            },
+            tx,
+        );
+    }
+
     async existsBy(filters: { userId?: string }, tx?: Transaction): Promise<boolean> {
         const where = TeacherMapper.toWhereFromFilters({ userId: filters.userId }).where;
         return super.exists(where, tx);

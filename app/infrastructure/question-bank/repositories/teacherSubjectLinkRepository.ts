@@ -114,6 +114,20 @@ export class TeacherSubjectLinkRepository
         }
     }
 
+    async findTeachersForSubject(subjectId: string, tx?: Transaction): Promise<string[]> {
+        if (!subjectId) return [];
+
+        const rows = await TeacherSubject.findAll({
+            where: { subjectId },
+            attributes: ['teacherId'],
+            transaction: this.effTx(tx),
+        });
+        const teacherIds = rows.map(
+            (row) => (row.get({ plain: true }) as TeacherSubjectPlain).teacherId,
+        );
+        return Array.from(new Set(teacherIds));
+    }
+
     async getAssignments(teacherId: string, tx?: Transaction): Promise<TeacherSubjectAssignments> {
         const map = await this.getAssignmentsForTeachers([teacherId], tx);
         return map.get(teacherId) ?? this.emptyAssignments();

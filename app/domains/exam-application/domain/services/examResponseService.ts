@@ -8,6 +8,8 @@ import { IExamQuestionRepository } from '../../../exam-generation/domain/ports/I
 import { IQuestionRepository } from '../../../question-bank/domain/ports/IQuestionRepository';
 import { QuestionDetail } from '../../../question-bank/schemas/questionSchema';
 import { IStudentRepository } from '../../../user/domain/ports/IStudentRepository';
+import { ITeacherRepository } from '../../../user/domain/ports/ITeacherRepository';
+import { ITeacherSubjectLinkRepository } from '../../../user/domain/ports/ITeacherSubjectLinkRepository';
 import { AssignedExamStatus } from '../../entities/enums/AssignedExamStatus'; //TODO: CAMBIAR LOS ENUMS DE LUGAR
 import {
     CreateExamResponseCommandSchema,
@@ -15,6 +17,7 @@ import {
     GetExamResponseByIndexQuerySchema,
     GetExamQuestionDetailQuerySchema,
     UpdateExamResponseCommandSchema,
+    UpdateManualPointsCommandSchema,
 } from '../../schemas/examResponseSchema';
 import { IExamAssignmentRepository } from '../ports/IExamAssignmentRepository';
 import { IExamResponseRepository } from '../ports/IExamResponseRepository';
@@ -25,6 +28,8 @@ type Deps = {
     questionRepo: IQuestionRepository;
     studentRepo: IStudentRepository;
     examQuestionRepo: IExamQuestionRepository;
+    teacherRepo: ITeacherRepository;
+    teacherSubjectLinkRepo: ITeacherSubjectLinkRepository;
 };
 
 export class ExamResponseService extends BaseDomainService {
@@ -33,6 +38,8 @@ export class ExamResponseService extends BaseDomainService {
     private readonly questionRepo: IQuestionRepository;
     private readonly studentRepo: IStudentRepository;
     private readonly examQuestionRepo: IExamQuestionRepository;
+    private readonly teacherRepo: ITeacherRepository;
+    private readonly teacherSubjectLinkRepo: ITeacherSubjectLinkRepository;
 
     constructor({
         examResponseRepo,
@@ -40,6 +47,8 @@ export class ExamResponseService extends BaseDomainService {
         questionRepo,
         studentRepo,
         examQuestionRepo,
+        teacherRepo,
+        teacherSubjectLinkRepo,
     }: Deps) {
         super();
         this.examResponseRepo = examResponseRepo;
@@ -47,6 +56,8 @@ export class ExamResponseService extends BaseDomainService {
         this.questionRepo = questionRepo;
         this.studentRepo = studentRepo;
         this.examQuestionRepo = examQuestionRepo;
+        this.teacherRepo = teacherRepo;
+        this.teacherSubjectLinkRepo = teacherSubjectLinkRepo;
     }
 
     async createExamResponse(input: CreateExamResponseCommandSchema): Promise<ExamResponseOutput> {
@@ -105,6 +116,58 @@ export class ExamResponseService extends BaseDomainService {
 
         this.logOperationSuccess(operation);
         return updated;
+    }
+
+    async updateManualPoints(input: UpdateManualPointsCommandSchema): Promise<void> {
+        const operation = 'update-manual-points';
+        this.logOperationStart(operation);
+
+        const teacher = await this.getTeacherByUserId(input.currentUserId);
+        const response = await this.examResponseRepo.findById(input.responseId);
+        if (!response) {
+            throw new NotFoundError({ message: 'No se encontró la respuesta' });
+        }
+
+        const assignment = await this.examAssignmentRepo.findByExamIdAndStudentId(
+            response.examId,
+            response.studentId,
+        );
+        if (!assignment) {
+            throw new NotFoundError({ message: 'Asignación no encontrada' });
+        }
+
+        await this.ensureTeacherCanReviewExam(operation, teacher.id, assignment.subjectId);
+
+        await this.examResponseRepo.updateManualPoints(input.responseId, input.manualPoints);
+        this.logOperationSuccess(operation);
+    }
+
+    private async getTeacherByUserId(userId: string) {
+        const teachers = await this.teacherRepo.list({
+            filters: { userId },
+            limit: 1,
+        });
+        const teacher = teachers[0];
+        if (!teacher) {
+            throw new NotFoundError({ message: 'Profesor no encontrado' });
+        }
+        return teacher;
+    }
+
+    private async ensureTeacherCanReviewExam(
+        operation: string,
+        teacherId: string,
+        subjectId: string,
+    ) {
+        const assignments = await this.teacherSubjectLinkRepo.getAssignments(teacherId);
+        const canReview =
+            assignments.teachingSubjectIds.includes(subjectId) ||
+            assignments.leadSubjectIds.includes(subjectId);
+        if (!canReview) {
+            this.raiseBusinessRuleError(operation, 'PROFESOR NO ASIGNADO A LA MATERIA', {
+                entity: 'Subject',
+            });
+        }
     }
 
     async getResponseByQuestionIndex(

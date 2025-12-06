@@ -5,6 +5,7 @@ import {
     deleteTeacher,
     getTeacherById,
     listTeachers,
+    listTeachersBySubject,
     updateTeacher,
 } from '../controllers/teacherController';
 
@@ -86,6 +87,32 @@ const router = Router();
  */
 router.get('/teacher', listTeachers);
 router.post('/teacher', createTeacher);
+
+/**
+ * @openapi
+ * /teacher/subject/{subjectId}:
+ *   get:
+ *     tags:
+ *       - Teachers
+ *     summary: Listar docentes que imparten una asignatura
+ *     parameters:
+ *       - in: path
+ *         name: subjectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Lista de docentes asociados a la asignatura
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Teacher'
+ */
+router.get('/teacher/subject/:subjectId', listTeachersBySubject);
 
 /**
  * @openapi

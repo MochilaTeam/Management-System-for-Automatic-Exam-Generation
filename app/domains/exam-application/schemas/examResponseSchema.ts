@@ -38,6 +38,16 @@ export const updateExamResponseCommandSchema = responsePayloadSchema
 
 export type UpdateExamResponseCommandSchema = z.infer<typeof updateExamResponseCommandSchema>;
 
+export const updateManualPointsCommandSchema = z
+    .object({
+        responseId: z.string().uuid(),
+        manualPoints: z.number().min(0),
+        currentUserId: z.string().uuid(),
+    })
+    .strict();
+
+export type UpdateManualPointsCommandSchema = z.infer<typeof updateManualPointsCommandSchema>;
+
 // ===== Params =====
 export const responseIdParamsSchema = z
     .object({

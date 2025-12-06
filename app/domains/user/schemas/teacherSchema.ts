@@ -30,6 +30,12 @@ export const teacherIdParamsSchema = z
     })
     .strict();
 
+export const subjectIdParamsSchema = z
+    .object({
+        subjectId: z.string().uuid(),
+    })
+    .strict();
+
 //Commands (entrada HTTP)
 export const createTeacherCommandSchema = z
     .object({
@@ -130,3 +136,4 @@ export type TeacherUpdate = z.infer<typeof teacherUpdateSchema>;
 
 export type TeacherRead = z.infer<typeof teacherReadSchema>;
 export type ListTeachers = z.infer<typeof listTeachersQuerySchema>;
+export type SubjectIdParams = z.infer<typeof subjectIdParamsSchema>;
