@@ -88,8 +88,10 @@ export class ExamAssignmentRepository implements IExamAssignmentRepository {
         tx?: Transaction,
     ): Promise<StudentExamAssignmentItem | null> {
         try {
+            const includes = await this.buildDetailIncludes();
             const assignment = await this.model.findOne({
                 where: { examId, studentId },
+                include: includes,
                 transaction: this.effTx(tx),
             });
 

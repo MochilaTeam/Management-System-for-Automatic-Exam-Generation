@@ -1,15 +1,14 @@
 import { NextFunction, Response } from 'express';
 
-import { makeCalculateExamGradeCommand } from '../../../../core/dependencies/exam-application/examAssignment';
 import {
     makeCreateExamResponseCommand,
     makeGetExamQuestionDetailQuery,
     makeGetExamResponseByIndexQuery,
     makeUpdateExamResponseCommand,
+    makeUpdateManualPointsCommand,
 } from '../../../../core/dependencies/exam-application/examResponses';
 import { UnauthorizedError } from '../../../../shared/exceptions/domainErrors';
 import { AuthenticatedRequest } from '../../../../shared/types/http/AuthenticatedRequest';
-import { calculateExamGradeCommandSchema } from '../../schemas/examAssignmentSchema';
 import {
     createExamResponseCommandSchema,
     examResponseByIndexParamsSchema,
@@ -17,6 +16,7 @@ import {
     getExamResponseByIndexQuerySchema,
     responseIdParamsSchema,
     updateExamResponseCommandSchema,
+    updateManualPointsCommandSchema,
 } from '../../schemas/examResponseSchema';
 
 export async function createExamResponse(
@@ -118,7 +118,7 @@ export async function getExamQuestionDetail(
     }
 }
 
-export async function calculateExamGrade(
+export async function updateManualPoints(
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction,
@@ -130,14 +130,18 @@ export async function calculateExamGrade(
         }
 
         const { responseId } = responseIdParamsSchema.parse(req.params);
-        const payload = calculateExamGradeCommandSchema.parse({
+        const validatedData = updateManualPointsCommandSchema.parse({
+            manualPoints: req.body.manualPoints,
             responseId,
             currentUserId,
         });
 
-        const result = await makeCalculateExamGradeCommand().execute(payload);
+        const result = await makeUpdateManualPointsCommand().execute(validatedData);
+
         res.status(200).json(result);
     } catch (err) {
         next(err);
     }
 }
+
+

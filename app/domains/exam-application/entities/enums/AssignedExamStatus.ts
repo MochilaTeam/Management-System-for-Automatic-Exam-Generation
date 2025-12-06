@@ -4,5 +4,7 @@ export enum AssignedExamStatus {
     IN_EVALUATION = 'IN_EVALUATION',
     SUBMITTED = 'SUBMITTED',
     GRADED = 'GRADED',
+    REGRADING = 'REGRADING',
+    REGRADED = 'REGRADED',
     CANCELLED = 'CANCELLED',
 }

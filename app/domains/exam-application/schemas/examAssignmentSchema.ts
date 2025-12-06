@@ -46,7 +46,7 @@ export type SendExamToEvaluatorCommandSchema = z.infer<typeof sendExamToEvaluato
 
 export const calculateExamGradeCommandSchema = z
     .object({
-        responseId: z.string().uuid(),
+        assignmentId: z.string().uuid(),
         currentUserId: z.string().uuid(),
     })
     .strict();
@@ -109,6 +109,7 @@ export const studentExamAssignmentItemSchema = z
     .object({
         id: z.string().uuid(),
         examId: z.string().uuid(),
+        studentId: z.string().uuid(),
         subjectId: z.string().uuid(),
         subjectName: z.string(),
         teacherId: z.string().uuid(),

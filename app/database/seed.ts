@@ -96,6 +96,22 @@ const examSeedData: ExamSeed[] = [
         startIndex: 8,
     },
     {
+        subjectName: 'Bases de Datos I',
+        title: 'Evaluación Recuperación - Integridad y Consultas',
+        questionCount: 5,
+        difficulty: DifficultyLevelEnum.MEDIUM,
+        examStatus: ExamStatusEnum.PUBLISHED,
+        startIndex: 2,
+    },
+    {
+        subjectName: 'Bases de Datos I',
+        title: 'Revisión Especial - Optimización SQL',
+        questionCount: 4,
+        difficulty: DifficultyLevelEnum.HARD,
+        examStatus: ExamStatusEnum.PUBLISHED,
+        startIndex: 6,
+    },
+    {
         subjectName: 'Programación I',
         title: 'Parcial 1 - Lógica y control',
         questionCount: 6,
@@ -126,15 +142,6 @@ const examSeedData: ExamSeed[] = [
         difficulty: DifficultyLevelEnum.HARD,
         examStatus: ExamStatusEnum.PUBLISHED,
         startIndex: 4,
-    },
-    {
-        subjectName: 'Bases de Datos I',
-        title: 'Examen Automático - SQL equilibrado',
-        questionCount: 5,
-        difficulty: DifficultyLevelEnum.MEDIUM,
-        examStatus: ExamStatusEnum.APPROVED,
-        startIndex: 2,
-        coverageMode: 'automatic',
     },
 ];
 
@@ -207,6 +214,86 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
             durationMinutes: 1100000, // approx. 2.1 years to keep the exam active through 2026
         },
     ],
+    'Evaluación Recuperación - Integridad y Consultas': [
+        {
+            studentEmail: 'student2@example.com',
+            status: AssignedExamStatus.IN_EVALUATION,
+            applicationDate: new Date('2024-09-01T14:00:00Z'),
+            durationMinutes: 95,
+            professorEmail: 'teacher1@example.com',
+            responses: [
+                {
+                    questionIndex: 1,
+                    selectedOptions: [{ text: 'Aplicar claves compuestas', isCorrect: true }],
+                    autoPoints: 3,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-09-01T14:20:00Z'),
+                },
+                {
+                    questionIndex: 2,
+                    textAnswer:
+                        'Utilizar índices cubrientes en consultas que combinan filtrado por fecha e ID.',
+                    autoPoints: 0,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-09-01T14:27:00Z'),
+                },
+                {
+                    questionIndex: 3,
+                    selectedOptions: [{ text: 'Asegurar atomicidad con transacciones', isCorrect: true }],
+                    autoPoints: 3,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-09-01T14:33:00Z'),
+                },
+            ],
+        },
+    ],
+    'Revisión Especial - Optimización SQL': [
+        {
+            studentEmail: 'student3@example.com',
+            status: AssignedExamStatus.REGRADING,
+            applicationDate: new Date('2024-08-20T13:30:00Z'),
+            durationMinutes: 110,
+            grade: 72.5,
+            professorEmail: 'teacher1@example.com',
+            responses: [
+                {
+                    questionIndex: 1,
+                    selectedOptions: [{ text: 'Usar EXPLAIN ANALYZE', isCorrect: true }],
+                    autoPoints: 4,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-08-20T13:45:00Z'),
+                },
+                {
+                    questionIndex: 2,
+                    textAnswer: 'La escritura diferida reduce bloqueos pero incrementa trabajo I/O posterior.',
+                    autoPoints: 0,
+                    manualPoints: 6,
+                    answeredAt: new Date('2024-08-20T13:58:00Z'),
+                },
+                {
+                    questionIndex: 3,
+                    selectedOptions: [{ text: 'Crear índice parcial', isCorrect: true }],
+                    autoPoints: 4,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-08-20T14:05:00Z'),
+                },
+                {
+                    questionIndex: 4,
+                    textAnswer: 'Aplicar particionamiento por rango para acelerar reportes históricos.',
+                    autoPoints: 0,
+                    manualPoints: 8,
+                    answeredAt: new Date('2024-08-20T14:15:00Z'),
+                },
+            ],
+            regrade: {
+                reason: 'Se solicita recalcular la rúbrica de las preguntas abiertas.',
+                status: ExamRegradesStatus.IN_REVIEW,
+                requestedAt: new Date('2024-09-05T10:00:00Z'),
+                resolvedAt: null,
+                finalGrade: null,
+            },
+        },
+    ],
     'Parcial 2 - Estructuras y cadenas': [
         {
             studentEmail: 'student2@example.com',
@@ -240,6 +327,69 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
                     autoPoints: 0,
                     manualPoints: null,
                     answeredAt: new Date('2024-06-10T09:05:00Z'),
+                },
+            ],
+        },
+        {
+            studentEmail: 'student1@example.com',
+            status: AssignedExamStatus.ENABLED,
+            applicationDate: new Date('2025-12-01T08:00:00Z'),
+            durationMinutes: 1000000,
+        },
+        {
+            studentEmail: 'student1@example.com',
+            status: AssignedExamStatus.GRADED,
+            applicationDate: new Date('2024-11-15T08:00:00Z'),
+            durationMinutes: 100,
+            grade: 85.50,
+            responses: [
+                {
+                    questionIndex: 1,
+                    selectedOptions: [{ text: '{1,2,3}', isCorrect: true }],
+                    autoPoints: 16.67,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-11-15T08:15:00Z'),
+                },
+                {
+                    questionIndex: 2,
+                    selectedOptions: [{ text: 'Verdadero', isCorrect: true }],
+                    autoPoints: 16.67,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-11-15T08:25:00Z'),
+                },
+                {
+                    questionIndex: 3,
+                    selectedOptions: [
+                        { text: 'Cada elemento se relaciona consigo mismo', isCorrect: true },
+                    ],
+                    autoPoints: 16.67,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-11-15T08:35:00Z'),
+                },
+                {
+                    questionIndex: 4,
+                    textAnswer:
+                        'Se puede construir una relación R sobre el conjunto {1,2,3} donde R={(1,1),(2,2),(3,3),(1,2),(2,1)} es reflexiva porque cada elemento se relaciona consigo mismo, es simétrica porque si (a,b) está en R entonces (b,a) también lo está, pero no es transitiva porque aunque (1,2) y (2,1) están en R, no necesariamente (1,1) debe existir por transitividad en este caso específico.',
+                    autoPoints: 0,
+                    manualPoints: 18.00,
+                    answeredAt: new Date('2024-11-15T08:55:00Z'),
+                },
+                {
+                    questionIndex: 5,
+                    selectedOptions: [
+                        { text: 'Es inyectiva y sobreyectiva a la vez', isCorrect: true },
+                    ],
+                    autoPoints: 16.67,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-11-15T09:05:00Z'),
+                },
+                {
+                    questionIndex: 6,
+                    textAnswer:
+                        'Para construir la inversa de una funcion biyectiva f: A -> B, se intercambian los elementos de cada par ordenado. Es decir, si f(a)=b entonces f^-1(b)=a.',
+                    autoPoints: 0,
+                    manualPoints: 0.82,
+                    answeredAt: new Date('2024-11-15T09:20:00Z'),
                 },
             ],
         },
@@ -1027,6 +1177,33 @@ async function seed() {
 
             const finalSelected = filteredSelected;
 
+            const questionWeights = finalSelected.map(
+                (meta) => questionScoreByDifficulty[meta.difficulty] ?? 1,
+            );
+            const totalWeight = questionWeights.reduce((acc, weight) => acc + weight, 0);
+            if (totalWeight <= 0) {
+                throw new Error(
+                    `No se pudieron calcular los puntos para ${examTemplate.title}: pesos inválidos`,
+                );
+            }
+
+            const normalizedScores = questionWeights.map((weight) =>
+                Number(((weight / totalWeight) * 100).toFixed(2)),
+            );
+
+            const totalNormalized = normalizedScores.reduce((acc, value) => acc + value, 0);
+            const roundingError = Number((100 - totalNormalized).toFixed(2));
+            if (Math.abs(roundingError) >= 0.01 && normalizedScores.length > 0) {
+                const targetIndex = normalizedScores.reduce(
+                    (bestIndex, _, index) =>
+                        normalizedScores[index] > normalizedScores[bestIndex] ? index : bestIndex,
+                    0,
+                );
+                normalizedScores[targetIndex] = Number(
+                    (normalizedScores[targetIndex] + roundingError).toFixed(2),
+                );
+            }
+
             const topicCounts = new Map<string, number>();
             finalSelected.forEach((meta) =>
                 topicCounts.set(meta.topicId, (topicCounts.get(meta.topicId) ?? 0) + 1),
@@ -1077,7 +1254,7 @@ async function seed() {
                 examId: createdExam.id,
                 questionId: questionMeta.id,
                 questionIndex: idx + 1,
-                questionScore: questionScoreByDifficulty[questionMeta.difficulty] ?? 1,
+                questionScore: normalizedScores[idx],
             }));
             await ExamQuestion.bulkCreate(examQuestionRows, { transaction: t });
 
@@ -1089,7 +1266,7 @@ async function seed() {
             examQuestions.forEach((item) => questionByIndex.set(item.questionIndex, item));
 
             const assignmentSpecs = assignmentSeedByExamTitle[createdExam.title] ?? [];
-            if (assignmentSpecs.length > 0) {
+            if (assignmentSpecs.length > 0 && createdExam.examStatus === ExamStatusEnum.PUBLISHED) {
                 for (const assignmentSpec of assignmentSpecs) {
                     const studentProfile = studentsByEmail.get(assignmentSpec.studentEmail);
                     if (!studentProfile) {
