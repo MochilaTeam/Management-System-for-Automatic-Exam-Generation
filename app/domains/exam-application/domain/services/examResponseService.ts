@@ -11,6 +11,7 @@ import { IStudentRepository } from '../../../user/domain/ports/IStudentRepositor
 import { ITeacherRepository } from '../../../user/domain/ports/ITeacherRepository';
 import { ITeacherSubjectLinkRepository } from '../../../user/domain/ports/ITeacherSubjectLinkRepository';
 import { AssignedExamStatus } from '../../entities/enums/AssignedExamStatus'; //TODO: CAMBIAR LOS ENUMS DE LUGAR
+import { StudentExamAssignmentItem } from '../../schemas/examAssignmentSchema';
 import {
     CreateExamResponseCommandSchema,
     ExamResponseOutput,
@@ -176,8 +177,15 @@ export class ExamResponseService extends BaseDomainService {
         const operation = 'get-exam-response-by-index';
         this.logOperationStart(operation);
 
-        const student = await this.getStudentByUserId(input.user_id);
-        await this.getAssignmentOrThrow(input.examId, student.id);
+        const accessContext = await this.resolveExamAccessContext(
+            operation,
+            input.examId,
+            input.user_id,
+            {
+                targetStudentId: input.studentId,
+                requireStudentForTeacher: true,
+            },
+        );
 
         const examQuestion = await this.examQuestionRepo.findByExamIdAndIndex(
             input.examId,
@@ -189,7 +197,7 @@ export class ExamResponseService extends BaseDomainService {
 
         const response = await this.examResponseRepo.findByExamQuestionAndStudent(
             examQuestion.id,
-            student.id,
+            accessContext.studentId,
         );
 
         if (!response) {
@@ -208,9 +216,15 @@ export class ExamResponseService extends BaseDomainService {
         const operation = 'get-question-detail-by-index';
         this.logOperationStart(operation);
 
-        const student = await this.getStudentByUserId(input.user_id);
-        const assignment = await this.getAssignmentOrThrow(input.examId, student.id);
-        this.ensureAssignmentIsActive(assignment);
+        const accessContext = await this.resolveExamAccessContext(
+            operation,
+            input.examId,
+            input.user_id,
+            { targetStudentId: input.studentId },
+        );
+        if (accessContext.actor === 'student') {
+            this.ensureAssignmentIsActive(accessContext.assignment);
+        }
 
         const examQuestion = await this.examQuestionRepo.findByExamIdAndIndex(
             input.examId,
@@ -227,6 +241,61 @@ export class ExamResponseService extends BaseDomainService {
 
         this.logOperationSuccess(operation);
         return questionDetail;
+    }
+
+    private async resolveExamAccessContext(
+        operation: string,
+        examId: string,
+        currentUserId: string,
+        options?: { targetStudentId?: string; requireStudentForTeacher?: boolean },
+    ): Promise<{
+        actor: 'student' | 'teacher';
+        studentId: string;
+        assignment: StudentExamAssignmentItem;
+    }> {
+        const student = await this.findStudentByUserIdOrNull(currentUserId);
+        if (student) {
+            const assignment = await this.getAssignmentOrThrow(examId, student.id);
+            return { actor: 'student', studentId: student.id, assignment };
+        }
+
+        const teacher = await this.getTeacherByUserId(currentUserId);
+
+        if (options?.requireStudentForTeacher && !options?.targetStudentId) {
+            this.raiseBusinessRuleError(operation, 'DEBES INDICAR EL ESTUDIANTE A CONSULTAR', {
+                entity: 'ExamAssignment',
+            });
+        }
+
+        let assignment: StudentExamAssignmentItem | null = null;
+
+        if (options?.targetStudentId) {
+            assignment = await this.examAssignmentRepo.findByExamIdAndStudentId(
+                examId,
+                options.targetStudentId,
+            );
+        } else {
+            assignment = await this.examAssignmentRepo.findOneByExamIdAndProfessorId(
+                examId,
+                teacher.id,
+            );
+        }
+
+        if (!assignment) {
+            throw new NotFoundError({ message: 'No se encontró la asignacion del examen' });
+        }
+
+        if (assignment.teacherId !== teacher.id) {
+            throw new ForbiddenError({ message: 'No eres el profesor asignado a este examen' });
+        }
+
+        await this.ensureTeacherCanReviewExam(operation, teacher.id, assignment.subjectId);
+
+        return {
+            actor: 'teacher',
+            studentId: options?.targetStudentId ?? assignment.studentId,
+            assignment,
+        };
     }
 
     private calculateAutoPoints(
@@ -274,15 +343,19 @@ export class ExamResponseService extends BaseDomainService {
     }
 
     private async getStudentByUserId(userId: string) {
-        const students = await this.studentRepo.list({
-            filters: { userId },
-            limit: 1,
-        });
-        const student = students[0];
+        const student = await this.findStudentByUserIdOrNull(userId);
         if (!student) {
             throw new NotFoundError({ message: 'No se encontró el estudiante' });
         }
         return student;
+    }
+
+    private async findStudentByUserIdOrNull(userId: string) {
+        const students = await this.studentRepo.list({
+            filters: { userId },
+            limit: 1,
+        });
+        return students[0] ?? null;
     }
 
     private async getAssignmentOrThrow(examId: string, studentId: string) {
