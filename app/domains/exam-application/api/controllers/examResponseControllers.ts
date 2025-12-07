@@ -15,6 +15,7 @@ import {
     getExamQuestionDetailQuerySchema,
     getExamResponseByIndexQuerySchema,
     responseIdParamsSchema,
+    studentContextQuerySchema,
     updateExamResponseCommandSchema,
     updateManualPointsCommandSchema,
 } from '../../schemas/examResponseSchema';
@@ -81,9 +82,11 @@ export async function getExamResponseByIndex(
         }
 
         const params = examResponseByIndexParamsSchema.parse(req.params);
+        const { studentId } = studentContextQuerySchema.parse(req.query);
         const validatedQuery = getExamResponseByIndexQuerySchema.parse({
             ...params,
             user_id: currentUserId,
+            studentId,
         });
 
         const result = await makeGetExamResponseByIndexQuery().execute(validatedQuery);
@@ -106,9 +109,11 @@ export async function getExamQuestionDetail(
         }
 
         const params = examResponseByIndexParamsSchema.parse(req.params);
+        const { studentId } = studentContextQuerySchema.parse(req.query);
         const validatedQuery = getExamQuestionDetailQuerySchema.parse({
             ...params,
             user_id: currentUserId,
+            studentId,
         });
 
         const result = await makeGetExamQuestionDetailQuery().execute(validatedQuery);
@@ -143,5 +148,4 @@ export async function updateManualPoints(
         next(err);
     }
 }
-
 

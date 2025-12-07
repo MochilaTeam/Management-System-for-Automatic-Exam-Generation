@@ -83,6 +83,13 @@ router.post('/exams/responses', authenticate, requireRoles(Roles.STUDENT), creat
  *           type: integer
  *           minimum: 1
  *         description: Posición (1-based) de la pregunta dentro del examen
+ *       - in: query
+ *         name: studentId
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID del estudiante (requerido cuando el usuario autenticado es profesor)
  *     responses:
  *       200:
  *         description: Respuesta encontrada
@@ -125,6 +132,13 @@ router.get(
  *           type: integer
  *           minimum: 1
  *         description: Orden (1-based) de la pregunta dentro del examen
+ *       - in: query
+ *         name: studentId
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID del estudiante (requerido cuando el usuario autenticado es profesor)
  *     responses:
  *       200:
  *         description: Información de la pregunta obtenida
