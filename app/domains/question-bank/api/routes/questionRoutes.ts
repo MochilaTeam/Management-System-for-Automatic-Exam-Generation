@@ -1,5 +1,7 @@
 import { Router } from 'express';
 
+import { requireRoles } from '../../../../core/middlewares/authorize';
+import { Roles } from '../../../../shared/enums/rolesEnum';
 import {
     createQuestion,
     deleteQuestion,
@@ -155,7 +157,7 @@ router.post('/questions', createQuestion);
  *       204:
  *         description: Eliminada correctamente.
  */
-router.get('/questions/:questionId', getQuestionById);
+router.get('/questions/:questionId', requireRoles(Roles.TEACHER), getQuestionById);
 router.patch('/questions/:questionId', updateQuestion);
 router.delete('/questions/:questionId', deleteQuestion);
 

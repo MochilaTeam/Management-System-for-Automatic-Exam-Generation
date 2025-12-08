@@ -5,7 +5,6 @@ import { get_logger } from './core/dependencies/dependencies';
 import { SystemLogger } from './core/logging/logger';
 import { errorHandler } from './core/middlewares/errorHandler';
 import { responseInterceptor } from './core/middlewares/responseInterceptor';
-import { createDatabaseIfNotExists } from './database/database';
 import { connect } from './database/database';
 import { syncTables } from './database/init';
 import { swaggerSpec } from './docs/swagger';
@@ -28,7 +27,6 @@ app.use(examGenerationRouter);
 app.use(questionBankRouter);
 
 const start = async () => {
-    await createDatabaseIfNotExists();
     await connect();
     await syncTables();
 

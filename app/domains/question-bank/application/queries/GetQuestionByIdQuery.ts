@@ -17,7 +17,7 @@ export class GetQuestionByIdQuery extends BaseQuery<
     protected async executeBusinessLogic(
         input: GetQuestionByIdInput,
     ): Promise<RetrieveOneSchema<QuestionDetail>> {
-        const question = await this.svc.get_detail_by_id(input.questionId, input.currentUserId);
+        const question = await this.svc.get_detail_by_id(input.questionId);
         if (!question) {
             throw new NotFoundError({ message: 'QUESTION_NOT_FOUND' });
         }

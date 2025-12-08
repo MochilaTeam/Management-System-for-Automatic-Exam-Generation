@@ -18,6 +18,8 @@ import {
 } from '../../schemas/examAssignmentSchema';
 import {
     ExamRegradeOutput,
+    ListPendingExamRegradesQuery,
+    PendingExamRegradeItem,
     RequestExamRegradeCommandSchema,
 } from '../../schemas/examRegradeSchema';
 import type {
@@ -231,6 +233,7 @@ export class ExamAssignmentService extends BaseDomainService {
         status?: AssignedExamStatus;
         subjectId?: string;
         teacherId?: string;
+        examTitle?: string;
     }) {
         const operation = 'list-student-exams';
         this.logOperationStart(operation);
@@ -264,6 +267,7 @@ export class ExamAssignmentService extends BaseDomainService {
                     status: input.status,
                     subjectId: input.subjectId,
                     teacherId: input.teacherId,
+                    examTitle: input.examTitle,
                 },
             });
 
@@ -340,6 +344,52 @@ export class ExamAssignmentService extends BaseDomainService {
 
             this.logOperationSuccess(operation);
             return result;
+        } catch (error) {
+            this.logOperationError(operation, error as Error);
+            throw error;
+        }
+    }
+
+    async listPendingExamRegrades(
+        input: ListPendingExamRegradesQuery,
+    ): Promise<{ items: PendingExamRegradeItem[]; total: number }> {
+        const operation = 'list-pending-exam-regrades';
+        this.logOperationStart(operation);
+
+        try {
+            const teacher = await this.getTeacherByUserId(input.currentUserId, operation);
+            const limit = input.limit ?? 10;
+            const page = input.page ?? 1;
+            const offset = (page - 1) * limit;
+
+            const { items: regrades, total } = await this.examRegradeRepo.listPendingByProfessor({
+                professorId: teacher.id,
+                limit,
+                offset,
+            });
+
+            const enriched: PendingExamRegradeItem[] = [];
+
+            for (const regrade of regrades) {
+                const assignment = await this.examAssignmentRepo.findByExamIdAndStudentId(
+                    regrade.examId,
+                    regrade.studentId,
+                );
+                if (!assignment) {
+                    continue;
+                }
+
+                enriched.push({
+                    ...assignment,
+                    regradeId: regrade.id,
+                    reason: regrade.reason,
+                    requestedAt: regrade.requestedAt,
+                    regradeStatus: regrade.status,
+                });
+            }
+
+            this.logOperationSuccess(operation);
+            return { items: enriched, total };
         } catch (error) {
             this.logOperationError(operation, error as Error);
             throw error;
@@ -559,15 +609,6 @@ export class ExamAssignmentService extends BaseDomainService {
 
         if (now < snapshot.applicationDate) {
             return AssignedExamStatus.PENDING;
-        }
-
-        const hasResponses = await this.examResponseRepo.studentHasResponses(
-            snapshot.examId,
-            snapshot.studentId,
-        );
-
-        if (hasResponses) {
-            return AssignedExamStatus.SUBMITTED;
         }
 
         const durationMinutes = snapshot.durationMinutes ?? 0;
