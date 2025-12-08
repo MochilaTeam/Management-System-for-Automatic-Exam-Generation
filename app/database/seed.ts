@@ -127,6 +127,15 @@ const examSeedData: ExamSeed[] = [
         examStatus: ExamStatusEnum.PUBLISHED,
         startIndex: 4,
     },
+    {
+        subjectName: 'Bases de Datos I',
+        title: 'Examen Automático - SQL equilibrado',
+        questionCount: 5,
+        difficulty: DifficultyLevelEnum.MEDIUM,
+        examStatus: ExamStatusEnum.APPROVED,
+        startIndex: 2,
+        coverageMode: 'automatic',
+    },
 ];
 
 const teacherSeedData = [

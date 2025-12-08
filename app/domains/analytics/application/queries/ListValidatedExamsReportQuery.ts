@@ -1,0 +1,19 @@
+import { PaginatedSchema } from '../../../../shared/domain/base_response';
+import { BaseQuery } from '../../../../shared/domain/base_use_case';
+import { AnalyticsService } from '../../domain/services/analyticsService';
+import { ValidatedExamReportRow, ValidatedExamsReportInput } from '../../schemas/analyticsSchema';
+
+export class ListValidatedExamsReportQuery extends BaseQuery<
+    ValidatedExamsReportInput,
+    PaginatedSchema<ValidatedExamReportRow>
+> {
+    constructor(private readonly svc: AnalyticsService) {
+        super();
+    }
+
+    protected async executeBusinessLogic(
+        input: ValidatedExamsReportInput,
+    ): Promise<PaginatedSchema<ValidatedExamReportRow>> {
+        return this.svc.listValidatedExams(input);
+    }
+}
