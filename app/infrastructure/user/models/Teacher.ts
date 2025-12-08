@@ -1,6 +1,7 @@
 import { Model, STRING, DataTypes, BOOLEAN } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
+import User from './User';
 
 class Teacher extends Model {
     public id!: string;
@@ -8,6 +9,7 @@ class Teacher extends Model {
     public userId!: string;
     public hasRoleSubjectLeader!: boolean;
     public hasRoleExaminer!: boolean;
+    public user?: User | null;
 }
 
 Teacher.init(

@@ -62,6 +62,7 @@ type ExamSeed = {
     difficulty: DifficultyLevelEnum;
     examStatus: ExamStatusEnum;
     startIndex: number;
+    coverageMode?: string;
 };
 
 const questionScoreByDifficulty: Record<DifficultyLevelEnum, number> = {
@@ -126,6 +127,15 @@ const examSeedData: ExamSeed[] = [
         difficulty: DifficultyLevelEnum.HARD,
         examStatus: ExamStatusEnum.PUBLISHED,
         startIndex: 4,
+    },
+    {
+        subjectName: 'Bases de Datos I',
+        title: 'Examen Automático - SQL equilibrado',
+        questionCount: 5,
+        difficulty: DifficultyLevelEnum.MEDIUM,
+        examStatus: ExamStatusEnum.APPROVED,
+        startIndex: 2,
+        coverageMode: 'automatic',
     },
 ];
 
@@ -193,17 +203,41 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
     'Examen Final - Transacciones y ACID': [
         {
             studentEmail: 'student1@example.com',
-            status: AssignedExamStatus.ENABLED,
+            status: AssignedExamStatus.GRADED,
             applicationDate: new Date('2024-01-01T08:00:00Z'),
-            durationMinutes: 1100000, // approx. 2.1 years to keep the exam active through 2026
+            durationMinutes: 150,
+            grade: 8.4,
+            responses: [
+                {
+                    questionIndex: 1,
+                    autoPoints: 3,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-01-01T09:30:00Z'),
+                },
+                {
+                    questionIndex: 2,
+                    autoPoints: 2,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-01-01T09:45:00Z'),
+                },
+            ],
+            regrade: {
+                reason: 'Solicito revisar la pregunta 2',
+                status: ExamRegradesStatus.RESOLVED,
+                requestedAt: new Date('2024-01-03T10:00:00Z'),
+                resolvedAt: new Date('2024-01-05T11:30:00Z'),
+                finalGrade: 8.7,
+                reviewerEmail: 'teacher2@example.com',
+            },
         },
     ],
     'Parcial 2 - Estructuras y cadenas': [
         {
             studentEmail: 'student2@example.com',
-            status: AssignedExamStatus.IN_EVALUATION,
+            status: AssignedExamStatus.GRADED,
             applicationDate: new Date('2024-06-05T09:30:00Z'),
             durationMinutes: 90,
+            grade: 7.2,
             responses: [
                 {
                     questionIndex: 1,
@@ -217,20 +251,75 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
             ],
         },
     ],
+    'Parcial 2 - Consultas y rendimiento': [
+        {
+            studentEmail: 'student3@example.com',
+            status: AssignedExamStatus.GRADED,
+            applicationDate: new Date('2024-06-12T11:00:00Z'),
+            durationMinutes: 95,
+            grade: 8.1,
+            responses: [
+                {
+                    questionIndex: 1,
+                    autoPoints: 3,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-06-12T11:20:00Z'),
+                },
+                {
+                    questionIndex: 2,
+                    autoPoints: 2,
+                    manualPoints: 1,
+                    answeredAt: new Date('2024-06-12T11:35:00Z'),
+                },
+            ],
+        },
+    ],
     'Evaluación Final - Conjuntos y funciones': [
         {
             studentEmail: 'student3@example.com',
-            status: AssignedExamStatus.PENDING,
+            status: AssignedExamStatus.GRADED,
             applicationDate: new Date('2024-06-10T08:00:00Z'),
             durationMinutes: 100,
+            grade: 7.8,
             responses: [
                 {
                     questionIndex: 1,
                     textAnswer:
                         'Una función es biyectiva cuando es inyectiva y sobreyectiva al mismo tiempo.',
                     autoPoints: 0,
-                    manualPoints: null,
+                    manualPoints: 8,
                     answeredAt: new Date('2024-06-10T09:05:00Z'),
+                },
+            ],
+            regrade: {
+                reason: 'Solicito recalificar la respuesta de teoría',
+                status: ExamRegradesStatus.IN_REVIEW,
+                requestedAt: new Date('2024-06-11T09:00:00Z'),
+                resolvedAt: null,
+                finalGrade: null,
+                reviewerEmail: 'teacher3@example.com',
+            },
+        },
+    ],
+    'Examen Automático - SQL equilibrado': [
+        {
+            studentEmail: 'student4@example.com',
+            status: AssignedExamStatus.GRADED,
+            applicationDate: new Date('2024-07-01T08:30:00Z'),
+            durationMinutes: 85,
+            grade: 9.1,
+            responses: [
+                {
+                    questionIndex: 1,
+                    autoPoints: 3,
+                    manualPoints: 1,
+                    answeredAt: new Date('2024-07-01T09:05:00Z'),
+                },
+                {
+                    questionIndex: 3,
+                    autoPoints: 2,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-07-01T09:20:00Z'),
                 },
             ],
         },
@@ -1031,7 +1120,7 @@ async function seed() {
             );
 
             const topicCoverage = {
-                mode: 'manual-seed',
+                mode: examTemplate.coverageMode ?? 'manual-seed',
                 subjectId: subject.id,
                 difficulty: examTemplate.difficulty,
                 questionIds: finalSelected.map((item) => item.id),

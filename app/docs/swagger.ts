@@ -1105,6 +1105,282 @@ const swaggerDefinition = {
                 },
             },
 
+            // ===== ANALYTICS =====
+            AutomaticExamReportRow: {
+                type: 'object',
+                properties: {
+                    examId: { type: 'string', format: 'uuid' },
+                    title: { type: 'string' },
+                    subjectId: { type: 'string', format: 'uuid' },
+                    subjectName: { type: 'string', nullable: true },
+                    creatorId: { type: 'string', format: 'uuid' },
+                    creatorName: { type: 'string', nullable: true },
+                    createdAt: { type: 'string', format: 'date-time' },
+                    parameters: {
+                        type: 'object',
+                        nullable: true,
+                        additionalProperties: true,
+                    },
+                },
+                required: ['examId', 'title', 'subjectId', 'creatorId', 'createdAt'],
+            },
+            AutomaticExamReportResponse: {
+                type: 'object',
+                properties: {
+                    data: {
+                        type: 'array',
+                        items: { $ref: '#/components/schemas/AutomaticExamReportRow' },
+                    },
+                    meta: paginationMetaSchema,
+                },
+                required: ['data', 'meta'],
+            },
+            PopularQuestionsReportRow: {
+                type: 'object',
+                properties: {
+                    questionId: { type: 'string', format: 'uuid' },
+                    questionBody: { type: 'string', nullable: true },
+                    difficulty: {
+                        type: 'string',
+                        enum: ['EASY', 'MEDIUM', 'HARD'],
+                    },
+                    topicId: { type: 'string', format: 'uuid', nullable: true },
+                    topicName: { type: 'string', nullable: true },
+                    usageCount: { type: 'integer' },
+                },
+                required: ['questionId', 'difficulty', 'usageCount'],
+            },
+            PopularQuestionsReportResponse: {
+                type: 'object',
+                properties: {
+                    data: {
+                        type: 'array',
+                        items: { $ref: '#/components/schemas/PopularQuestionsReportRow' },
+                    },
+                    meta: paginationMetaSchema,
+                },
+                required: ['data', 'meta'],
+            },
+            ValidatedExamReportRow: {
+                type: 'object',
+                properties: {
+                    examId: { type: 'string', format: 'uuid' },
+                    title: { type: 'string' },
+                    subjectId: { type: 'string', format: 'uuid' },
+                    subjectName: { type: 'string', nullable: true },
+                    validatedAt: { type: 'string', format: 'date-time', nullable: true },
+                    observations: { type: 'string', nullable: true },
+                    validatorId: { type: 'string', format: 'uuid' },
+                },
+                required: ['examId', 'title', 'subjectId', 'validatorId'],
+            },
+            ValidatedExamsReportResponse: {
+                type: 'object',
+                properties: {
+                    data: {
+                        type: 'array',
+                        items: { $ref: '#/components/schemas/ValidatedExamReportRow' },
+                    },
+                    meta: paginationMetaSchema,
+                },
+                required: ['data', 'meta'],
+            },
+            ExamPerformanceRow: {
+                type: 'object',
+                properties: {
+                    examQuestionId: { type: 'string', format: 'uuid' },
+                    questionId: { type: 'string', format: 'uuid' },
+                    questionIndex: { type: 'integer' },
+                    questionScore: { type: 'number' },
+                    difficulty: {
+                        type: 'string',
+                        enum: ['EASY', 'MEDIUM', 'HARD'],
+                    },
+                    topicId: { type: 'string', format: 'uuid', nullable: true },
+                    topicName: { type: 'string', nullable: true },
+                    averageScore: { type: 'number' },
+                    successRate: { type: 'number' },
+                    attempts: { type: 'integer' },
+                    questionBody: { type: 'string', nullable: true },
+                },
+                required: [
+                    'examQuestionId',
+                    'questionId',
+                    'questionIndex',
+                    'questionScore',
+                    'difficulty',
+                    'averageScore',
+                    'successRate',
+                    'attempts',
+                ],
+            },
+            ExamPerformanceReport: {
+                type: 'object',
+                properties: {
+                    examId: { type: 'string', format: 'uuid' },
+                    questions: {
+                        type: 'array',
+                        items: { $ref: '#/components/schemas/ExamPerformanceRow' },
+                    },
+                    overallSuccessRate: { type: 'number' },
+                    difficultyGroups: {
+                        type: 'array',
+                        items: { $ref: '#/components/schemas/SubjectDifficultyDetail' },
+                    },
+                },
+                required: ['examId', 'questions', 'overallSuccessRate', 'difficultyGroups'],
+            },
+            ExamPerformanceReportResponse: {
+                type: 'object',
+                properties: {
+                    data: { $ref: '#/components/schemas/ExamPerformanceReport' },
+                },
+                required: ['data'],
+            },
+            SubjectDifficultyDetail: {
+                type: 'object',
+                properties: {
+                    difficulty: {
+                        type: 'string',
+                        enum: ['EASY', 'MEDIUM', 'HARD'],
+                    },
+                    averageGrade: { type: 'number', nullable: true },
+                    examCount: { type: 'integer' },
+                },
+                required: ['difficulty', 'examCount'],
+            },
+            SubjectDifficultyCorrelationRow: {
+                type: 'object',
+                properties: {
+                    subjectId: { type: 'string', format: 'uuid' },
+                    subjectName: { type: 'string', nullable: true },
+                    correlationScore: { type: 'number' },
+                    difficultyDetails: {
+                        type: 'array',
+                        items: { $ref: '#/components/schemas/SubjectDifficultyDetail' },
+                    },
+                },
+                required: ['subjectId', 'correlationScore', 'difficultyDetails'],
+            },
+            TopFailingQuestionRow: {
+                type: 'object',
+                properties: {
+                    questionId: { type: 'string', format: 'uuid' },
+                    topicId: { type: 'string', format: 'uuid', nullable: true },
+                    topicName: { type: 'string', nullable: true },
+                    subjectId: { type: 'string', format: 'uuid', nullable: true },
+                    subjectName: { type: 'string', nullable: true },
+                    authorId: { type: 'string', format: 'uuid', nullable: true },
+                    authorName: { type: 'string', nullable: true },
+                    failureRate: { type: 'number' },
+                },
+                required: ['questionId', 'failureRate'],
+            },
+            RegradeComparisonRow: {
+                type: 'object',
+                properties: {
+                    subjectId: { type: 'string', format: 'uuid' },
+                    subjectName: { type: 'string', nullable: true },
+                    course: { type: 'string' },
+                    regradeAverage: { type: 'number', nullable: true },
+                    courseAverage: { type: 'number', nullable: true },
+                    requests: { type: 'integer' },
+                },
+                required: ['subjectId', 'course', 'requests'],
+            },
+            SubjectDifficultyReport: {
+                type: 'object',
+                properties: {
+                    subjectCorrelations: {
+                        type: 'array',
+                        items: { $ref: '#/components/schemas/SubjectDifficultyCorrelationRow' },
+                    },
+                    topFailingQuestions: {
+                        type: 'array',
+                        items: { $ref: '#/components/schemas/TopFailingQuestionRow' },
+                    },
+                    regradeComparison: {
+                        type: 'array',
+                        items: { $ref: '#/components/schemas/RegradeComparisonRow' },
+                    },
+                },
+                required: ['subjectCorrelations', 'topFailingQuestions', 'regradeComparison'],
+            },
+            SubjectDifficultyReportResponse: {
+                type: 'object',
+                properties: {
+                    data: { $ref: '#/components/schemas/SubjectDifficultyReport' },
+                },
+                required: ['data'],
+            },
+            ExamComparisonTopicDistribution: {
+                type: 'object',
+                properties: {
+                    topicId: { type: 'string', format: 'uuid', nullable: true },
+                    topicName: { type: 'string', nullable: true },
+                    questionCount: { type: 'integer' },
+                },
+                required: ['questionCount'],
+            },
+            ExamComparisonRow: {
+                type: 'object',
+                properties: {
+                    examId: { type: 'string', format: 'uuid' },
+                    title: { type: 'string' },
+                    subjectId: { type: 'string', format: 'uuid' },
+                    subjectName: { type: 'string', nullable: true },
+                    difficultyDistribution: {
+                        type: 'object',
+                        properties: {
+                            EASY: { type: 'number' },
+                            MEDIUM: { type: 'number' },
+                            HARD: { type: 'number' },
+                        },
+                    },
+                    totalQuestions: { type: 'integer' },
+                    topicDistribution: {
+                        type: 'array',
+                        items: { $ref: '#/components/schemas/ExamComparisonTopicDistribution' },
+                    },
+                    balanceGap: { type: 'number' },
+                    balanced: { type: 'boolean' },
+                },
+                required: ['examId', 'title', 'difficultyDistribution', 'totalQuestions', 'balanced'],
+            },
+            ExamComparisonReportResponse: {
+                type: 'object',
+                properties: {
+                    data: {
+                        type: 'array',
+                        items: { $ref: '#/components/schemas/ExamComparisonRow' },
+                    },
+                    meta: paginationMetaSchema,
+                },
+                required: ['data', 'meta'],
+            },
+            ReviewerActivityRow: {
+                type: 'object',
+                properties: {
+                    reviewerId: { type: 'string', format: 'uuid' },
+                    reviewerName: { type: 'string', nullable: true },
+                    subjectId: { type: 'string', format: 'uuid' },
+                    subjectName: { type: 'string', nullable: true },
+                    reviewedExams: { type: 'integer' },
+                },
+                required: ['reviewerId', 'subjectId', 'reviewedExams'],
+            },
+            ReviewerActivityReportResponse: {
+                type: 'object',
+                properties: {
+                    data: {
+                        type: 'array',
+                        items: { $ref: '#/components/schemas/ReviewerActivityRow' },
+                    },
+                    meta: paginationMetaSchema,
+                },
+                required: ['data', 'meta'],
+            },
+
             // También puedes añadir wrappers de Topics/Subtopics/Questions si quieres
         },
     },

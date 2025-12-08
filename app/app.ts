@@ -11,6 +11,7 @@ import { syncTables } from './database/init';
 import { swaggerSpec } from './docs/swagger';
 import { examApplicationRouter as examApplicationDomainRouter } from './domains/exam-application/main';
 import { examGenerationRouter } from './domains/exam-generation/main';
+import { analyticsRouter } from './domains/analytics/main';
 import { questionBankRouter } from './domains/question-bank/main';
 import { userRouter } from './domains/user/main';
 
@@ -25,6 +26,7 @@ app.get('/API.json', (_req, res) => res.json(swaggerSpec));
 app.use(userRouter);
 app.use(examApplicationDomainRouter);
 app.use(examGenerationRouter);
+app.use(analyticsRouter);
 app.use(questionBankRouter);
 
 const start = async () => {
