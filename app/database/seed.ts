@@ -234,12 +234,6 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
                 },
             ],
         },
-        {
-            studentEmail: 'student1@example.com',
-            status: AssignedExamStatus.ENABLED,
-            applicationDate: new Date('2025-12-01T08:00:00Z'),
-            durationMinutes: 1000000,
-        },
     ],
 };
 
@@ -1024,33 +1018,6 @@ async function seed() {
 
             const finalSelected = filteredSelected;
 
-            const questionWeights = finalSelected.map(
-                (meta) => questionScoreByDifficulty[meta.difficulty] ?? 1,
-            );
-            const totalWeight = questionWeights.reduce((acc, weight) => acc + weight, 0);
-            if (totalWeight <= 0) {
-                throw new Error(
-                    `No se pudieron calcular los puntos para ${examTemplate.title}: pesos inválidos`,
-                );
-            }
-
-            const normalizedScores = questionWeights.map((weight) =>
-                Number(((weight / totalWeight) * 100).toFixed(2)),
-            );
-
-            const totalNormalized = normalizedScores.reduce((acc, value) => acc + value, 0);
-            const roundingError = Number((100 - totalNormalized).toFixed(2));
-            if (Math.abs(roundingError) >= 0.01 && normalizedScores.length > 0) {
-                const targetIndex = normalizedScores.reduce(
-                    (bestIndex, _, index) =>
-                        normalizedScores[index] > normalizedScores[bestIndex] ? index : bestIndex,
-                    0,
-                );
-                normalizedScores[targetIndex] = Number(
-                    (normalizedScores[targetIndex] + roundingError).toFixed(2),
-                );
-            }
-
             const topicCounts = new Map<string, number>();
             finalSelected.forEach((meta) =>
                 topicCounts.set(meta.topicId, (topicCounts.get(meta.topicId) ?? 0) + 1),
@@ -1101,7 +1068,7 @@ async function seed() {
                 examId: createdExam.id,
                 questionId: questionMeta.id,
                 questionIndex: idx + 1,
-                questionScore: normalizedScores[idx],
+                questionScore: questionScoreByDifficulty[questionMeta.difficulty] ?? 1,
             }));
             await ExamQuestion.bulkCreate(examQuestionRows, { transaction: t });
 
@@ -1113,7 +1080,7 @@ async function seed() {
             examQuestions.forEach((item) => questionByIndex.set(item.questionIndex, item));
 
             const assignmentSpecs = assignmentSeedByExamTitle[createdExam.title] ?? [];
-            if (assignmentSpecs.length > 0 && createdExam.examStatus === ExamStatusEnum.PUBLISHED) {
+            if (assignmentSpecs.length > 0) {
                 for (const assignmentSpec of assignmentSpecs) {
                     const studentProfile = studentsByEmail.get(assignmentSpec.studentEmail);
                     if (!studentProfile) {
