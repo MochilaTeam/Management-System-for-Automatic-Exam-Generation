@@ -11,13 +11,11 @@ import {
     ExamPerformanceRow,
     PopularQuestionsReportInput,
     PopularQuestionsReportRow,
-    RegradeComparisonRow,
     ReviewerActivityReportInput,
     ReviewerActivityRow,
     SubjectDifficultyCorrelationRow,
     SubjectDifficultyDetail,
     SubjectDifficultyReport,
-    TopFailingQuestionRow,
     ValidatedExamsReportInput,
     ValidatedExamReportRow,
 } from '../../schemas/analyticsSchema';
@@ -79,9 +77,14 @@ export class AnalyticsService extends BaseDomainService {
         };
     }
 
-    async getSubjectDifficultyReport(input: SubjectDifficultyFilter): Promise<SubjectDifficultyReport> {
+    async getSubjectDifficultyReport(
+        input: SubjectDifficultyFilter,
+    ): Promise<SubjectDifficultyReport> {
         const records = await this.dependencies.analyticsRepo.fetchSubjectDifficultyRecords(input);
-        const grouped = new Map<string, { subjectName: string | null; details: SubjectDifficultyDetail[] }>();
+        const grouped = new Map<
+            string,
+            { subjectName: string | null; details: SubjectDifficultyDetail[] }
+        >();
         const order: string[] = [];
 
         records.forEach((record: SubjectDifficultyRecord) => {
@@ -98,17 +101,20 @@ export class AnalyticsService extends BaseDomainService {
         });
 
         const selectedSubjects = order.slice(input.offset, input.offset + input.limit);
-        const subjectCorrelations: SubjectDifficultyCorrelationRow[] = selectedSubjects.map((subjectId) => {
-            const bucket = grouped.get(subjectId)!;
-            return {
-                subjectId,
-                subjectName: bucket.subjectName,
-                difficultyDetails: bucket.details,
-                correlationScore: this.estimateCorrelation(bucket.details),
-            };
-        });
+        const subjectCorrelations: SubjectDifficultyCorrelationRow[] = selectedSubjects.map(
+            (subjectId) => {
+                const bucket = grouped.get(subjectId)!;
+                return {
+                    subjectId,
+                    subjectName: bucket.subjectName,
+                    difficultyDetails: bucket.details,
+                    correlationScore: this.estimateCorrelation(bucket.details),
+                };
+            },
+        );
 
-        const topFailingQuestions = await this.dependencies.analyticsRepo.fetchTopFailingQuestions(10);
+        const topFailingQuestions =
+            await this.dependencies.analyticsRepo.fetchTopFailingQuestions(10);
         const regradeComparison = await this.dependencies.analyticsRepo.fetchRegradeComparison();
 
         return {
@@ -122,27 +128,38 @@ export class AnalyticsService extends BaseDomainService {
         input: ExamComparisonReportInput,
     ): Promise<PaginatedSchema<ExamComparisonRow>> {
         const comparisonFilter: ExamComparisonFilter = input;
-        const base = await this.dependencies.analyticsRepo.fetchExamComparisonBase(comparisonFilter);
+        const base =
+            await this.dependencies.analyticsRepo.fetchExamComparisonBase(comparisonFilter);
         if (!base.exams.length) {
-            return new PaginatedSchema([], { limit: input.limit, offset: input.offset, total: base.total });
+            return new PaginatedSchema([], {
+                limit: input.limit,
+                offset: input.offset,
+                total: base.total,
+            });
         }
 
         const examIds = base.exams.map((exam) => exam.examId);
-        const difficultyRecords = await this.dependencies.analyticsRepo.fetchExamDifficultyRecords(examIds);
+        const difficultyRecords =
+            await this.dependencies.analyticsRepo.fetchExamDifficultyRecords(examIds);
         const topicRecords = await this.dependencies.analyticsRepo.fetchExamTopicRecords(examIds);
 
         const rows = base.exams.map((exam) =>
             this.buildComparisonRow(exam, difficultyRecords, topicRecords, input.balanceThreshold),
         );
 
-        return new PaginatedSchema(rows, { limit: input.limit, offset: input.offset, total: base.total });
+        return new PaginatedSchema(rows, {
+            limit: input.limit,
+            offset: input.offset,
+            total: base.total,
+        });
     }
 
     async listReviewerActivity(
         input: ReviewerActivityReportInput,
     ): Promise<PaginatedSchema<ReviewerActivityRow>> {
         const filter: ReviewerActivityFilter = input;
-        const { items, total } = await this.dependencies.analyticsRepo.fetchReviewerActivity(filter);
+        const { items, total } =
+            await this.dependencies.analyticsRepo.fetchReviewerActivity(filter);
         return new PaginatedSchema(items, { limit: input.limit, offset: input.offset, total });
     }
 
@@ -155,7 +172,10 @@ export class AnalyticsService extends BaseDomainService {
     private buildDifficultyGroups(
         rows: ExamPerformanceRow[],
     ): ExamPerformanceReport['difficultyGroups'] {
-        const accumulator: Record<DifficultyLevelEnum, { totalScore: number; totalPossible: number; count: number }> = {
+        const accumulator: Record<
+            DifficultyLevelEnum,
+            { totalScore: number; totalPossible: number; count: number }
+        > = {
             [DifficultyLevelEnum.EASY]: { totalScore: 0, totalPossible: 0, count: 0 },
             [DifficultyLevelEnum.MEDIUM]: { totalScore: 0, totalPossible: 0, count: 0 },
             [DifficultyLevelEnum.HARD]: { totalScore: 0, totalPossible: 0, count: 0 },
@@ -170,7 +190,8 @@ export class AnalyticsService extends BaseDomainService {
 
         return (Object.keys(accumulator) as DifficultyLevelEnum[]).map((difficulty) => {
             const bucket = accumulator[difficulty];
-            const successRate = bucket.totalPossible === 0 ? 0 : bucket.totalScore / bucket.totalPossible;
+            const successRate =
+                bucket.totalPossible === 0 ? 0 : bucket.totalScore / bucket.totalPossible;
             return {
                 difficulty,
                 successRate,
@@ -183,8 +204,11 @@ export class AnalyticsService extends BaseDomainService {
         const valid = details.filter((detail) => detail.averageGrade !== null);
         if (valid.length < 2) return 0;
 
-        const xMean = valid.reduce((sum, detail) => sum + difficultyWeight[detail.difficulty], 0) / valid.length;
-        const yMean = valid.reduce((sum, detail) => sum + (detail.averageGrade ?? 0), 0) / valid.length;
+        const xMean =
+            valid.reduce((sum, detail) => sum + difficultyWeight[detail.difficulty], 0) /
+            valid.length;
+        const yMean =
+            valid.reduce((sum, detail) => sum + (detail.averageGrade ?? 0), 0) / valid.length;
 
         const numerator = valid.reduce((sum, detail) => {
             const x = difficultyWeight[detail.difficulty];
@@ -211,18 +235,27 @@ export class AnalyticsService extends BaseDomainService {
             DifficultyLevelEnum.MEDIUM,
             DifficultyLevelEnum.HARD,
         ];
-        const counts = difficulties.reduce<Record<DifficultyLevelEnum, number>>((acc, difficulty) => {
-            acc[difficulty] = difficultyRecords
-                .filter((record) => record.examId === exam.examId && record.difficulty === difficulty)
-                .reduce((sum, record) => sum + record.count, 0);
-            return acc;
-        }, {} as Record<DifficultyLevelEnum, number>);
+        const counts = difficulties.reduce<Record<DifficultyLevelEnum, number>>(
+            (acc, difficulty) => {
+                acc[difficulty] = difficultyRecords
+                    .filter(
+                        (record) =>
+                            record.examId === exam.examId && record.difficulty === difficulty,
+                    )
+                    .reduce((sum, record) => sum + record.count, 0);
+                return acc;
+            },
+            {} as Record<DifficultyLevelEnum, number>,
+        );
 
         const totalQuestions = Object.values(counts).reduce((sum, value) => sum + value, 0);
-        const distribution = difficulties.reduce<Record<DifficultyLevelEnum, number>>((acc, difficulty) => {
-            acc[difficulty] = totalQuestions === 0 ? 0 : counts[difficulty] / totalQuestions;
-            return acc;
-        }, {} as Record<DifficultyLevelEnum, number>);
+        const distribution = difficulties.reduce<Record<DifficultyLevelEnum, number>>(
+            (acc, difficulty) => {
+                acc[difficulty] = totalQuestions === 0 ? 0 : counts[difficulty] / totalQuestions;
+                return acc;
+            },
+            {} as Record<DifficultyLevelEnum, number>,
+        );
 
         const maxRatio = Math.max(...Object.values(distribution));
         const minRatio = Math.min(...Object.values(distribution));

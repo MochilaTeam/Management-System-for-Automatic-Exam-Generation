@@ -15,7 +15,9 @@ function safeText(value: unknown): string {
 function drawTable<T>(doc: PdfDoc, columns: PdfColumn<T>[], rows: T[]) {
     const printableWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
     const columnSpacing = 10;
-    const columnWidth = Math.floor((printableWidth - (columns.length - 1) * columnSpacing) / columns.length);
+    const columnWidth = Math.floor(
+        (printableWidth - (columns.length - 1) * columnSpacing) / columns.length,
+    );
 
     const drawRow = (values: string[], opts: { isHeader?: boolean; rowIndex?: number } = {}) => {
         const startY = doc.y;
@@ -35,8 +37,7 @@ function drawTable<T>(doc: PdfDoc, columns: PdfColumn<T>[], rows: T[]) {
                 width: columnWidth,
                 align: 'left',
             });
-            doc
-                .font(opts.isHeader ? 'Helvetica-Bold' : 'Helvetica')
+            doc.font(opts.isHeader ? 'Helvetica-Bold' : 'Helvetica')
                 .fontSize(opts.isHeader ? 11 : 10)
                 .text(value, x + 2, startY + 4, {
                     width: columnWidth - 4,
@@ -44,19 +45,27 @@ function drawTable<T>(doc: PdfDoc, columns: PdfColumn<T>[], rows: T[]) {
                     continued: false,
                 });
             if (index < columns.length - 1) {
-                doc.moveTo(x + columnWidth, startY).lineTo(x + columnWidth, startY + Math.max(height, opts.isHeader ? 18 : 16)).stroke('#e0e0e0');
+                doc.moveTo(x + columnWidth, startY)
+                    .lineTo(x + columnWidth, startY + Math.max(height, opts.isHeader ? 18 : 16))
+                    .stroke('#e0e0e0');
             }
         });
 
         const rowHeight = opts.isHeader ? 18 : 16;
         doc.y = startY + rowHeight;
         doc.x = doc.page.margins.left;
-        doc.moveTo(doc.x, doc.y).lineTo(doc.x + printableWidth, doc.y).strokeColor('#e0e0e0').stroke();
+        doc.moveTo(doc.x, doc.y)
+            .lineTo(doc.x + printableWidth, doc.y)
+            .strokeColor('#e0e0e0')
+            .stroke();
         doc.moveDown(0.1);
     };
 
     doc.strokeColor('#e0e0e0').lineWidth(0.5);
-    drawRow(columns.map((column) => column.header), { isHeader: true });
+    drawRow(
+        columns.map((column) => column.header),
+        { isHeader: true },
+    );
 
     rows.forEach((row, index) => {
         const rowValues = columns.map((column) => safeText(column.accessor(row)));

@@ -1,17 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
 import {
-    automaticExamReportRequestSchema,
-    examComparisonReportRequestSchema,
-    examPerformanceParamsSchema,
-    examPerformanceRequestSchema,
-    popularQuestionsReportRequestSchema,
-    reviewerActivityReportRequestSchema,
-    subjectDifficultyReportRequestSchema,
-    validatedExamsReportRequestSchema,
-    ExamPerformanceReport,
-} from '../../schemas/analyticsSchema';
-import {
     makeListAutomaticExamsReportQuery,
     makeListPopularQuestionsReportQuery,
     makeListValidatedExamsReportQuery,
@@ -20,65 +9,124 @@ import {
     makeCompareExamsReportQuery,
     makeListReviewerActivityReportQuery,
 } from '../../../../core/dependencies/analytics/analyticsDependencies';
+import {
+    PdfColumn,
+    createAnalyticsReportPdf,
+} from '../../../../infrastructure/analytics/pdf/analyticsPdfService';
 import { ReportFormatEnum } from '../../entities/enums/ReportFormatEnum';
-import { PdfColumn, createAnalyticsReportPdf } from '../../../../infrastructure/analytics/pdf/analyticsPdfService';
+import {
+    automaticExamReportRequestSchema,
+    examComparisonReportRequestSchema,
+    examPerformanceParamsSchema,
+    examPerformanceRequestSchema,
+    popularQuestionsReportRequestSchema,
+    reviewerActivityReportRequestSchema,
+    subjectDifficultyReportRequestSchema,
+    validatedExamsReportRequestSchema,
+    AutomaticExamReportRow,
+    PopularQuestionsReportRow,
+    ValidatedExamReportRow,
+} from '../../schemas/analyticsSchema';
+
+type GenericRow = Record<string, unknown>;
 
 const REPORT_COLUMNS = {
     automatic: [
-        { header: 'Título', accessor: (row: any) => row.title },
-        { header: 'Creador', accessor: (row: any) => row.creatorName ?? row.creatorId },
-        { header: 'Asignatura', accessor: (row: any) => row.subjectName ?? row.subjectId },
+        {
+            header: 'Título',
+            accessor: (row: AutomaticExamReportRow) => row.title,
+        },
+        {
+            header: 'Creador',
+            accessor: (row: AutomaticExamReportRow) => row.creatorName ?? row.creatorId,
+        },
+        {
+            header: 'Asignatura',
+            accessor: (row: AutomaticExamReportRow) => row.subjectName ?? row.subjectId,
+        },
         {
             header: 'Creado en',
-            accessor: (row: any) => (row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt)),
+            accessor: (row: AutomaticExamReportRow) =>
+                row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
         },
         {
             header: 'Parámetros',
-            accessor: (row: any) => JSON.stringify(row.parameters ?? {}),
+            accessor: (row: AutomaticExamReportRow) => JSON.stringify(row.parameters ?? {}),
         },
     ],
     popular: [
-        { header: 'Pregunta', accessor: (row: any) => row.questionId },
-        { header: 'Tema', accessor: (row: any) => row.topicName ?? 'Sin tema' },
-        { header: 'Dificultad', accessor: (row: any) => row.difficulty },
-        { header: 'Usos', accessor: (row: any) => String(row.usageCount) },
+        { header: 'Pregunta', accessor: (row: PopularQuestionsReportRow) => row.questionId },
+        {
+            header: 'Tema',
+            accessor: (row: PopularQuestionsReportRow) => row.topicName ?? 'Sin tema',
+        },
+        { header: 'Dificultad', accessor: (row: PopularQuestionsReportRow) => row.difficulty },
+        {
+            header: 'Usos',
+            accessor: (row: PopularQuestionsReportRow) => String(row.usageCount),
+        },
     ],
     validated: [
-        { header: 'Examen', accessor: (row: any) => row.title },
-        { header: 'Asignatura', accessor: (row: any) => row.subjectName ?? row.subjectId },
+        { header: 'Examen', accessor: (row: ValidatedExamReportRow) => row.title },
+        {
+            header: 'Asignatura',
+            accessor: (row: ValidatedExamReportRow) => row.subjectName ?? row.subjectId,
+        },
         {
             header: 'Validado',
-            accessor: (row: any) => (row.validatedAt ? new Date(row.validatedAt).toISOString() : '-'),
+            accessor: (row: ValidatedExamReportRow) =>
+                row.validatedAt ? new Date(row.validatedAt).toISOString() : '-',
         },
-        { header: 'Observaciones', accessor: (row: any) => row.observations ?? '-' },
+        {
+            header: 'Observaciones',
+            accessor: (row: ValidatedExamReportRow) => row.observations ?? '-',
+        },
     ],
     performance: [
-        { header: 'Índice', accessor: (row: any) => String(row.questionIndex) },
-        { header: 'Pregunta', accessor: (row: any) => row.questionId },
-        { header: 'Dificultad', accessor: (row: any) => row.difficulty },
+        { header: 'Índice', accessor: (row: GenericRow) => String(row.questionIndex ?? '-') },
+        { header: 'Pregunta', accessor: (row: GenericRow) => String(row.questionId ?? '-') },
+        { header: 'Dificultad', accessor: (row: GenericRow) => String(row.difficulty ?? '-') },
         {
             header: 'Éxito %',
-            accessor: (row: any) => `${(row.successRate * 100).toFixed(1)}%`,
+            accessor: (row: GenericRow) => `${(Number(row.successRate ?? 0) * 100).toFixed(1)}%`,
         },
-        { header: 'Intentos', accessor: (row: any) => String(row.attempts) },
+        { header: 'Intentos', accessor: (row: GenericRow) => String(row.attempts ?? '-') },
     ],
     subjectDifficulty: [
-        { header: 'Asignatura', accessor: (row: any) => row.subjectName ?? row.subjectId },
-        { header: 'Correlación', accessor: (row: any) => row.correlation },
-        { header: 'Promedios', accessor: (row: any) => row.difficulties },
+        {
+            header: 'Asignatura',
+            accessor: (row: GenericRow) => String(row.subjectName ?? row.subjectId ?? '-'),
+        },
+        { header: 'Correlación', accessor: (row: GenericRow) => String(row.correlation ?? '-') },
+        { header: 'Promedios', accessor: (row: GenericRow) => String(row.difficulties ?? '-') },
     ],
     examComparison: [
-        { header: 'Examen', accessor: (row: any) => row.title },
-        { header: 'Asignatura', accessor: (row: any) => row.subjectName ?? row.subjectId },
-        { header: 'Equilibrado', accessor: (row: any) => (row.balanced ? 'Sí' : 'No') },
-        { header: 'Brecha', accessor: (row: any) => row.balanceGap },
-        { header: 'Distribución', accessor: (row: any) => row.distribution },
-        { header: 'Temas', accessor: (row: any) => row.topics },
+        { header: 'Examen', accessor: (row: GenericRow) => String(row.title ?? '-') },
+        {
+            header: 'Asignatura',
+            accessor: (row: GenericRow) => String(row.subjectName ?? row.subjectId ?? '-'),
+        },
+        {
+            header: 'Equilibrado',
+            accessor: (row: GenericRow) => (row.balanced ? 'Sí' : 'No'),
+        },
+        { header: 'Brecha', accessor: (row: GenericRow) => String(row.balanceGap ?? '-') },
+        { header: 'Distribución', accessor: (row: GenericRow) => String(row.distribution ?? '-') },
+        { header: 'Temas', accessor: (row: GenericRow) => String(row.topics ?? '-') },
     ],
     reviewerActivity: [
-        { header: 'Revisor', accessor: (row: any) => row.reviewerName ?? row.reviewerId },
-        { header: 'Asignatura', accessor: (row: any) => row.subjectName ?? row.subjectId },
-        { header: 'Revisados', accessor: (row: any) => String(row.reviewedExams) },
+        {
+            header: 'Revisor',
+            accessor: (row: GenericRow) => String(row.reviewerName ?? row.reviewerId ?? '-'),
+        },
+        {
+            header: 'Asignatura',
+            accessor: (row: GenericRow) => String(row.subjectName ?? row.subjectId ?? '-'),
+        },
+        {
+            header: 'Revisados',
+            accessor: (row: GenericRow) => String(row.reviewedExams ?? '-'),
+        },
     ],
 };
 
@@ -96,11 +144,7 @@ async function sendReportPdf<T>(
     res.send(buffer);
 }
 
-export async function listAutomaticExams(
-    _req: Request,
-    res: Response,
-    next: NextFunction,
-) {
+export async function listAutomaticExams(_req: Request, res: Response, next: NextFunction) {
     try {
         const dto = automaticExamReportRequestSchema.parse(_req.query);
         const { format, ...payload } = dto;
@@ -121,11 +165,7 @@ export async function listAutomaticExams(
     }
 }
 
-export async function listPopularQuestions(
-    _req: Request,
-    res: Response,
-    next: NextFunction,
-) {
+export async function listPopularQuestions(_req: Request, res: Response, next: NextFunction) {
     try {
         const dto = popularQuestionsReportRequestSchema.parse(_req.query);
         const { format, ...payload } = dto;
@@ -146,11 +186,7 @@ export async function listPopularQuestions(
     }
 }
 
-export async function listValidatedExams(
-    _req: Request,
-    res: Response,
-    next: NextFunction,
-) {
+export async function listValidatedExams(_req: Request, res: Response, next: NextFunction) {
     try {
         const dto = validatedExamsReportRequestSchema.parse(_req.query);
         const { format, ...payload } = dto;
@@ -171,11 +207,7 @@ export async function listValidatedExams(
     }
 }
 
-export async function getExamPerformance(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-) {
+export async function getExamPerformance(req: Request, res: Response, next: NextFunction) {
     try {
         const params = examPerformanceParamsSchema.parse(req.params);
         const query = examPerformanceRequestSchema.parse(req.query);
@@ -196,12 +228,7 @@ export async function getExamPerformance(
     }
 }
 
-
-export async function getSubjectDifficulty(
-    _req: Request,
-    res: Response,
-    next: NextFunction,
-) {
+export async function getSubjectDifficulty(_req: Request, res: Response, next: NextFunction) {
     try {
         const dto = subjectDifficultyReportRequestSchema.parse(_req.query);
         const { format, ...payload } = dto;
@@ -211,12 +238,13 @@ export async function getSubjectDifficulty(
                 subjectName: entry.subjectName ?? entry.subjectId,
                 correlation: entry.correlationScore.toFixed(2),
                 difficulties: entry.difficultyDetails
-                    .map((detail) =>
-                        `${detail.difficulty}: ${
-                            detail.averageGrade === null
-                                ? 'N/A'
-                                : detail.averageGrade.toFixed(1)
-                        }`,
+                    .map(
+                        (detail) =>
+                            `${detail.difficulty}: ${
+                                detail.averageGrade === null
+                                    ? 'N/A'
+                                    : detail.averageGrade.toFixed(1)
+                            }`,
                     )
                     .join(', '),
             }));
@@ -235,11 +263,7 @@ export async function getSubjectDifficulty(
     }
 }
 
-export async function compareExams(
-    _req: Request,
-    res: Response,
-    next: NextFunction,
-) {
+export async function compareExams(_req: Request, res: Response, next: NextFunction) {
     try {
         const dto = examComparisonReportRequestSchema.parse(_req.query);
         const { format, ...payload } = dto;
@@ -276,11 +300,7 @@ export async function compareExams(
     }
 }
 
-export async function listReviewerActivity(
-    _req: Request,
-    res: Response,
-    next: NextFunction,
-) {
+export async function listReviewerActivity(_req: Request, res: Response, next: NextFunction) {
     try {
         const dto = reviewerActivityReportRequestSchema.parse(_req.query);
         const { format, ...payload } = dto;

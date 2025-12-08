@@ -2,10 +2,6 @@ import type { Order, WhereLeftOperand } from 'sequelize';
 import { Op, QueryTypes } from 'sequelize';
 
 import { sequelize } from '../../../database/database';
-import Exam from '../../exam-generation/models/Exam';
-import Subject from '../../question-bank/models/Subject';
-import { Teacher, User } from '../../user/models';
-import { ExamStatusEnum } from '../../../domains/exam-application/entities/enums/ExamStatusEnum';
 import {
     AutomaticExamFilter,
     ExamComparisonFilter,
@@ -18,10 +14,14 @@ import {
     ValidatedExamsFilter,
 } from '../../../domains/analytics/domain/ports/IAnalyticsRepository';
 import { AutomaticExamSortByEnum } from '../../../domains/analytics/entities/enums/AutomaticExamSortByEnum';
-import { PopularQuestionSortByEnum } from '../../../domains/analytics/entities/enums/PopularQuestionSortByEnum';
-import { ValidatedExamSortByEnum } from '../../../domains/analytics/entities/enums/ValidatedExamSortByEnum';
 import { ExamComparisonSortByEnum } from '../../../domains/analytics/entities/enums/ExamComparisonSortByEnum';
+import { PopularQuestionSortByEnum } from '../../../domains/analytics/entities/enums/PopularQuestionSortByEnum';
 import { ReviewerActivitySortByEnum } from '../../../domains/analytics/entities/enums/ReviewerActivitySortByEnum';
+import { ValidatedExamSortByEnum } from '../../../domains/analytics/entities/enums/ValidatedExamSortByEnum';
+import { ExamStatusEnum } from '../../../domains/exam-application/entities/enums/ExamStatusEnum';
+import Exam from '../../exam-generation/models/Exam';
+import Subject from '../../question-bank/models/Subject';
+import { Teacher, User } from '../../user/models';
 
 const FINALIZED_EXAM_STATUSES = [ExamStatusEnum.APPROVED, ExamStatusEnum.PUBLISHED];
 
@@ -90,7 +90,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
             OFFSET :offset
         `;
 
-        const rows = await sequelize.query(query, {
+        const rows = await sequelize.query<Record<string, unknown>>(query, {
             type: QueryTypes.SELECT,
             replacements: {
                 subjectId: filter.subjectId,
@@ -114,7 +114,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
             replacements: { subjectId: filter.subjectId, statuses: FINALIZED_EXAM_STATUSES },
         });
 
-        const items = rows.map((row: any) => ({
+        const items = rows.map((row) => ({
             questionId: row.questionId,
             questionBody: row.questionBody ?? null,
             difficulty: row.difficulty,
@@ -183,32 +183,36 @@ export class AnalyticsRepository implements IAnalyticsRepository {
             GROUP BY eq.id, q.difficulty, q.body, t.id, t.title
         `;
 
-        const rows = await sequelize.query(query, {
+        const rows = await sequelize.query<Record<string, unknown>>(query, {
             type: QueryTypes.SELECT,
             replacements: { examId },
         });
 
-        return (rows as any[]).map((row) => ({
-            examQuestionId: row.examQuestionId,
-            questionId: row.questionId,
-            questionIndex: Number(row.questionIndex),
-            questionScore: Number(row.questionScore),
-            difficulty: row.difficulty,
-            topicId: row.topicId,
-            topicName: row.topicName,
-            averageScore: Number(row.averageScore ?? 0),
-            successRate:
-                row.questionScore > 0
-                    ? Number(row.averageScore ?? 0) / Number(row.questionScore)
-                    : 0,
-            attempts: Number(row.attempts ?? 0),
-            questionBody: row.questionBody ?? null,
-        }));
+        return rows.map((row) => {
+            const questionScore = Number(row.questionScore ?? 0);
+            const averageScore = Number(row.averageScore ?? 0);
+            return {
+                examQuestionId: row.examQuestionId,
+                questionId: row.questionId,
+                questionIndex: Number(row.questionIndex),
+                questionScore,
+                difficulty: row.difficulty,
+                topicId: row.topicId,
+                topicName: row.topicName,
+                averageScore,
+                successRate: questionScore > 0 ? averageScore / questionScore : 0,
+                attempts: Number(row.attempts ?? 0),
+                questionBody: row.questionBody ?? null,
+            };
+        });
     }
 
     async fetchSubjectDifficultyRecords(filter: SubjectDifficultyFilter) {
         const direction = this.getSortDirection(filter.sortOrder);
-        const whereClause = filter.subjectIds && filter.subjectIds.length > 0 ? 'AND e.subjectId IN (:subjectIds)' : '';
+        const whereClause =
+            filter.subjectIds && filter.subjectIds.length > 0
+                ? 'AND e.subjectId IN (:subjectIds)'
+                : '';
         const query = `
             SELECT
                 e.subjectId,
@@ -226,14 +230,15 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         `;
 
         const replacements: Record<string, unknown> = {};
-        if (filter.subjectIds && filter.subjectIds.length > 0) replacements.subjectIds = filter.subjectIds;
+        if (filter.subjectIds && filter.subjectIds.length > 0)
+            replacements.subjectIds = filter.subjectIds;
 
-        const rows = await sequelize.query(query, {
+        const rows = await sequelize.query<Record<string, unknown>>(query, {
             type: QueryTypes.SELECT,
             replacements,
         });
 
-        return (rows as any[]).map((row) => ({
+        return rows.map((row) => ({
             subjectId: row.subjectId,
             subjectName: row.subjectName ?? null,
             difficulty: row.difficulty,
@@ -271,12 +276,12 @@ export class AnalyticsRepository implements IAnalyticsRepository {
             LIMIT :limit
         `;
 
-        const rows = await sequelize.query(query, {
+        const rows = await sequelize.query<Record<string, unknown>>(query, {
             type: QueryTypes.SELECT,
             replacements: { limit },
         });
 
-        return (rows as any[]).map((row) => ({
+        return rows.map((row) => ({
             questionId: row.questionId,
             topicId: row.topicId,
             topicName: row.topicName,
@@ -319,17 +324,17 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         `;
 
         const [regradeRows, courseRows] = await Promise.all([
-            sequelize.query(regradeQuery, { type: QueryTypes.SELECT }),
-            sequelize.query(courseQuery, { type: QueryTypes.SELECT }),
+            sequelize.query<Record<string, unknown>>(regradeQuery, { type: QueryTypes.SELECT }),
+            sequelize.query<Record<string, unknown>>(courseQuery, { type: QueryTypes.SELECT }),
         ]);
 
         const courseMap = new Map<string, number | null>();
-        (courseRows as any[]).forEach((row) => {
+        courseRows.forEach((row) => {
             const key = `${row.subjectId}::${row.course}`;
             courseMap.set(key, row.courseAverage !== null ? Number(row.courseAverage) : null);
         });
 
-        return (regradeRows as any[]).map((row) => ({
+        return regradeRows.map((row) => ({
             subjectId: row.subjectId,
             subjectName: row.subjectName ?? null,
             course: row.course,
@@ -369,7 +374,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         return { exams: items, total };
     }
 
-    async fetchExamDifficultyRecords(examIds: string[]) {
+    async fetchExamDifficultyRecords(examIds: string[]): Promise<ExamDifficultyRecord[]> {
         if (!examIds.length) return [];
         const query = `
             SELECT
@@ -381,19 +386,19 @@ export class AnalyticsRepository implements IAnalyticsRepository {
             WHERE eq.examId IN (:examIds)
             GROUP BY eq.examId, q.difficulty
         `;
-        const rows = await sequelize.query(query, {
+        const rows = await sequelize.query<Record<string, unknown>>(query, {
             type: QueryTypes.SELECT,
             replacements: { examIds },
         });
 
-        return (rows as any[]).map((row) => ({
+        return rows.map((row) => ({
             examId: row.examId,
             difficulty: row.difficulty,
             count: Number(row.count ?? 0),
         }));
     }
 
-    async fetchExamTopicRecords(examIds: string[]) {
+    async fetchExamTopicRecords(examIds: string[]): Promise<ExamTopicRecord[]> {
         if (!examIds.length) return [];
         const query = `
             SELECT
@@ -408,12 +413,12 @@ export class AnalyticsRepository implements IAnalyticsRepository {
             WHERE eq.examId IN (:examIds)
             GROUP BY eq.examId, t.id, t.title
         `;
-        const rows = await sequelize.query(query, {
+        const rows = await sequelize.query<Record<string, unknown>>(query, {
             type: QueryTypes.SELECT,
             replacements: { examIds },
         });
 
-        return (rows as any[]).map((row) => ({
+        return rows.map((row) => ({
             examId: row.examId,
             topicId: row.topicId,
             topicName: row.topicName,
@@ -446,7 +451,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
             OFFSET :offset
         `;
 
-        const rows = await sequelize.query(query, {
+        const rows = await sequelize.query<Record<string, unknown>>(query, {
             type: QueryTypes.SELECT,
             replacements: { since, limit: filter.limit, offset: filter.offset },
         });
@@ -467,7 +472,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
             replacements: { since },
         });
 
-        const items = (rows as any[]).map((row) => ({
+        const items = rows.map((row) => ({
             reviewerId: row.reviewerId,
             reviewerName: row.reviewerName ?? null,
             subjectId: row.subjectId,
@@ -484,7 +489,9 @@ export class AnalyticsRepository implements IAnalyticsRepository {
             return [[{ model: Subject, as: 'subject' }, 'name', direction]] as Order;
         }
         if (filter.sortBy === AutomaticExamSortByEnum.CREATOR_NAME) {
-            return [[{ model: Teacher, as: 'author' }, { model: User, as: 'user' }, 'name', direction]] as Order;
+            return [
+                [{ model: Teacher, as: 'author' }, { model: User, as: 'user' }, 'name', direction],
+            ] as Order;
         }
         return [['createdAt', direction]] as Order;
     }
@@ -495,7 +502,10 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         return 'usageCount';
     }
 
-    private buildExamComparisonOrder(sortBy: ExamComparisonSortByEnum, direction: 'ASC' | 'DESC'): Order {
+    private buildExamComparisonOrder(
+        sortBy: ExamComparisonSortByEnum,
+        direction: 'ASC' | 'DESC',
+    ): Order {
         if (sortBy === ExamComparisonSortByEnum.SUBJECT_NAME) {
             return [[{ model: Subject, as: 'subject' }, 'name', direction]] as Order;
         }

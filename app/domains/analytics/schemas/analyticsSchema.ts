@@ -3,12 +3,12 @@ import { z } from 'zod';
 import { DifficultyLevelEnum } from '../../question-bank/entities/enums/DifficultyLevels';
 import { AutomaticExamSortByEnum } from '../entities/enums/AutomaticExamSortByEnum';
 import { ExamComparisonSortByEnum } from '../entities/enums/ExamComparisonSortByEnum';
+import { PopularQuestionSortByEnum } from '../entities/enums/PopularQuestionSortByEnum';
 import { ReportFormatEnum } from '../entities/enums/ReportFormatEnum';
 import { ReviewerActivitySortByEnum } from '../entities/enums/ReviewerActivitySortByEnum';
 import { SortDirectionEnum } from '../entities/enums/SortDirectionEnum';
 import { SubjectDifficultySortByEnum } from '../entities/enums/SubjectDifficultySortByEnum';
 import { ValidatedExamSortByEnum } from '../entities/enums/ValidatedExamSortByEnum';
-import { PopularQuestionSortByEnum } from '../entities/enums/PopularQuestionSortByEnum';
 
 const limitSchema = z.coerce.number().int().min(1).max(200);
 const offsetSchema = z.coerce.number().int().min(0);
@@ -87,9 +87,9 @@ const subjectDifficultyReportSchemaBase = z.object({
     subjectIds: subjectIdsParamSchema,
     limit: limitSchema.default(20),
     offset: offsetSchema.default(0),
-    sortBy: z.nativeEnum(SubjectDifficultySortByEnum).default(
-        SubjectDifficultySortByEnum.SUBJECT_NAME,
-    ),
+    sortBy: z
+        .nativeEnum(SubjectDifficultySortByEnum)
+        .default(SubjectDifficultySortByEnum.SUBJECT_NAME),
     sortOrder: sortOrderSchema.default(SortDirectionEnum.ASC),
 });
 
@@ -98,9 +98,7 @@ export const subjectDifficultyReportRequestSchema = subjectDifficultyReportSchem
 });
 
 export type SubjectDifficultyReportInput = z.infer<typeof subjectDifficultyReportSchemaBase>;
-export type SubjectDifficultyReportRequest = z.infer<
-    typeof subjectDifficultyReportRequestSchema
->;
+export type SubjectDifficultyReportRequest = z.infer<typeof subjectDifficultyReportRequestSchema>;
 
 const examComparisonReportSchemaBase = z.object({
     subjectIds: subjectIdsParamSchema,
@@ -116,16 +114,14 @@ export const examComparisonReportRequestSchema = examComparisonReportSchemaBase.
 });
 
 export type ExamComparisonReportInput = z.infer<typeof examComparisonReportSchemaBase>;
-export type ExamComparisonReportRequest = z.infer<
-    typeof examComparisonReportRequestSchema
->;
+export type ExamComparisonReportRequest = z.infer<typeof examComparisonReportRequestSchema>;
 
 const reviewerActivityReportSchemaBase = z.object({
     limit: limitSchema.default(20),
     offset: offsetSchema.default(0),
-    sortBy: z.nativeEnum(ReviewerActivitySortByEnum).default(
-        ReviewerActivitySortByEnum.REVIEWED_EXAMS,
-    ),
+    sortBy: z
+        .nativeEnum(ReviewerActivitySortByEnum)
+        .default(ReviewerActivitySortByEnum.REVIEWED_EXAMS),
     sortOrder: sortOrderSchema.default(SortDirectionEnum.DESC),
 });
 
@@ -134,9 +130,7 @@ export const reviewerActivityReportRequestSchema = reviewerActivityReportSchemaB
 });
 
 export type ReviewerActivityReportInput = z.infer<typeof reviewerActivityReportSchemaBase>;
-export type ReviewerActivityReportRequest = z.infer<
-    typeof reviewerActivityReportRequestSchema
->;
+export type ReviewerActivityReportRequest = z.infer<typeof reviewerActivityReportRequestSchema>;
 
 export type AutomaticExamReportRow = {
     examId: string;

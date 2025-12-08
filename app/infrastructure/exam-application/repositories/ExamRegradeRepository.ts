@@ -3,6 +3,8 @@ import { ModelStatic, Op } from 'sequelize';
 import type {
     CreateExamRegradeInput,
     IExamRegradeRepository,
+    ListPendingRegradesCriteria,
+    Page,
 } from '../../../domains/exam-application/domain/ports/IExamRegradeRepository';
 import { ExamRegradesStatus } from '../../../domains/exam-application/entities/enums/ExamRegradeStatus';
 import { ExamRegradeOutput } from '../../../domains/exam-application/schemas/examRegradeSchema';
@@ -49,6 +51,41 @@ export class ExamRegradeRepository implements IExamRegradeRepository {
         } catch {
             throw new BaseDatabaseError({
                 message: 'Error buscando solicitudes de recalificación activas',
+            });
+        }
+    }
+
+    async listPendingByProfessor({
+        professorId,
+        limit,
+        offset,
+        statuses,
+    }: ListPendingRegradesCriteria): Promise<Page<ExamRegradeOutput>> {
+        try {
+            const statusFilter =
+                statuses && statuses.length > 0
+                    ? statuses
+                    : [ExamRegradesStatus.REQUESTED, ExamRegradesStatus.IN_REVIEW];
+
+            const { rows, count } = await this.model.findAndCountAll({
+                where: {
+                    professorId,
+                    status: {
+                        [Op.in]: statusFilter,
+                    },
+                },
+                limit,
+                offset,
+                order: [['requestedAt', 'DESC']],
+            });
+
+            return {
+                items: rows.map((row) => ExamRegradeMapper.toOutput(row)),
+                total: count,
+            };
+        } catch {
+            throw new BaseDatabaseError({
+                message: 'Error obteniendo solicitudes de recalificación',
             });
         }
     }

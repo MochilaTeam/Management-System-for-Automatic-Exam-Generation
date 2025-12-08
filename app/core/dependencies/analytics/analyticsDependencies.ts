@@ -1,5 +1,3 @@
-import { AnalyticsService } from '../../../domains/analytics/domain/services/analyticsService';
-import { AnalyticsRepository } from '../../../infrastructure/analytics/repositories/AnalyticsRepository';
 import { CompareExamsReportQuery } from '../../../domains/analytics/application/queries/CompareExamsReportQuery';
 import { GetExamPerformanceReportQuery } from '../../../domains/analytics/application/queries/GetExamPerformanceReportQuery';
 import { GetSubjectDifficultyReportQuery } from '../../../domains/analytics/application/queries/GetSubjectDifficultyReportQuery';
@@ -7,6 +5,8 @@ import { ListAutomaticExamsReportQuery } from '../../../domains/analytics/applic
 import { ListPopularQuestionsReportQuery } from '../../../domains/analytics/application/queries/ListPopularQuestionsReportQuery';
 import { ListReviewerActivityReportQuery } from '../../../domains/analytics/application/queries/ListReviewerActivityReportQuery';
 import { ListValidatedExamsReportQuery } from '../../../domains/analytics/application/queries/ListValidatedExamsReportQuery';
+import { AnalyticsService } from '../../../domains/analytics/domain/services/analyticsService';
+import { AnalyticsRepository } from '../../../infrastructure/analytics/repositories/AnalyticsRepository';
 
 let repo: AnalyticsRepository | null = null;
 let svc: AnalyticsService | null = null;

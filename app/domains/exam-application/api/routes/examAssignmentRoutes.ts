@@ -158,6 +158,11 @@ router.post(
  *           type: string
  *           format: uuid
  *         description: Filtrar por ID de la asignatura
+ *       - in: query
+ *         name: examTitle
+ *         schema:
+ *           type: string
+ *         description: Filtrar por título del examen
  *     responses:
  *       200:
  *         description: Lista de exámenes asignados obtenida correctamente

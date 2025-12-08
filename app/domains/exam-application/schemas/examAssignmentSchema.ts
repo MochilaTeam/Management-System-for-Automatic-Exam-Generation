@@ -74,6 +74,7 @@ export const listStudentExamsQuerySchema = z
         status: z.nativeEnum(AssignedExamStatus).optional(),
         subjectId: z.string().uuid().optional(),
         teacherId: z.string().uuid().optional(),
+        examTitle: z.string().optional(),
     })
     .strict();
 

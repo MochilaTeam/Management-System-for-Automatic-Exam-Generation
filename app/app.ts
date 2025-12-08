@@ -5,13 +5,12 @@ import { get_logger } from './core/dependencies/dependencies';
 import { SystemLogger } from './core/logging/logger';
 import { errorHandler } from './core/middlewares/errorHandler';
 import { responseInterceptor } from './core/middlewares/responseInterceptor';
-import { createDatabaseIfNotExists } from './database/database';
 import { connect } from './database/database';
 import { syncTables } from './database/init';
 import { swaggerSpec } from './docs/swagger';
+import { analyticsRouter } from './domains/analytics/main';
 import { examApplicationRouter as examApplicationDomainRouter } from './domains/exam-application/main';
 import { examGenerationRouter } from './domains/exam-generation/main';
-import { analyticsRouter } from './domains/analytics/main';
 import { questionBankRouter } from './domains/question-bank/main';
 import { userRouter } from './domains/user/main';
 
@@ -30,7 +29,6 @@ app.use(analyticsRouter);
 app.use(questionBankRouter);
 
 const start = async () => {
-    await createDatabaseIfNotExists();
     await connect();
     await syncTables();
 

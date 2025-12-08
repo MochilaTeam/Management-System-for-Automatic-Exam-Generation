@@ -61,7 +61,9 @@ export interface IAnalyticsRepository {
 
     fetchExamPerformance(examId: string): Promise<ExamPerformanceRow[]>;
 
-    fetchSubjectDifficultyRecords(filter: SubjectDifficultyFilter): Promise<SubjectDifficultyRecord[]>;
+    fetchSubjectDifficultyRecords(
+        filter: SubjectDifficultyFilter,
+    ): Promise<SubjectDifficultyRecord[]>;
 
     fetchTopFailingQuestions(limit: number): Promise<TopFailingQuestionRow[]>;
 

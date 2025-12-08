@@ -62,7 +62,6 @@ type ExamSeed = {
     difficulty: DifficultyLevelEnum;
     examStatus: ExamStatusEnum;
     startIndex: number;
-    coverageMode?: string;
 };
 
 const questionScoreByDifficulty: Record<DifficultyLevelEnum, number> = {
@@ -203,41 +202,17 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
     'Examen Final - Transacciones y ACID': [
         {
             studentEmail: 'student1@example.com',
-            status: AssignedExamStatus.GRADED,
+            status: AssignedExamStatus.ENABLED,
             applicationDate: new Date('2024-01-01T08:00:00Z'),
-            durationMinutes: 150,
-            grade: 8.4,
-            responses: [
-                {
-                    questionIndex: 1,
-                    autoPoints: 3,
-                    manualPoints: null,
-                    answeredAt: new Date('2024-01-01T09:30:00Z'),
-                },
-                {
-                    questionIndex: 2,
-                    autoPoints: 2,
-                    manualPoints: null,
-                    answeredAt: new Date('2024-01-01T09:45:00Z'),
-                },
-            ],
-            regrade: {
-                reason: 'Solicito revisar la pregunta 2',
-                status: ExamRegradesStatus.RESOLVED,
-                requestedAt: new Date('2024-01-03T10:00:00Z'),
-                resolvedAt: new Date('2024-01-05T11:30:00Z'),
-                finalGrade: 8.7,
-                reviewerEmail: 'teacher2@example.com',
-            },
+            durationMinutes: 1100000, // approx. 2.1 years to keep the exam active through 2026
         },
     ],
     'Parcial 2 - Estructuras y cadenas': [
         {
             studentEmail: 'student2@example.com',
-            status: AssignedExamStatus.GRADED,
+            status: AssignedExamStatus.IN_EVALUATION,
             applicationDate: new Date('2024-06-05T09:30:00Z'),
             durationMinutes: 90,
-            grade: 7.2,
             responses: [
                 {
                     questionIndex: 1,
@@ -251,77 +226,28 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
             ],
         },
     ],
-    'Parcial 2 - Consultas y rendimiento': [
-        {
-            studentEmail: 'student3@example.com',
-            status: AssignedExamStatus.GRADED,
-            applicationDate: new Date('2024-06-12T11:00:00Z'),
-            durationMinutes: 95,
-            grade: 8.1,
-            responses: [
-                {
-                    questionIndex: 1,
-                    autoPoints: 3,
-                    manualPoints: null,
-                    answeredAt: new Date('2024-06-12T11:20:00Z'),
-                },
-                {
-                    questionIndex: 2,
-                    autoPoints: 2,
-                    manualPoints: 1,
-                    answeredAt: new Date('2024-06-12T11:35:00Z'),
-                },
-            ],
-        },
-    ],
     'Evaluación Final - Conjuntos y funciones': [
         {
             studentEmail: 'student3@example.com',
-            status: AssignedExamStatus.GRADED,
+            status: AssignedExamStatus.PENDING,
             applicationDate: new Date('2024-06-10T08:00:00Z'),
             durationMinutes: 100,
-            grade: 7.8,
             responses: [
                 {
                     questionIndex: 1,
                     textAnswer:
                         'Una función es biyectiva cuando es inyectiva y sobreyectiva al mismo tiempo.',
                     autoPoints: 0,
-                    manualPoints: 8,
+                    manualPoints: null,
                     answeredAt: new Date('2024-06-10T09:05:00Z'),
                 },
             ],
-            regrade: {
-                reason: 'Solicito recalificar la respuesta de teoría',
-                status: ExamRegradesStatus.IN_REVIEW,
-                requestedAt: new Date('2024-06-11T09:00:00Z'),
-                resolvedAt: null,
-                finalGrade: null,
-                reviewerEmail: 'teacher3@example.com',
-            },
         },
-    ],
-    'Examen Automático - SQL equilibrado': [
         {
-            studentEmail: 'student4@example.com',
-            status: AssignedExamStatus.GRADED,
-            applicationDate: new Date('2024-07-01T08:30:00Z'),
-            durationMinutes: 85,
-            grade: 9.1,
-            responses: [
-                {
-                    questionIndex: 1,
-                    autoPoints: 3,
-                    manualPoints: 1,
-                    answeredAt: new Date('2024-07-01T09:05:00Z'),
-                },
-                {
-                    questionIndex: 3,
-                    autoPoints: 2,
-                    manualPoints: null,
-                    answeredAt: new Date('2024-07-01T09:20:00Z'),
-                },
-            ],
+            studentEmail: 'student1@example.com',
+            status: AssignedExamStatus.ENABLED,
+            applicationDate: new Date('2025-12-01T08:00:00Z'),
+            durationMinutes: 1000000,
         },
     ],
 };
@@ -1107,6 +1033,33 @@ async function seed() {
 
             const finalSelected = filteredSelected;
 
+            const questionWeights = finalSelected.map(
+                (meta) => questionScoreByDifficulty[meta.difficulty] ?? 1,
+            );
+            const totalWeight = questionWeights.reduce((acc, weight) => acc + weight, 0);
+            if (totalWeight <= 0) {
+                throw new Error(
+                    `No se pudieron calcular los puntos para ${examTemplate.title}: pesos inválidos`,
+                );
+            }
+
+            const normalizedScores = questionWeights.map((weight) =>
+                Number(((weight / totalWeight) * 100).toFixed(2)),
+            );
+
+            const totalNormalized = normalizedScores.reduce((acc, value) => acc + value, 0);
+            const roundingError = Number((100 - totalNormalized).toFixed(2));
+            if (Math.abs(roundingError) >= 0.01 && normalizedScores.length > 0) {
+                const targetIndex = normalizedScores.reduce(
+                    (bestIndex, _, index) =>
+                        normalizedScores[index] > normalizedScores[bestIndex] ? index : bestIndex,
+                    0,
+                );
+                normalizedScores[targetIndex] = Number(
+                    (normalizedScores[targetIndex] + roundingError).toFixed(2),
+                );
+            }
+
             const topicCounts = new Map<string, number>();
             finalSelected.forEach((meta) =>
                 topicCounts.set(meta.topicId, (topicCounts.get(meta.topicId) ?? 0) + 1),
@@ -1120,7 +1073,7 @@ async function seed() {
             );
 
             const topicCoverage = {
-                mode: examTemplate.coverageMode ?? 'manual-seed',
+                mode: 'manual-seed',
                 subjectId: subject.id,
                 difficulty: examTemplate.difficulty,
                 questionIds: finalSelected.map((item) => item.id),
@@ -1157,7 +1110,7 @@ async function seed() {
                 examId: createdExam.id,
                 questionId: questionMeta.id,
                 questionIndex: idx + 1,
-                questionScore: questionScoreByDifficulty[questionMeta.difficulty] ?? 1,
+                questionScore: normalizedScores[idx],
             }));
             await ExamQuestion.bulkCreate(examQuestionRows, { transaction: t });
 
@@ -1169,7 +1122,7 @@ async function seed() {
             examQuestions.forEach((item) => questionByIndex.set(item.questionIndex, item));
 
             const assignmentSpecs = assignmentSeedByExamTitle[createdExam.title] ?? [];
-            if (assignmentSpecs.length > 0) {
+            if (assignmentSpecs.length > 0 && createdExam.examStatus === ExamStatusEnum.PUBLISHED) {
                 for (const assignmentSpec of assignmentSpecs) {
                     const studentProfile = studentsByEmail.get(assignmentSpec.studentEmail);
                     if (!studentProfile) {

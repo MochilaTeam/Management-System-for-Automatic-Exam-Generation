@@ -1,7 +1,7 @@
 import { Model, STRING, DataTypes, BOOLEAN } from 'sequelize';
 
-import { sequelize } from '../../../database/database';
 import User from './User';
+import { sequelize } from '../../../database/database';
 
 class Teacher extends Model {
     public id!: string;

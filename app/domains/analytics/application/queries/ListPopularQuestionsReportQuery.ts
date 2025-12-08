@@ -1,7 +1,10 @@
 import { PaginatedSchema } from '../../../../shared/domain/base_response';
 import { BaseQuery } from '../../../../shared/domain/base_use_case';
 import { AnalyticsService } from '../../domain/services/analyticsService';
-import { PopularQuestionsReportInput, PopularQuestionsReportRow } from '../../schemas/analyticsSchema';
+import {
+    PopularQuestionsReportInput,
+    PopularQuestionsReportRow,
+} from '../../schemas/analyticsSchema';
 
 export class ListPopularQuestionsReportQuery extends BaseQuery<
     PopularQuestionsReportInput,
