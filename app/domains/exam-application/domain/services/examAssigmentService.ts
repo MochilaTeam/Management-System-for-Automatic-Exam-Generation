@@ -161,7 +161,7 @@ export class ExamAssignmentService extends BaseDomainService {
         }
 
         const assignments = await this.teacherSubjectLinkRepo.getAssignments(teacher.id);
-        console.log("assignments", assignments);
+        console.log('assignments', assignments);
         const teachesSubject = assignments.teachingSubjectIds.includes(subjectId!);
         if (!teachesSubject) {
             this.raiseBusinessRuleError(operation, 'PROFESOR NO ASIGNADO A LA MATERIA', {
@@ -468,14 +468,10 @@ export class ExamAssignmentService extends BaseDomainService {
             );
 
             if (ungradedResponse) {
-                this.raiseBusinessRuleError(
-                    operation,
-                    'AÚN HAY PREGUNTAS SIN CALIFICAR',
-                    {
-                        entity: 'ExamResponse',
-                        details: { ungradedResponseId: ungradedResponse.id },
-                    },
-                );
+                this.raiseBusinessRuleError(operation, 'AÚN HAY PREGUNTAS SIN CALIFICAR', {
+                    entity: 'ExamResponse',
+                    details: { ungradedResponseId: ungradedResponse.id },
+                });
             }
 
             const questionMap = new Map(examQuestions.map((question) => [question.id, question]));
@@ -494,9 +490,10 @@ export class ExamAssignmentService extends BaseDomainService {
 
             const finalGrade = Number(Math.min(obtainedScoreRaw, examTotalScore).toFixed(2));
 
-            const statusAfterGrade = [AssignedExamStatus.REGRADING, AssignedExamStatus.REGRADED].includes(
-                assignment.status,
-            )
+            const statusAfterGrade = [
+                AssignedExamStatus.REGRADING,
+                AssignedExamStatus.REGRADED,
+            ].includes(assignment.status)
                 ? AssignedExamStatus.REGRADED
                 : AssignedExamStatus.GRADED;
 
@@ -536,7 +533,11 @@ export class ExamAssignmentService extends BaseDomainService {
                 });
             }
 
-            if (![AssignedExamStatus.GRADED, AssignedExamStatus.REGRADED].includes(assignment.status)) {
+            if (
+                ![AssignedExamStatus.GRADED, AssignedExamStatus.REGRADED].includes(
+                    assignment.status,
+                )
+            ) {
                 this.raiseBusinessRuleError(operation, 'EL EXAMEN AÚN NO HA SIDO CALIFICADO', {
                     entity: 'ExamAssignment',
                 });
@@ -559,7 +560,7 @@ export class ExamAssignmentService extends BaseDomainService {
                 });
             }
 
-            console.log("ASSIGNMENT", assignment);
+            console.log('ASSIGNMENT', assignment);
             await this.ensureTeacherCanReviewExam(operation, teacher.id, assignment.subjectId);
 
             const regrade = await this.examRegradeRepo.create({
@@ -586,12 +587,12 @@ export class ExamAssignmentService extends BaseDomainService {
         teacherId: string,
         subjectId: string,
     ) {
-        console.log("ENTROOOO AQUIII")
-        console.log("TEACHER_ID", teacherId);
-        console.log("SUBJECT_  ID", subjectId);
+        console.log('ENTROOOO AQUIII');
+        console.log('TEACHER_ID', teacherId);
+        console.log('SUBJECT_  ID', subjectId);
 
         const assignments = await this.teacherSubjectLinkRepo.getAssignments(teacherId);
-        console.log("assignments", assignments);
+        console.log('assignments', assignments);
         const canReview =
             assignments.teachingSubjectIds.includes(subjectId) ||
             assignments.leadSubjectIds.includes(subjectId);

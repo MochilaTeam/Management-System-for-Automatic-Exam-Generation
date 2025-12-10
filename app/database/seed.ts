@@ -239,7 +239,9 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
                 },
                 {
                     questionIndex: 3,
-                    selectedOptions: [{ text: 'Asegurar atomicidad con transacciones', isCorrect: true }],
+                    selectedOptions: [
+                        { text: 'Asegurar atomicidad con transacciones', isCorrect: true },
+                    ],
                     autoPoints: 3,
                     manualPoints: null,
                     answeredAt: new Date('2024-09-01T14:33:00Z'),
@@ -265,7 +267,8 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
                 },
                 {
                     questionIndex: 2,
-                    textAnswer: 'La escritura diferida reduce bloqueos pero incrementa trabajo I/O posterior.',
+                    textAnswer:
+                        'La escritura diferida reduce bloqueos pero incrementa trabajo I/O posterior.',
                     autoPoints: 0,
                     manualPoints: 6,
                     answeredAt: new Date('2024-08-20T13:58:00Z'),
@@ -279,7 +282,8 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
                 },
                 {
                     questionIndex: 4,
-                    textAnswer: 'Aplicar particionamiento por rango para acelerar reportes históricos.',
+                    textAnswer:
+                        'Aplicar particionamiento por rango para acelerar reportes históricos.',
                     autoPoints: 0,
                     manualPoints: 8,
                     answeredAt: new Date('2024-08-20T14:15:00Z'),
