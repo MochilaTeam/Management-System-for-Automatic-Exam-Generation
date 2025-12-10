@@ -1,4 +1,3 @@
-import type { Model } from 'sequelize';
 import '../infrastructure/exam-application/models';
 import '../infrastructure/exam-generation/models';
 import '../infrastructure/question-bank/models';
@@ -19,16 +18,16 @@ import TeacherSubject from '../infrastructure/question-bank/models/TeacherSubjec
 import Topic from '../infrastructure/question-bank/models/Topic';
 import { Student, Teacher, User } from '../infrastructure/user/models';
 
-const syncModel = async (model: {
-    sync: (options: { alter: boolean }) => Promise<Model<any, any>>;
-}) => {
+type SyncableModel = {
+    sync(options: { alter: boolean }): Promise<unknown>;
+};
+
+const syncModel = async (model: SyncableModel) => {
     try {
         await model.sync({ alter: true });
-    } catch (error) {
+    } catch (error: unknown) {
         const errno = (error as { original?: { errno?: number } }).original?.errno;
-        if (errno === 1069) {
-            return;
-        }
+        if (errno === 1069) return;
         throw error;
     }
 };
