@@ -26,11 +26,7 @@ export async function listTeachers(req: Request, res: Response, next: NextFuncti
     }
 }
 
-export async function listTeachersBySubject(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-) {
+export async function listTeachersBySubject(req: Request, res: Response, next: NextFunction) {
     try {
         const { subjectId } = subjectIdParamsSchema.parse(req.params);
         const result = await makeListTeachersBySubjectQuery().execute({ subjectId });

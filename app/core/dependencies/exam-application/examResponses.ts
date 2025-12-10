@@ -7,10 +7,10 @@ import { GetExamQuestionDetailQuery } from '../../../domains/exam-application/ap
 import { GetExamResponseByIndexQuery } from '../../../domains/exam-application/application/queries/getExamResponseByIndexQuery';
 import { ExamResponseService } from '../../../domains/exam-application/domain/services/examResponseService';
 import { ExamResponseRepository } from '../../../infrastructure/exam-application/repositories/ExamResponseRepository';
+import { TeacherSubjectLinkRepository } from '../../../infrastructure/question-bank/repositories/teacherSubjectLinkRepository';
 import { Student, Teacher } from '../../../infrastructure/user/models';
 import { StudentRepository } from '../../../infrastructure/user/repositories/StudentRepository';
 import { TeacherRepository } from '../../../infrastructure/user/repositories/TeacherRepository';
-import { TeacherSubjectLinkRepository } from '../../../infrastructure/question-bank/repositories/teacherSubjectLinkRepository';
 import { makeQuestionRepository } from '../question-bank/questionDependencies';
 
 let _repo: ExamResponseRepository | null = null;
