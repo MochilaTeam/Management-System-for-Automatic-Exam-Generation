@@ -4,12 +4,14 @@ import {
     makeCreateTeacherCommand,
     makeDeleteTeacherCommand,
     makeGetTeacherByIdQuery,
+    makeListTeachersBySubjectQuery,
     makeListTeachersQuery,
     makeUpdateTeacherCommand,
 } from '../../../../core/dependencies/user/teacherDependencies';
 import {
     createTeacherCommandSchema,
     listTeachersQuerySchema,
+    subjectIdParamsSchema,
     teacherIdParamsSchema,
     updateTeacherCommandSchema,
 } from '../../schemas/teacherSchema';
@@ -18,6 +20,16 @@ export async function listTeachers(req: Request, res: Response, next: NextFuncti
     try {
         const dto = listTeachersQuerySchema.parse(req.query);
         const result = await makeListTeachersQuery().execute(dto);
+        res.status(200).json(result);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function listTeachersBySubject(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { subjectId } = subjectIdParamsSchema.parse(req.params);
+        const result = await makeListTeachersBySubjectQuery().execute({ subjectId });
         res.status(200).json(result);
     } catch (err) {
         next(err);

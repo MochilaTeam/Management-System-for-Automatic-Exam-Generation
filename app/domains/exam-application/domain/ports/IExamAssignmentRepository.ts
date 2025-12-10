@@ -48,6 +48,10 @@ export interface IExamAssignmentRepository {
         examId: string,
         studentId: string,
     ): Promise<StudentExamAssignmentItem | null>;
+    findOneByExamIdAndProfessorId(
+        examId: string,
+        professorId: string,
+    ): Promise<StudentExamAssignmentItem | null>;
 
     updateStatus(id: string, status: AssignedExamStatus): Promise<void>;
     updateGrade(id: string, params: { grade: number; status?: AssignedExamStatus }): Promise<void>;

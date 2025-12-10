@@ -88,8 +88,10 @@ export class ExamAssignmentRepository implements IExamAssignmentRepository {
         tx?: Transaction,
     ): Promise<StudentExamAssignmentItem | null> {
         try {
+            const includes = await this.buildDetailIncludes();
             const assignment = await this.model.findOne({
                 where: { examId, studentId },
+                include: includes,
                 transaction: this.effTx(tx),
             });
 
@@ -99,6 +101,29 @@ export class ExamAssignmentRepository implements IExamAssignmentRepository {
         } catch {
             throw new BaseDatabaseError({
                 message: 'Error buscando la asignación del examen',
+            });
+        }
+    }
+
+    async findOneByExamIdAndProfessorId(
+        examId: string,
+        professorId: string,
+        tx?: Transaction,
+    ): Promise<StudentExamAssignmentItem | null> {
+        try {
+            const includes = await this.buildDetailIncludes();
+            const assignment = await this.model.findOne({
+                where: { examId, professorId },
+                include: includes,
+                transaction: this.effTx(tx),
+            });
+
+            if (!assignment) return null;
+
+            return ExamAssignmentMapper.toStudentExamItem(assignment);
+        } catch {
+            throw new BaseDatabaseError({
+                message: 'Error buscando la asignación del profesor para el examen',
             });
         }
     }

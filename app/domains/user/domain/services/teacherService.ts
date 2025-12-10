@@ -98,6 +98,25 @@ export class TeacherService extends BaseDomainService {
         return { list, total };
     }
 
+    async findTeachersBySubject(subjectId: string): Promise<TeacherRead[]> {
+        if (!subjectId) return [];
+
+        const teacherIds = await this.deps.subjectLinkRepo.findTeachersForSubject(subjectId);
+        if (teacherIds.length === 0) return [];
+
+        const teachers = await this.deps.teacherRepo.findByIds(teacherIds);
+        if (teachers.length === 0) return [];
+
+        const assignmentMap = await this.deps.subjectLinkRepo.getAssignmentsForTeachers(
+            teachers.map((teacher) => teacher.id),
+        );
+
+        const merged = teachers.map((teacher) =>
+            this.mergeWithAssignments(teacher, assignmentMap.get(teacher.id)),
+        );
+        return merged.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
     async updateProfile(
         id: string,
         patch: Partial<{

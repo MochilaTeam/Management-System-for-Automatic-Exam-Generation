@@ -38,6 +38,16 @@ export const updateExamResponseCommandSchema = responsePayloadSchema
 
 export type UpdateExamResponseCommandSchema = z.infer<typeof updateExamResponseCommandSchema>;
 
+export const updateManualPointsCommandSchema = z
+    .object({
+        responseId: z.string().uuid(),
+        manualPoints: z.number().min(0),
+        currentUserId: z.string().uuid(),
+    })
+    .strict();
+
+export type UpdateManualPointsCommandSchema = z.infer<typeof updateManualPointsCommandSchema>;
+
 // ===== Params =====
 export const responseIdParamsSchema = z
     .object({
@@ -56,9 +66,16 @@ export const examResponseByIndexParamsSchema = z
 
 export type ExamResponseByIndexParams = z.infer<typeof examResponseByIndexParamsSchema>;
 
+export const studentContextQuerySchema = z
+    .object({
+        studentId: z.string().uuid().optional(),
+    })
+    .strict();
+
 export const getExamResponseByIndexQuerySchema = examResponseByIndexParamsSchema
     .extend({
         user_id: z.string().uuid(),
+        studentId: z.string().uuid().optional(),
     })
     .strict();
 
@@ -67,6 +84,7 @@ export type GetExamResponseByIndexQuerySchema = z.infer<typeof getExamResponseBy
 export const getExamQuestionDetailQuerySchema = examResponseByIndexParamsSchema
     .extend({
         user_id: z.string().uuid(),
+        studentId: z.string().uuid().optional(),
     })
     .strict();
 

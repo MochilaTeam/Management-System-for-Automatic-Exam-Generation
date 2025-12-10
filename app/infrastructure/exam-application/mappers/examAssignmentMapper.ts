@@ -42,6 +42,7 @@ export const ExamAssignmentMapper = {
         return {
             id: plain.id,
             examId: plain.examId,
+            studentId: row.studentId,
             subjectId: plain.exam?.subjectId ?? '',
             subjectName: plain.exam?.subject?.name ?? 'Asigatura desconocida',
             teacherId: plain.professorId,

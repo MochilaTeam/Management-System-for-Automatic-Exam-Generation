@@ -4,11 +4,11 @@ import { authenticate } from '../../../../core/middlewares/authenticate';
 import { requireRoles } from '../../../../core/middlewares/authorize';
 import { Roles } from '../../../../shared/enums/rolesEnum';
 import {
-    calculateExamGrade,
     createExamResponse,
     getExamQuestionDetail,
     getExamResponseByIndex,
     updateExamResponse,
+    updateManualPoints,
 } from '../controllers/examResponseControllers';
 
 const router = Router();
@@ -83,6 +83,13 @@ router.post('/exams/responses', authenticate, requireRoles(Roles.STUDENT), creat
  *           type: integer
  *           minimum: 1
  *         description: Posición (1-based) de la pregunta dentro del examen
+ *       - in: query
+ *         name: studentId
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID del estudiante (requerido cuando el usuario autenticado es profesor)
  *     responses:
  *       200:
  *         description: Respuesta encontrada
@@ -96,7 +103,7 @@ router.post('/exams/responses', authenticate, requireRoles(Roles.STUDENT), creat
 router.get(
     '/exams/:examId/responses/:questionIndex',
     authenticate,
-    requireRoles(Roles.STUDENT),
+    requireRoles(Roles.STUDENT, Roles.TEACHER),
     getExamResponseByIndex,
 );
 
@@ -125,6 +132,13 @@ router.get(
  *           type: integer
  *           minimum: 1
  *         description: Orden (1-based) de la pregunta dentro del examen
+ *       - in: query
+ *         name: studentId
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID del estudiante (requerido cuando el usuario autenticado es profesor)
  *     responses:
  *       200:
  *         description: Información de la pregunta obtenida
@@ -145,7 +159,7 @@ router.get(
 router.get(
     '/exams/:examId/questions/:questionIndex',
     authenticate,
-    requireRoles(Roles.STUDENT),
+    requireRoles(Roles.STUDENT, Roles.TEACHER),
     getExamQuestionDetail,
 );
 
@@ -200,13 +214,12 @@ router.put(
 
 /**
  * @openapi
- * /exams/responses/{responseId}/calculate-grade:
- *   post:
+ * /exams/responses/{responseId}/manual-points:
+ *   patch:
  *     tags: [Exam Responses]
- *     summary: Calcular calificación final de un examen
+ *     summary: Actualizar puntaje manual de una respuesta
  *     description: |
- *       Permite al docente asignado recalcular la nota final del examen para un estudiante,
- *       usando los puntajes configurados para cada pregunta y las respuestas registradas.
+ *       Permite a un profesor asignar o actualizar el puntaje manual de una respuesta específica.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -216,29 +229,31 @@ router.put(
  *         schema:
  *           type: string
  *           format: uuid
- *         description: Respuesta que disparará el recálculo (se usa para identificar el examen y estudiante)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               manualPoints:
+ *                 type: number
+ *                 minimum: 0
+ *             required:
+ *               - manualPoints
  *     responses:
  *       200:
- *         description: Nota final recalculada
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   $ref: '#/components/schemas/CalculateExamGradeResult'
+ *         description: Puntaje manual actualizado correctamente
  *       403:
- *         description: El docente no tiene permisos sobre este examen
+ *         description: No autorizado (no es profesor de la materia)
  *       404:
- *         description: Respuesta o asignación no encontrada
+ *         description: Respuesta no encontrada
  */
-router.post(
-    '/exams/responses/:responseId/calculate-grade',
+router.patch(
+    '/exams/responses/:responseId/manual-points',
     authenticate,
     requireRoles(Roles.TEACHER),
-    calculateExamGrade,
+    updateManualPoints,
 );
 
 export default router;

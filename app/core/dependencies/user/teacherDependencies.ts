@@ -8,6 +8,7 @@ import {
 import { DeleteTeacherCommand } from '../../../domains/user/application/commands/deleteTeacherCommand';
 import { UpdateTeacherCommand } from '../../../domains/user/application/commands/updateTeacherCommand';
 import { GetTeacherByIdQuery } from '../../../domains/user/application/queries/GetTeacherByIdQuery';
+import { ListTeachersBySubjectQuery } from '../../../domains/user/application/queries/ListTeachersBySubjectQuery';
 import { ListTeachersQuery } from '../../../domains/user/application/queries/ListTeachersQuery';
 import { TeacherService } from '../../../domains/user/domain/services/teacherService';
 import { UserService } from '../../../domains/user/domain/services/userService';
@@ -25,6 +26,7 @@ let _cUpdate: UpdateTeacherCommand | null = null;
 let _cDelete: DeleteTeacherCommand | null = null;
 let _qList: ListTeachersQuery | null = null;
 let _qGet: GetTeacherByIdQuery | null = null;
+let _qListBySubject: ListTeachersBySubjectQuery | null = null;
 
 function makeTeacherService(): TeacherService {
     if (_teacherService) return _teacherService;
@@ -81,4 +83,10 @@ export function makeGetTeacherByIdQuery() {
     if (_qGet) return _qGet;
     _qGet = new GetTeacherByIdQuery(makeTeacherService());
     return _qGet;
+}
+
+export function makeListTeachersBySubjectQuery() {
+    if (_qListBySubject) return _qListBySubject;
+    _qListBySubject = new ListTeachersBySubjectQuery(makeTeacherService());
+    return _qListBySubject;
 }

@@ -96,6 +96,22 @@ const examSeedData: ExamSeed[] = [
         startIndex: 8,
     },
     {
+        subjectName: 'Bases de Datos I',
+        title: 'Evaluación Recuperación - Integridad y Consultas',
+        questionCount: 5,
+        difficulty: DifficultyLevelEnum.MEDIUM,
+        examStatus: ExamStatusEnum.PUBLISHED,
+        startIndex: 2,
+    },
+    {
+        subjectName: 'Bases de Datos I',
+        title: 'Revisión Especial - Optimización SQL',
+        questionCount: 4,
+        difficulty: DifficultyLevelEnum.HARD,
+        examStatus: ExamStatusEnum.PUBLISHED,
+        startIndex: 6,
+    },
+    {
         subjectName: 'Programación I',
         title: 'Parcial 1 - Lógica y control',
         questionCount: 6,
@@ -205,6 +221,90 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
             status: AssignedExamStatus.ENABLED,
             applicationDate: new Date('2024-01-01T08:00:00Z'),
             durationMinutes: 1100000, // approx. 2.1 years to keep the exam active through 2026
+        },
+    ],
+    'Evaluación Recuperación - Integridad y Consultas': [
+        {
+            studentEmail: 'student2@example.com',
+            status: AssignedExamStatus.IN_EVALUATION,
+            applicationDate: new Date('2024-09-01T14:00:00Z'),
+            durationMinutes: 95,
+            professorEmail: 'teacher1@example.com',
+            responses: [
+                {
+                    questionIndex: 1,
+                    selectedOptions: [{ text: 'Aplicar claves compuestas', isCorrect: true }],
+                    autoPoints: 3,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-09-01T14:20:00Z'),
+                },
+                {
+                    questionIndex: 2,
+                    textAnswer:
+                        'Utilizar índices cubrientes en consultas que combinan filtrado por fecha e ID.',
+                    autoPoints: 0,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-09-01T14:27:00Z'),
+                },
+                {
+                    questionIndex: 3,
+                    selectedOptions: [
+                        { text: 'Asegurar atomicidad con transacciones', isCorrect: true },
+                    ],
+                    autoPoints: 3,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-09-01T14:33:00Z'),
+                },
+            ],
+        },
+    ],
+    'Revisión Especial - Optimización SQL': [
+        {
+            studentEmail: 'student3@example.com',
+            status: AssignedExamStatus.REGRADING,
+            applicationDate: new Date('2024-08-20T13:30:00Z'),
+            durationMinutes: 110,
+            grade: 72.5,
+            professorEmail: 'teacher1@example.com',
+            responses: [
+                {
+                    questionIndex: 1,
+                    selectedOptions: [{ text: 'Usar EXPLAIN ANALYZE', isCorrect: true }],
+                    autoPoints: 4,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-08-20T13:45:00Z'),
+                },
+                {
+                    questionIndex: 2,
+                    textAnswer:
+                        'La escritura diferida reduce bloqueos pero incrementa trabajo I/O posterior.',
+                    autoPoints: 0,
+                    manualPoints: 6,
+                    answeredAt: new Date('2024-08-20T13:58:00Z'),
+                },
+                {
+                    questionIndex: 3,
+                    selectedOptions: [{ text: 'Crear índice parcial', isCorrect: true }],
+                    autoPoints: 4,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-08-20T14:05:00Z'),
+                },
+                {
+                    questionIndex: 4,
+                    textAnswer:
+                        'Aplicar particionamiento por rango para acelerar reportes históricos.',
+                    autoPoints: 0,
+                    manualPoints: 8,
+                    answeredAt: new Date('2024-08-20T14:15:00Z'),
+                },
+            ],
+            regrade: {
+                reason: 'Se solicita recalcular la rúbrica de las preguntas abiertas.',
+                status: ExamRegradesStatus.IN_REVIEW,
+                requestedAt: new Date('2024-09-05T10:00:00Z'),
+                resolvedAt: null,
+                finalGrade: null,
+            },
         },
     ],
     'Parcial 2 - Estructuras y cadenas': [

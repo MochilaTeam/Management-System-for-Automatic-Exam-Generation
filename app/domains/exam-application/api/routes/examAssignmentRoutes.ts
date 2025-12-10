@@ -8,6 +8,7 @@ import {
     listEvaluatorExams,
     listStudentExams,
     sendExamToEvaluator,
+    calculateExamGrade,
 } from '../controllers/examAssignmentsControllers';
 
 const router = Router();
@@ -283,6 +284,52 @@ router.get(
     authenticate,
     requireRoles(Roles.TEACHER),
     listEvaluatorExams,
+);
+
+/**
+ * @openapi
+ * /exams/assignments/{assignmentId}/grade:
+ *   patch:
+ *     tags: [Exam Assignment]
+ *     summary: Calcular calificación final de un examen
+ *     description: |
+ *       Permite al docente asignado recalcular la nota final del examen para un estudiante,
+ *       usando los puntajes configurados para cada pregunta y las respuestas registradas.
+ *       Solo se permite si todas las preguntas con respuestas han sido calificadas.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: assignmentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID de la asignación del examen a calificar
+ *     responses:
+ *       200:
+ *         description: Nota final recalculada y estado actualizado a GRADED
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/CalculateExamGradeResult'
+ *       400:
+ *         description: Aún hay preguntas sin calificar o estado inválido
+ *       403:
+ *         description: El docente no tiene permisos sobre este examen
+ *       404:
+ *         description: Asignación no encontrada
+ */
+router.patch(
+    '/exams/assignments/:assignmentId/grade',
+    authenticate,
+    requireRoles(Roles.TEACHER),
+    calculateExamGrade,
 );
 
 export default router;

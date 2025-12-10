@@ -43,6 +43,14 @@ export class ExamResponseRepository implements IExamResponseRepository {
         return ExamResponseMapper.toOutput(response);
     }
 
+    async updateManualPoints(responseId: string, manualPoints: number): Promise<void> {
+        const response = await ExamResponses.findByPk(responseId);
+        if (!response) {
+            throw new Error('Exam response not found');
+        }
+        await response.update({ manualPoints });
+    }
+
     async studentHasResponses(examId: string, studentId: string): Promise<boolean> {
         const count = await ExamResponses.count({ where: { examId, studentId } });
         return count > 0;
