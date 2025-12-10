@@ -19,9 +19,9 @@ import TeacherSubject from '../infrastructure/question-bank/models/TeacherSubjec
 import Topic from '../infrastructure/question-bank/models/Topic';
 import { Student, Teacher, User } from '../infrastructure/user/models';
 
-const syncModel = async (
-    model: { sync: (options: { alter: boolean }) => Promise<Model<any, any>> },
-) => {
+const syncModel = async (model: {
+    sync: (options: { alter: boolean }) => Promise<Model<any, any>>;
+}) => {
     try {
         await model.sync({ alter: true });
     } catch (error) {

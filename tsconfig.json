@@ -11,6 +11,7 @@
         "typeRoots": ["./app/types", "./app/shared/types", "./node_modules/@types"],
         "lib": ["ES2020"],
         "moduleResolution": "node"
+        ,"ignoreDeprecations": "6.0"
     },
     "include": ["app"]
 }
