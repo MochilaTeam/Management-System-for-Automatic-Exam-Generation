@@ -8,6 +8,7 @@ import { responseInterceptor } from './core/middlewares/responseInterceptor';
 import { connect } from './database/database';
 import { syncTables } from './database/init';
 import { swaggerSpec } from './docs/swagger';
+import { analyticsRouter } from './domains/analytics/main';
 import { examApplicationRouter as examApplicationDomainRouter } from './domains/exam-application/main';
 import { examGenerationRouter } from './domains/exam-generation/main';
 import { questionBankRouter } from './domains/question-bank/main';
@@ -24,6 +25,7 @@ app.get('/API.json', (_req, res) => res.json(swaggerSpec));
 app.use(userRouter);
 app.use(examApplicationDomainRouter);
 app.use(examGenerationRouter);
+app.use(analyticsRouter);
 app.use(questionBankRouter);
 
 const start = async () => {

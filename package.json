@@ -7,6 +7,7 @@
         "jsonwebtoken": "^9.0.2",
         "mysql2": "^3.14.5",
         "nodemon": "^3.1.10",
+        "pdfkit": "^0.17.2",
         "sequelize": "^6.37.7",
         "swagger-jsdoc": "^6.2.8",
         "swagger-ui-express": "^5.0.1",
@@ -18,12 +19,14 @@
         "@commitlint/cli": "^20.1.0",
         "@commitlint/config-conventional": "^20.0.0",
         "@types/jsonwebtoken": "^9.0.10",
-        "@types/node": "^24.6.0",
+        "@types/node": "^24.10.3",
+        "@types/pdfkit": "^0.17.4",
         "@types/supertest": "^6.0.3",
         "@types/swagger-jsdoc": "^6.0.4",
         "@types/swagger-ui-express": "^4.1.8",
         "@typescript-eslint/eslint-plugin": "^8.45.0",
         "@typescript-eslint/parser": "^8.45.0",
+        "@vitest/coverage-v8": "^4.0.14",
         "eslint": "^9.38.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-import-resolver-typescript": "^4.4.4",
@@ -31,12 +34,12 @@
         "eslint-plugin-prettier": "^5.5.4",
         "eslint-plugin-promise": "^7.2.1",
         "globals": "^16.4.0",
-        "patch-package": "^8.0.1",
         "husky": "^9.1.7",
+        "patch-package": "^8.0.1",
         "prettier": "^3.6.2",
         "supertest": "^7.1.4",
         "ts-node": "^10.9.2",
-        "vitest": "^4.0.8"
+        "vitest": "^4.0.14"
     },
     "scripts": {
         "dev": "nodemon",
@@ -46,6 +49,8 @@
         "seed": "sudo docker compose exec app npx tsx app/database/seed.ts",
         "build": "tsc",
         "prepare": "husky",
-        "commit": "node scripts/commit-helper.js"
+        "commit": "node scripts/commit-helper.js",
+        "test": "vitest",
+        "test:unit": "vitest run"
     }
 }

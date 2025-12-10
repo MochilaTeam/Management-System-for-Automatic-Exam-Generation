@@ -3,6 +3,8 @@ import { Model, DATE, INTEGER, TEXT, JSON, DataTypes } from 'sequelize';
 import { sequelize } from '../../../database/database';
 import { ExamStatusEnum } from '../../../domains/exam-application/entities/enums/ExamStatusEnum';
 import { DifficultyLevelEnum } from '../../../domains/question-bank/entities/enums/DifficultyLevels';
+import Subject from '../../question-bank/models/Subject';
+import { Teacher } from '../../user/models';
 
 class Exam extends Model {
     public id!: string;
@@ -25,6 +27,10 @@ class Exam extends Model {
 
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
+
+    public subject?: Subject | null;
+    public author?: Teacher | null;
+    public validator?: Teacher | null;
 }
 
 Exam.init(

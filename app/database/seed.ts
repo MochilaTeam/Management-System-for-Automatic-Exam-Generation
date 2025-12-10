@@ -143,6 +143,15 @@ const examSeedData: ExamSeed[] = [
         examStatus: ExamStatusEnum.PUBLISHED,
         startIndex: 4,
     },
+    {
+        subjectName: 'Bases de Datos I',
+        title: 'Examen Automático - SQL equilibrado',
+        questionCount: 5,
+        difficulty: DifficultyLevelEnum.MEDIUM,
+        examStatus: ExamStatusEnum.APPROVED,
+        startIndex: 2,
+        coverageMode: 'automatic',
+    },
 ];
 
 const teacherSeedData = [
@@ -327,69 +336,6 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
                     autoPoints: 0,
                     manualPoints: null,
                     answeredAt: new Date('2024-06-10T09:05:00Z'),
-                },
-            ],
-        },
-        {
-            studentEmail: 'student1@example.com',
-            status: AssignedExamStatus.ENABLED,
-            applicationDate: new Date('2025-12-01T08:00:00Z'),
-            durationMinutes: 1000000,
-        },
-        {
-            studentEmail: 'student1@example.com',
-            status: AssignedExamStatus.GRADED,
-            applicationDate: new Date('2024-11-15T08:00:00Z'),
-            durationMinutes: 100,
-            grade: 85.50,
-            responses: [
-                {
-                    questionIndex: 1,
-                    selectedOptions: [{ text: '{1,2,3}', isCorrect: true }],
-                    autoPoints: 16.67,
-                    manualPoints: null,
-                    answeredAt: new Date('2024-11-15T08:15:00Z'),
-                },
-                {
-                    questionIndex: 2,
-                    selectedOptions: [{ text: 'Verdadero', isCorrect: true }],
-                    autoPoints: 16.67,
-                    manualPoints: null,
-                    answeredAt: new Date('2024-11-15T08:25:00Z'),
-                },
-                {
-                    questionIndex: 3,
-                    selectedOptions: [
-                        { text: 'Cada elemento se relaciona consigo mismo', isCorrect: true },
-                    ],
-                    autoPoints: 16.67,
-                    manualPoints: null,
-                    answeredAt: new Date('2024-11-15T08:35:00Z'),
-                },
-                {
-                    questionIndex: 4,
-                    textAnswer:
-                        'Se puede construir una relación R sobre el conjunto {1,2,3} donde R={(1,1),(2,2),(3,3),(1,2),(2,1)} es reflexiva porque cada elemento se relaciona consigo mismo, es simétrica porque si (a,b) está en R entonces (b,a) también lo está, pero no es transitiva porque aunque (1,2) y (2,1) están en R, no necesariamente (1,1) debe existir por transitividad en este caso específico.',
-                    autoPoints: 0,
-                    manualPoints: 18.00,
-                    answeredAt: new Date('2024-11-15T08:55:00Z'),
-                },
-                {
-                    questionIndex: 5,
-                    selectedOptions: [
-                        { text: 'Es inyectiva y sobreyectiva a la vez', isCorrect: true },
-                    ],
-                    autoPoints: 16.67,
-                    manualPoints: null,
-                    answeredAt: new Date('2024-11-15T09:05:00Z'),
-                },
-                {
-                    questionIndex: 6,
-                    textAnswer:
-                        'Para construir la inversa de una funcion biyectiva f: A -> B, se intercambian los elementos de cada par ordenado. Es decir, si f(a)=b entonces f^-1(b)=a.',
-                    autoPoints: 0,
-                    manualPoints: 0.82,
-                    answeredAt: new Date('2024-11-15T09:20:00Z'),
                 },
             ],
         },
@@ -1177,33 +1123,6 @@ async function seed() {
 
             const finalSelected = filteredSelected;
 
-            const questionWeights = finalSelected.map(
-                (meta) => questionScoreByDifficulty[meta.difficulty] ?? 1,
-            );
-            const totalWeight = questionWeights.reduce((acc, weight) => acc + weight, 0);
-            if (totalWeight <= 0) {
-                throw new Error(
-                    `No se pudieron calcular los puntos para ${examTemplate.title}: pesos inválidos`,
-                );
-            }
-
-            const normalizedScores = questionWeights.map((weight) =>
-                Number(((weight / totalWeight) * 100).toFixed(2)),
-            );
-
-            const totalNormalized = normalizedScores.reduce((acc, value) => acc + value, 0);
-            const roundingError = Number((100 - totalNormalized).toFixed(2));
-            if (Math.abs(roundingError) >= 0.01 && normalizedScores.length > 0) {
-                const targetIndex = normalizedScores.reduce(
-                    (bestIndex, _, index) =>
-                        normalizedScores[index] > normalizedScores[bestIndex] ? index : bestIndex,
-                    0,
-                );
-                normalizedScores[targetIndex] = Number(
-                    (normalizedScores[targetIndex] + roundingError).toFixed(2),
-                );
-            }
-
             const topicCounts = new Map<string, number>();
             finalSelected.forEach((meta) =>
                 topicCounts.set(meta.topicId, (topicCounts.get(meta.topicId) ?? 0) + 1),
@@ -1254,7 +1173,7 @@ async function seed() {
                 examId: createdExam.id,
                 questionId: questionMeta.id,
                 questionIndex: idx + 1,
-                questionScore: normalizedScores[idx],
+                questionScore: questionScoreByDifficulty[questionMeta.difficulty] ?? 1,
             }));
             await ExamQuestion.bulkCreate(examQuestionRows, { transaction: t });
 
@@ -1266,7 +1185,7 @@ async function seed() {
             examQuestions.forEach((item) => questionByIndex.set(item.questionIndex, item));
 
             const assignmentSpecs = assignmentSeedByExamTitle[createdExam.title] ?? [];
-            if (assignmentSpecs.length > 0 && createdExam.examStatus === ExamStatusEnum.PUBLISHED) {
+            if (assignmentSpecs.length > 0) {
                 for (const assignmentSpec of assignmentSpecs) {
                     const studentProfile = studentsByEmail.get(assignmentSpec.studentEmail);
                     if (!studentProfile) {
