@@ -17,7 +17,8 @@ import { User as UserModel, Teacher } from '../models';
 
 export class UserRepository
     extends BaseRepository<UserModel, UserRead, UserCreate, UserUpdate>
-    implements IUserRepository {
+    implements IUserRepository
+{
     constructor(model: ModelStatic<UserModel>, defaultTx?: Transaction) {
         super(
             model,
@@ -94,7 +95,10 @@ export class UserRepository
         }
     }
 
-    async getTeacherRolesByUserId(userId: string, tx?: Transaction): Promise<{ hasRoleSubjectLeader: boolean; hasRoleExaminer: boolean } | null> {
+    async getTeacherRolesByUserId(
+        userId: string,
+        tx?: Transaction,
+    ): Promise<{ hasRoleSubjectLeader: boolean; hasRoleExaminer: boolean } | null> {
         try {
             const teacher = await Teacher.findOne({
                 where: { userId },
