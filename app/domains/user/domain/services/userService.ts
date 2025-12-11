@@ -121,11 +121,27 @@ export class UserService extends BaseDomainService {
         }
 
         const safeUser = { id: user.id, role: user.role, email: user.email, name: user.name };
+        const roles: Roles[] = [];
+
+        roles.push(safeUser.role);
+
+        if (safeUser.role === Roles.TEACHER) {
+            const teacherRoles = await this.repo.getTeacherRolesByUserId(safeUser.id);
+            if (teacherRoles) {
+                if (teacherRoles.hasRoleSubjectLeader) {
+                    roles.push(Roles.SUBJECT_LEADER);
+                }
+                if (teacherRoles.hasRoleExaminer) {
+                    roles.push(Roles.EXAMINER);
+                }
+            }
+        }
+
         const jwtConfig = get_jwt_config();
         const token = jwt.sign(
             {
                 sub: safeUser.id,
-                roles: [safeUser.role],
+                roles,
                 email: safeUser.email,
             },
             jwtConfig.accessSecret,
