@@ -13,12 +13,11 @@ import {
 } from '../../../domains/user/schemas/userSchema';
 import { BaseRepository } from '../../../shared/domain/base_repository';
 import { UserMapper } from '../mappers/userMapper';
-import { User as UserModel } from '../models';
+import { User as UserModel, Teacher } from '../models';
 
 export class UserRepository
     extends BaseRepository<UserModel, UserRead, UserCreate, UserUpdate>
-    implements IUserRepository
-{
+    implements IUserRepository {
     constructor(model: ModelStatic<UserModel>, defaultTx?: Transaction) {
         super(
             model,
@@ -92,6 +91,23 @@ export class UserRepository
             });
         } catch (e) {
             return this.raiseError(e, this.model.name);
+        }
+    }
+
+    async getTeacherRolesByUserId(userId: string, tx?: Transaction): Promise<{ hasRoleSubjectLeader: boolean; hasRoleExaminer: boolean } | null> {
+        try {
+            const teacher = await Teacher.findOne({
+                where: { userId },
+                transaction: this.effTx(tx),
+            });
+            if (!teacher) return null;
+
+            return {
+                hasRoleSubjectLeader: teacher.hasRoleSubjectLeader,
+                hasRoleExaminer: teacher.hasRoleExaminer,
+            };
+        } catch (e) {
+            return this.raiseError(e, 'Teacher');
         }
     }
 

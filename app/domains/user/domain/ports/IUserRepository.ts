@@ -30,6 +30,7 @@ export interface IUserRepository {
     get_by_id(id: string): Promise<UserRead | null>;
     existsBy(filters: UserFilters): Promise<boolean>;
     findByEmailWithPassword(email: string): Promise<UserAuth | null>;
+    getTeacherRolesByUserId(userId: string): Promise<{ hasRoleSubjectLeader: boolean; hasRoleExaminer: boolean } | null>;
 
     create(data: UserCreate): Promise<UserRead>;
     update(id: string, data: UserUpdate): Promise<UserRead | null>;
