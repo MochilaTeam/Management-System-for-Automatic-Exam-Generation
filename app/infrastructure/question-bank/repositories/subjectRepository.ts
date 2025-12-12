@@ -80,7 +80,10 @@ export class SubjectRepository
         );
 
         const topics = topicIds.length
-            ? await TopicModel.findAll({ where: { id: topicIds }, transaction: this.effTx(tx) })
+            ? await TopicModel.findAll({
+                  where: { id: topicIds, active: true },
+                  transaction: this.effTx(tx),
+              })
             : [];
 
         const topicDetails: Array<ReturnType<typeof topicDetailSchema.parse>> = [];
@@ -149,8 +152,11 @@ export class SubjectRepository
     }
 
     async deleteById(id: string, tx?: Transaction): Promise<boolean> {
-        const deleted = await this.model.destroy({ where: { id }, transaction: this.effTx(tx) });
-        return deleted > 0;
+        const [updated] = await this.model.update(
+            { active: false },
+            { where: { id }, transaction: this.effTx(tx) },
+        );
+        return updated > 0;
     }
 
     async existsSubjectTopic(subjectId: string, topicId: string, tx?: Transaction) {

@@ -14,6 +14,7 @@ vi.mock('../../../../app/infrastructure/question-bank/models', () => ({
   SubjectTopic: {
     findAll: vi.fn(),
     destroy: vi.fn(),
+    update: vi.fn(),
   },
 }));
 
@@ -67,12 +68,12 @@ describe('TopicRepository', () => {
     } as any);
 
     expect(SubjectTopicMock.findAll).toHaveBeenCalledWith({
-      where: { subjectId: 's1' },
+      where: { subjectId: 's1', active: true },
       transaction: undefined,
       attributes: ['topicId'],
     });
     expect(mockModel.findAndCountAll).toHaveBeenCalledWith({
-      where: { id: ['t1'] },
+      where: { active: true, id: ['t1'] },
       limit: 10,
       offset: 0,
       order: [['title', 'ASC']],
@@ -115,25 +116,15 @@ describe('TopicRepository', () => {
     expect(mockModel.update).not.toHaveBeenCalled();
   });
 
-  it('deleteById: elimina pivotes y subtemas antes de borrar el topic', async () => {
-    SubjectTopicMock.destroy.mockResolvedValue(1);
-    SubTopicMock.destroy.mockResolvedValue(1);
-    (mockModel.destroy as any).mockResolvedValue(1);
+  it('deleteById: realiza soft delete (active=false)', async () => {
+    (mockModel.update as any).mockResolvedValue([1]);
 
     const deleted = await repo.deleteById('t1');
 
-    expect(SubjectTopicMock.destroy).toHaveBeenCalledWith({
-      where: { topicId: 't1' },
-      transaction: undefined,
-    });
-    expect(SubTopicMock.destroy).toHaveBeenCalledWith({
-      where: { topicId: 't1' },
-      transaction: undefined,
-    });
-    expect(mockModel.destroy).toHaveBeenCalledWith({
-      where: { id: 't1' },
-      transaction: undefined,
-    });
+    expect(mockModel.update).toHaveBeenCalledWith(
+      { active: false },
+      { where: { id: 't1' }, transaction: undefined },
+    );
     expect(deleted).toBe(true);
   });
 });

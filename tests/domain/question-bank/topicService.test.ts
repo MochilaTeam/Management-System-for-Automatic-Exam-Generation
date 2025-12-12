@@ -189,6 +189,7 @@ describe('TopicService - paginateDetail', () => {
       filters: {
         q: 'alg',
         subject_id: 'subject-1',
+        active: true,
       },
     });
 
@@ -216,6 +217,7 @@ describe('TopicService - paginateDetail', () => {
       filters: {
         q: undefined,
         subject_id: undefined,
+        active: true,
       },
     });
 

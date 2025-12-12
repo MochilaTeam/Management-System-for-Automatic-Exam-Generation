@@ -60,7 +60,7 @@ export class TopicService extends BaseDomainService {
         const repoCriteria: ListTopicsCriteria = {
             limit,
             offset,
-            filters: { q: criteria.q, subject_id: criteria.subject_id },
+            filters: { q: criteria.q, subject_id: criteria.subject_id, active: true },
         };
         const { items, total } = await this.repo.paginateDetail(repoCriteria);
         return { list: items, total };

@@ -45,7 +45,7 @@ export class TopicRepository
 
         // subjects asociados (pivot)
         const pivots = await SubjectTopicModel.findAll({
-            where: { topicId: t.id },
+            where: { topicId: t.id, active: true },
             transaction: this.effTx(tx),
         });
         const subjectIds = pivots.map(
@@ -53,7 +53,10 @@ export class TopicRepository
         );
 
         const subjects = subjectIds.length
-            ? await SubjectModel.findAll({ where: { id: subjectIds }, transaction: this.effTx(tx) })
+            ? await SubjectModel.findAll({
+                  where: { id: subjectIds, active: true },
+                  transaction: this.effTx(tx),
+              })
             : [];
 
         const subjectsArr = subjects.map((s) => {
@@ -83,13 +86,13 @@ export class TopicRepository
 
     async paginateDetail(criteria: ListTopicsCriteria, tx?: Transaction) {
         try {
-            const where: WhereOptions = {};
+            const where: WhereOptions = { active: criteria.filters?.active ?? true };
             if (criteria.filters?.q) where['title'] = { [Op.like]: `%${criteria.filters.q}%` };
 
             // Filtrar por subject asociado (vía pivot)
             if (criteria.filters?.subject_id) {
                 const pivots = await SubjectTopicModel.findAll({
-                    where: { subjectId: criteria.filters.subject_id },
+                    where: { subjectId: criteria.filters.subject_id, active: true },
                     transaction: this.effTx(tx),
                     attributes: ['topicId'],
                 });
@@ -163,16 +166,11 @@ export class TopicRepository
 
     async deleteById(id: string, tx?: Transaction) {
         try {
-            await SubjectTopicModel.destroy({
-                where: { topicId: id },
-                transaction: this.effTx(tx),
-            });
-            await SubTopicModel.destroy({ where: { topicId: id }, transaction: this.effTx(tx) });
-            const deleted = await this.model.destroy({
-                where: { id },
-                transaction: this.effTx(tx),
-            });
-            return deleted > 0;
+            const [updated] = await this.model.update(
+                { active: false },
+                { where: { id }, transaction: this.effTx(tx) },
+            );
+            return updated > 0;
         } catch (e) {
             return this.raiseError(e, this.model.name);
         }
@@ -181,7 +179,7 @@ export class TopicRepository
     async existsByTitle(title: string, tx?: Transaction) {
         try {
             const found = await this.model.findOne({
-                where: { title },
+                where: { title, active: true },
                 transaction: this.effTx(tx),
             });
             return Boolean(found);

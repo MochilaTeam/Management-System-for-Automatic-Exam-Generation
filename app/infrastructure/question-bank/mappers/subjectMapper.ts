@@ -50,6 +50,9 @@ export const SubjectMapper = {
         const where: WhereOptions<Attributes<Subject>> = {};
         if (!filters) return where;
 
+        const active = filters.active ?? true;
+        where.active = active;
+
         if (filters.name) where.name = filters.name;
         if (filters.program) where.program = filters.program; // 👈 nuevo
         if (filters.leadTeacherId) where.leadTeacherId = filters.leadTeacherId;
