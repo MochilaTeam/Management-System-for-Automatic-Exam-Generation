@@ -459,7 +459,12 @@ export class QuestionService extends BaseDomainService {
         const normalizedOptions = newOptions ?? null;
         const normalizedResponse = newResponse ?? null;
 
-        this.validateOptionsAndResponse(operation, qtPlain.name, normalizedOptions, normalizedResponse);
+        this.validateOptionsAndResponse(
+            operation,
+            qtPlain.name,
+            normalizedOptions,
+            normalizedResponse,
+        );
 
         if (usedInAnyExam) {
             // Crear nueva instancia con los cambios
