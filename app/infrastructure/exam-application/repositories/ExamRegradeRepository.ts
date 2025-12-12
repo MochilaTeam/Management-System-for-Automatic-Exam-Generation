@@ -33,6 +33,17 @@ export class ExamRegradeRepository implements IExamRegradeRepository {
         }
     }
 
+    async findById(id: string): Promise<ExamRegradeOutput | null> {
+        try {
+            const row = await this.model.findByPk(id);
+            return row ? ExamRegradeMapper.toOutput(row) : null;
+        } catch {
+            throw new BaseDatabaseError({
+                message: 'Error buscando la solicitud de recalificación',
+            });
+        }
+    }
+
     async findActiveByExamAndStudent(
         examId: string,
         studentId: string,
@@ -86,6 +97,28 @@ export class ExamRegradeRepository implements IExamRegradeRepository {
         } catch {
             throw new BaseDatabaseError({
                 message: 'Error obteniendo solicitudes de recalificación',
+            });
+        }
+    }
+
+    async resolve(
+        id: string,
+        params: { status: ExamRegradesStatus; resolvedAt: Date; finalGrade: number },
+    ): Promise<void> {
+        const regrade = await this.model.findByPk(id);
+        if (!regrade) {
+            throw new BaseDatabaseError({ message: 'Solicitud de recalificación no encontrada' });
+        }
+
+        try {
+            await regrade.update({
+                status: params.status,
+                resolvedAt: params.resolvedAt,
+                finalGrade: params.finalGrade,
+            });
+        } catch {
+            throw new BaseDatabaseError({
+                message: 'Error resolviendo la solicitud de recalificación',
             });
         }
     }

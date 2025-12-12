@@ -3,6 +3,7 @@ import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
 import { ExamAssignmentService } from '../../../app/domains/exam-application/domain/services/examAssigmentService';
 import { AssignedExamStatus } from '../../../app/domains/exam-application/entities/enums/AssignedExamStatus';
 import { ExamStatusEnum } from '../../../app/domains/exam-application/entities/enums/ExamStatusEnum';
+import { ExamRegradesStatus } from '../../../app/domains/exam-application/entities/enums/ExamRegradeStatus';
 
 const makeExamAssignmentRepo = () =>
   ({
@@ -48,6 +49,9 @@ const makeExamRegradeRepo = () =>
   ({
     findActiveByExamAndStudent: vi.fn(),
     create: vi.fn(),
+    listPendingByProfessor: vi.fn(),
+    findById: vi.fn(),
+    resolve: vi.fn(),
   } as any);
 
 const makeExamQuestionRepo = () =>
@@ -67,6 +71,15 @@ beforeAll(() => {
       const message = args[1] ?? 'NOT_FOUND';
       throw new Error(message);
     },
+  );
+  vi.spyOn(ExamAssignmentService.prototype as any, 'logOperationStart').mockImplementation(
+    () => {},
+  );
+  vi.spyOn(ExamAssignmentService.prototype as any, 'logOperationSuccess').mockImplementation(
+    () => {},
+  );
+  vi.spyOn(ExamAssignmentService.prototype as any, 'logOperationError').mockImplementation(
+    () => {},
   );
 });
 
@@ -177,6 +190,7 @@ describe('ExamAssignmentService', () => {
       examAssignmentRepo,
       studentRepo,
       examResponseRepo,
+      examQuestionRepo,
     } = makeService();
 
     studentRepo.list.mockResolvedValue([{ id: 'stu-1' }]);
@@ -192,6 +206,7 @@ describe('ExamAssignmentService', () => {
       },
     ]);
     examResponseRepo.studentHasResponses.mockResolvedValue(false);
+    examQuestionRepo.listByExamId.mockResolvedValue([]);
     examAssignmentRepo.listStudentExamAssignments.mockResolvedValue({
       items: [],
       total: 0,
@@ -235,8 +250,10 @@ describe('ExamAssignmentService', () => {
       examId: 'exam-1',
       studentId: 'stu-1',
     });
-    examAssignmentRepo.findByExamIdAndStudentId.mockResolvedValue({
+    examAssignmentRepo.findDetailedById.mockResolvedValue({
       id: 'assign-1',
+      examId: 'exam-1',
+      studentId: 'stu-1',
       teacherId: 't-1',
       status: AssignedExamStatus.IN_EVALUATION,
     });
@@ -260,5 +277,54 @@ describe('ExamAssignmentService', () => {
     });
     expect(res.finalGrade).toBe(4);
     expect(res.examTotalScore).toBe(5);
+  });
+
+  it('resolveExamRegrade: recalcula nota y resuelve la solicitud', async () => {
+    const {
+      service,
+      teacherRepo,
+      examRegradeRepo,
+      examAssignmentRepo,
+      examQuestionRepo,
+      examResponseRepo,
+    } = makeService();
+
+    teacherRepo.list.mockResolvedValue([{ id: 't-1' }]);
+    examRegradeRepo.findById.mockResolvedValue({
+      id: 'regrade-1',
+      examId: 'exam-1',
+      studentId: 'stu-1',
+      professorId: 't-1',
+      status: ExamRegradesStatus.REQUESTED,
+    });
+    examAssignmentRepo.findByExamIdAndStudentId.mockResolvedValue({
+      id: 'assign-1',
+      examId: 'exam-1',
+      studentId: 'stu-1',
+      teacherId: 't-1',
+      status: AssignedExamStatus.REGRADING,
+    });
+    examQuestionRepo.listByExamId.mockResolvedValue([
+      { id: 'eq-1', questionScore: 5 },
+    ]);
+    examResponseRepo.listByExamAndStudent.mockResolvedValue([
+      { examQuestionId: 'eq-1', manualPoints: 5, autoPoints: null },
+    ]);
+
+    const res = await service.resolveExamRegrade({
+      regradeId: 'regrade-1',
+      currentUserId: 'user-1',
+    });
+
+    expect(examAssignmentRepo.updateGrade).toHaveBeenCalledWith('assign-1', {
+      grade: 5,
+      status: AssignedExamStatus.REGRADED,
+    });
+    expect(examRegradeRepo.resolve).toHaveBeenCalledWith('regrade-1', {
+      status: ExamRegradesStatus.RESOLVED,
+      resolvedAt: expect.any(Date),
+      finalGrade: 5,
+    });
+    expect(res.finalGrade).toBe(5);
   });
 });

@@ -152,6 +152,14 @@ const examSeedData: ExamSeed[] = [
         startIndex: 2,
         coverageMode: 'automatic',
     },
+    {
+        subjectName: 'Bases de Datos I',
+        title: 'Borrador - Repaso SQL para Teacher1',
+        questionCount: 5,
+        difficulty: DifficultyLevelEnum.MEDIUM,
+        examStatus: ExamStatusEnum.DRAFT,
+        startIndex: 1,
+    },
 ];
 
 const teacherSeedData = [

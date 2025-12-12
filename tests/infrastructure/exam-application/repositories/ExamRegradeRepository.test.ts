@@ -6,6 +6,7 @@ vi.mock('../../../../app/infrastructure/exam-application/models/ExamRegrade', ()
   default: {
     create: vi.fn(),
     findOne: vi.fn(),
+    findByPk: vi.fn(),
   },
 }));
 
@@ -73,5 +74,33 @@ describe('ExamRegradeRepository', () => {
     const res = await repo.findActiveByExamAndStudent('exam-1', 'stu-1');
 
     expect(res).toBeNull();
+  });
+
+  it('findById: retorna la solicitud cuando existe', async () => {
+    const mapped = { id: 'regrade-3' } as any;
+    (ExamRegradesMock.findByPk as any).mockResolvedValue('row');
+    vi.spyOn(ExamRegradeMapper, 'toOutput').mockReturnValue(mapped);
+
+    const res = await repo.findById('regrade-3');
+
+    expect(ExamRegradesMock.findByPk).toHaveBeenCalledWith('regrade-3');
+    expect(res).toBe(mapped);
+  });
+
+  it('resolve: actualiza estado, fecha y nota final', async () => {
+    const update = vi.fn();
+    (ExamRegradesMock.findByPk as any).mockResolvedValue({ update });
+
+    await repo.resolve('regrade-4', {
+      status: ExamRegradesStatus.RESOLVED,
+      resolvedAt: new Date('2024-02-01'),
+      finalGrade: 17.5,
+    });
+
+    expect(update).toHaveBeenCalledWith({
+      status: ExamRegradesStatus.RESOLVED,
+      resolvedAt: new Date('2024-02-01'),
+      finalGrade: 17.5,
+    });
   });
 });
