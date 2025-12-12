@@ -558,10 +558,7 @@ export class ExamAssignmentService extends BaseDomainService {
                 );
             }
 
-            const activeStatuses = [
-                ExamRegradesStatus.REQUESTED,
-                ExamRegradesStatus.IN_REVIEW,
-            ];
+            const activeStatuses = [ExamRegradesStatus.REQUESTED, ExamRegradesStatus.IN_REVIEW];
             if (!activeStatuses.includes(regrade.status)) {
                 this.raiseBusinessRuleError(operation, 'LA SOLICITUD YA FUE RESUELTA', {
                     entity: 'ExamRegrade',
@@ -708,9 +705,10 @@ export class ExamAssignmentService extends BaseDomainService {
 
         const finalGrade = Number(Math.min(obtainedScoreRaw, examTotalScore).toFixed(2));
 
-        const statusAfterGrade = [AssignedExamStatus.REGRADING, AssignedExamStatus.REGRADED].includes(
-            assignment.status,
-        )
+        const statusAfterGrade = [
+            AssignedExamStatus.REGRADING,
+            AssignedExamStatus.REGRADED,
+        ].includes(assignment.status)
             ? AssignedExamStatus.REGRADED
             : AssignedExamStatus.GRADED;
 
