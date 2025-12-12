@@ -12,6 +12,7 @@ class Exam extends Model {
 
     public difficulty!: DifficultyLevelEnum;
     public examStatus!: ExamStatusEnum;
+    public active!: boolean;
 
     public authorId!: string;
     public validatorId!: string;
@@ -85,6 +86,11 @@ Exam.init(
             },
             defaultValue: ExamStatusEnum.DRAFT,
         },
+        active: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true,
+        },
         difficulty: {
             type: DataTypes.STRING(20),
             allowNull: false,
@@ -102,6 +108,7 @@ Exam.init(
             { fields: ['createdAt'] },
             { fields: ['authorId'] },
             { fields: ['questionCount'] },
+            { fields: ['active'] },
         ],
     },
 );
