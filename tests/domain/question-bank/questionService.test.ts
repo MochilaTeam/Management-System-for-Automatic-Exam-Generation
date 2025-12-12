@@ -58,6 +58,19 @@ vi.mock(
   }),
 );
 
+vi.mock(
+  '../../../app/core/dependencies/dependencies',
+  () => ({
+    __esModule: true,
+    get_logger: () => ({
+      auditLogger: { info: vi.fn() },
+      errorLogger: { error: vi.fn() },
+      debugLogger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
+      httpLogger: { info: vi.fn(), error: vi.fn() },
+    }),
+  }),
+);
+
 // Zod schemas mockeados
 vi.mock(
   '../../../app/domains/question-bank/schemas/questionSchema',
@@ -466,6 +479,20 @@ describe('QuestionService - get_detail_by_id', () => {
 
     expect(result).toBe(question);
   });
+
+  it('permite obtener una pregunta inactiva (incluyendo subtema permitido)', async () => {
+    const { service, questionRepo } = makeService();
+    const question = { questionId: 'q-1', subtopicId: 'sub1', active: false } as any;
+    questionRepo.get_detail_by_id.mockResolvedValue(question);
+
+    vi.spyOn(service as any, 'getAllowedSubtopicIdsForTeacher')
+      .mockResolvedValue(new Set<string>(['sub1']));
+
+    const result = await service.get_detail_by_id('q-1', 'user-1');
+
+    expect(questionRepo.get_detail_by_id).toHaveBeenCalledWith('q-1', true);
+    expect(result).toBe(question);
+  });
 });
 
 // =======================================
@@ -599,6 +626,149 @@ describe('QuestionService - update', () => {
     expect(questionRepo.update).toHaveBeenCalled();
     expect(questionRepo.softDeleteById).not.toHaveBeenCalled();
     expect(result.body).toBe('Pregunta modificada');
+  });
+
+  it('al cambiar de ESSAY a MCQ elimina response y usa las nuevas opciones', async () => {
+    const { service, questionRepo } = makeService();
+
+    const current = {
+      questionId: 'q-1',
+      authorId: 'teacher-1',
+      body: 'Pregunta original',
+      subtopicId: 'sub1',
+      difficulty: DifficultyLevelEnum.EASY,
+      questionTypeId: 'qt-essay',
+      options: null,
+      response: 'respuesta previa',
+    } as any;
+
+    questionRepo.get_detail_by_id.mockResolvedValue(current);
+
+    vi.spyOn(service as any, 'ensureTeacherCanManageQuestion')
+      .mockResolvedValue({
+        teacher: { id: 'teacher-1', userId: 'user-1', hasRoleSubjectLeader: false },
+        allowedSubjectIds: ['subject-1'],
+      });
+
+    vi.spyOn(service as any, 'isQuestionUsedInAnyExam')
+      .mockResolvedValue(false);
+
+    questionRepo.existsByStatementAndSubtopicExceptId.mockResolvedValue(false);
+
+    QuestionTypeModelMock.findByPk.mockImplementation((id: string) => {
+      if (id === 'qt-essay') {
+        return { get: () => ({ id, name: QuestionTypeEnum.ESSAY }) };
+      }
+      if (id === 'qt-mcq') {
+        return { get: () => ({ id, name: QuestionTypeEnum.MCQ }) };
+      }
+      return null;
+    });
+
+    const updated = {
+      questionId: 'q-1',
+      authorId: 'teacher-1',
+      body: 'Pregunta original',
+      subtopicId: 'sub1',
+      difficulty: DifficultyLevelEnum.EASY,
+      questionTypeId: 'qt-mcq',
+      options: [{ text: 'A', isCorrect: true }],
+      response: null,
+    } as any;
+    questionRepo.update.mockResolvedValue(updated);
+
+    const patch = {
+      questionTypeId: 'qt-mcq',
+      options: [{ text: 'A', isCorrect: true }],
+    } as any;
+
+    const result: any = await service.update({
+      questionId: 'q-1',
+      patch,
+      currentUserId: 'user-1',
+    });
+
+    expect(questionRepo.update).toHaveBeenCalledWith(
+      'q-1',
+      expect.objectContaining({
+        questionTypeId: 'qt-mcq',
+        options: patch.options,
+        response: null,
+      }),
+    );
+    expect(result.response).toBeNull();
+  });
+
+  it('al cambiar de MCQ a ESSAY elimina options y permite enviar expectedResponse', async () => {
+    const { service, questionRepo } = makeService();
+
+    const current = {
+      questionId: 'q-1',
+      authorId: 'teacher-1',
+      body: 'Pregunta original',
+      subtopicId: 'sub1',
+      difficulty: DifficultyLevelEnum.EASY,
+      questionTypeId: 'qt-mcq',
+      options: [{ text: 'A', isCorrect: true }],
+      response: null,
+    } as any;
+
+    questionRepo.get_detail_by_id.mockResolvedValue(current);
+
+    vi.spyOn(service as any, 'ensureTeacherCanManageQuestion')
+      .mockResolvedValue({
+        teacher: { id: 'teacher-1', userId: 'user-1', hasRoleSubjectLeader: false },
+        allowedSubjectIds: ['subject-1'],
+      });
+
+    vi.spyOn(service as any, 'isQuestionUsedInAnyExam')
+      .mockResolvedValue(false);
+
+    questionRepo.existsByStatementAndSubtopicExceptId.mockResolvedValue(false);
+
+    QuestionTypeModelMock.findByPk.mockImplementation((id: string) => {
+      if (id === 'qt-mcq') {
+        return { get: () => ({ id, name: QuestionTypeEnum.MCQ }) };
+      }
+      if (id === 'qt-essay') {
+        return { get: () => ({ id, name: QuestionTypeEnum.ESSAY }) };
+      }
+      return null;
+    });
+
+    const updated = {
+      questionId: 'q-1',
+      authorId: 'teacher-1',
+      body: 'Pregunta original',
+      subtopicId: 'sub1',
+      difficulty: DifficultyLevelEnum.EASY,
+      questionTypeId: 'qt-essay',
+      options: null,
+      response: 'nueva respuesta',
+    } as any;
+    questionRepo.update.mockResolvedValue(updated);
+
+    const patch = {
+      questionTypeId: 'qt-essay',
+      response: 'nueva respuesta',
+    } as any;
+
+    const result: any = await service.update({
+      questionId: 'q-1',
+      patch,
+      currentUserId: 'user-1',
+    });
+
+    expect(questionRepo.update).toHaveBeenCalledWith(
+      'q-1',
+      expect.objectContaining({
+        questionTypeId: 'qt-essay',
+        options: null,
+        response: 'nueva respuesta',
+      }),
+    );
+    expect(result.options).toBeNull();
+    expect(result.response).toBe('nueva respuesta');
   });
 
   it('lanza error si hay duplicado (body+subtema) al actualizar', async () => {

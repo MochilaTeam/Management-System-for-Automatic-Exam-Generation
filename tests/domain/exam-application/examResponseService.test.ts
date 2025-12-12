@@ -8,6 +8,19 @@ import {
   NotFoundError,
 } from '../../../app/shared/exceptions/domainErrors';
 
+vi.mock(
+  '../../../app/core/dependencies/dependencies',
+  () => ({
+    __esModule: true,
+    get_logger: () => ({
+      auditLogger: { info: vi.fn() },
+      errorLogger: { error: vi.fn() },
+      debugLogger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
+      httpLogger: { info: vi.fn(), error: vi.fn() },
+    }),
+  }),
+);
+
 const makeExamResponseRepo = () =>
   ({
     create: vi.fn(),

@@ -8,6 +8,19 @@ import Subtopic from '../../../../app/infrastructure/question-bank/models/SubTop
 import SubjectTopic from '../../../../app/infrastructure/question-bank/models/SubjectTopic';
 import { DifficultyLevelEnum } from '../../../../app/domains/question-bank/entities/enums/DifficultyLevels';
 
+vi.mock(
+  '../../../../app/core/dependencies/dependencies',
+  () => ({
+    __esModule: true,
+    get_logger: () => ({
+      auditLogger: { info: vi.fn() },
+      errorLogger: { error: vi.fn() },
+      debugLogger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
+      httpLogger: { info: vi.fn(), error: vi.fn() },
+    }),
+  }),
+);
+
 type QuestionModelStatic = ModelStatic<QuestionModel>;
 
 describe('QuestionRepository (infra, unitario)', () => {
@@ -104,6 +117,17 @@ describe('QuestionRepository (infra, unitario)', () => {
       transaction: undefined,
     });
     expect(result).toBeNull();
+  });
+
+  it('get_detail_by_id: cuando includeInactive=true no filtra por active', async () => {
+    (mockModel.findOne as any).mockResolvedValue(null);
+
+    await repo.get_detail_by_id('q-1', true);
+
+    expect(mockModel.findOne).toHaveBeenCalledWith({
+      where: { id: 'q-1' },
+      transaction: undefined,
+    });
   });
 
   it('get_detail_by_id: mapea a QuestionDetail cuando encuentra registro', async () => {

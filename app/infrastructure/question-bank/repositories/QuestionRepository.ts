@@ -137,10 +137,18 @@ export class QuestionRepository
         }
     }
 
-    async get_detail_by_id(id: string, tx?: Transaction): Promise<QuestionDetail | null> {
+    async get_detail_by_id(
+        id: string,
+        includeInactive = false,
+        tx?: Transaction,
+    ): Promise<QuestionDetail | null> {
         try {
+            const where: WhereOptions = { id };
+            if (!includeInactive) {
+                where['active'] = true;
+            }
             const row = await this.model.findOne({
-                where: { id, active: true },
+                where,
                 transaction: this.effTx(tx),
             });
             return row ? this.toReadFn(row) : null;

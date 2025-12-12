@@ -334,9 +334,24 @@ export class QuestionService extends BaseDomainService {
         return { list: items, total };
     }
 
-    async get_detail_by_id(id: string): Promise<QuestionDetail | null> {
-        const question = await this.repo.get_detail_by_id(id);
+    async get_detail_by_id(id: string, currentUserId?: string): Promise<QuestionDetail | null> {
+        const operation = 'get-question';
+        const question = await this.repo.get_detail_by_id(id, true);
         if (!question) return null;
+
+        if (currentUserId) {
+            const allowedSubtopics = await this.getAllowedSubtopicIdsForTeacher(
+                operation,
+                currentUserId,
+            );
+            if (!allowedSubtopics.has(question.subtopicId)) {
+                this.raiseBusinessRuleError(operation, 'QUESTION_VIEW_FORBIDDEN', {
+                    entity: 'Question',
+                    code: 'QUESTION_VIEW_FORBIDDEN',
+                });
+            }
+        }
+
         return question;
     }
 
@@ -362,12 +377,10 @@ export class QuestionService extends BaseDomainService {
         const newSubtopicId = patch.subtopicId ?? current.subtopicId;
         const newDifficulty = patch.difficulty ?? current.difficulty;
         const newQuestionTypeId = patch.questionTypeId ?? current.questionTypeId;
-        const newOptions =
-            patch.options !== undefined && patch.options !== null ? patch.options : current.options;
-        const newResponse =
-            patch.response !== undefined && patch.response !== null
-                ? patch.response
-                : current.response;
+        const typeChanged = newQuestionTypeId !== current.questionTypeId;
+
+        let newOptions = patch.options !== undefined ? patch.options : current.options;
+        let newResponse = patch.response !== undefined ? patch.response : current.response;
 
         // Validar duplicado exacto (body + subtema)
         if (usedInAnyExam) {
@@ -385,20 +398,70 @@ export class QuestionService extends BaseDomainService {
 
             // Debe poder crear pregunta en el subtema resultante
             await this.ensureTeacherCanCreateQuestion(currentUserId, newSubtopicId);
-
-            // Validar tipo de pregunta
-            const questionTypeRow = await QuestionTypeModel.findByPk(newQuestionTypeId);
-            if (!questionTypeRow) {
-                this.raiseNotFoundError(operation, 'QUESTION_TYPE_NOT_FOUND', {
-                    entity: 'QuestionType',
+        } else {
+            const duplicated = await this.repo.existsByStatementAndSubtopicExceptId(
+                newBody,
+                newSubtopicId,
+                questionId,
+            );
+            if (duplicated) {
+                this.raiseBusinessRuleError(operation, 'QUESTION_ALREADY_EXISTS_IN_SUBTOPIC', {
+                    entity: 'Question',
+                    code: 'QUESTION_DUPLICATED',
                 });
             }
-            const qtPlain = questionTypeRow.get({
-                plain: true,
-            }) as { id: string; name: QuestionTypeEnum };
+        }
 
-            this.validateOptionsAndResponse(operation, qtPlain.name, newOptions, newResponse);
+        const currentQuestionTypeRow = await QuestionTypeModel.findByPk(current.questionTypeId);
+        if (!currentQuestionTypeRow) {
+            this.raiseNotFoundError(operation, 'QUESTION_TYPE_NOT_FOUND', {
+                entity: 'QuestionType',
+            });
+        }
+        const currentQuestionType = currentQuestionTypeRow.get({
+            plain: true,
+        }) as { id: string; name: QuestionTypeEnum };
 
+        const newQuestionTypeRow = typeChanged
+            ? await QuestionTypeModel.findByPk(newQuestionTypeId)
+            : currentQuestionTypeRow;
+        if (!newQuestionTypeRow) {
+            this.raiseNotFoundError(operation, 'QUESTION_TYPE_NOT_FOUND', {
+                entity: 'QuestionType',
+            });
+        }
+        const qtPlain = newQuestionTypeRow.get({
+            plain: true,
+        }) as { id: string; name: QuestionTypeEnum };
+
+        let shouldUpdateOptions = patch.options !== undefined;
+        let shouldUpdateResponse = patch.response !== undefined;
+
+        if (typeChanged) {
+            const switchingFromEssayToChoice =
+                currentQuestionType.name === QuestionTypeEnum.ESSAY &&
+                (qtPlain.name === QuestionTypeEnum.MCQ ||
+                    qtPlain.name === QuestionTypeEnum.TRUE_FALSE);
+            const switchingToEssay =
+                (currentQuestionType.name === QuestionTypeEnum.MCQ ||
+                    currentQuestionType.name === QuestionTypeEnum.TRUE_FALSE) &&
+                qtPlain.name === QuestionTypeEnum.ESSAY;
+
+            if (switchingFromEssayToChoice) {
+                newResponse = null;
+                shouldUpdateResponse = true;
+            } else if (switchingToEssay) {
+                newOptions = null;
+                shouldUpdateOptions = true;
+            }
+        }
+
+        const normalizedOptions = newOptions ?? null;
+        const normalizedResponse = newResponse ?? null;
+
+        this.validateOptionsAndResponse(operation, qtPlain.name, normalizedOptions, normalizedResponse);
+
+        if (usedInAnyExam) {
             // Crear nueva instancia con los cambios
             const dto: QuestionCreate = questionCreateSchema.parse({
                 authorId: current.authorId,
@@ -406,8 +469,8 @@ export class QuestionService extends BaseDomainService {
                 subTopicId: newSubtopicId,
                 difficulty: newDifficulty as DifficultyLevelEnum,
                 body: newBody,
-                options: newOptions ?? null,
-                response: newResponse ?? null,
+                options: normalizedOptions,
+                response: normalizedResponse,
             });
 
             const created = await this.repo.create(dto);
@@ -416,39 +479,13 @@ export class QuestionService extends BaseDomainService {
             return created;
         }
 
-        // Si no está en ningún examen, se actualiza in-place
-        const duplicated = await this.repo.existsByStatementAndSubtopicExceptId(
-            newBody,
-            newSubtopicId,
-            questionId,
-        );
-        if (duplicated) {
-            this.raiseBusinessRuleError(operation, 'QUESTION_ALREADY_EXISTS_IN_SUBTOPIC', {
-                entity: 'Question',
-                code: 'QUESTION_DUPLICATED',
-            });
-        }
-
-        // Validar tipo de pregunta
-        const questionTypeRow = await QuestionTypeModel.findByPk(newQuestionTypeId);
-        if (!questionTypeRow) {
-            this.raiseNotFoundError(operation, 'QUESTION_TYPE_NOT_FOUND', {
-                entity: 'QuestionType',
-            });
-        }
-        const qtPlain = questionTypeRow.get({
-            plain: true,
-        }) as { id: string; name: QuestionTypeEnum };
-
-        this.validateOptionsAndResponse(operation, qtPlain.name, newOptions, newResponse);
-
         const patchDto: QuestionUpdate = questionUpdateSchema.parse({
             questionTypeId: patch.questionTypeId,
             subTopicId: patch.subtopicId,
             difficulty: patch.difficulty as DifficultyLevelEnum | undefined,
             body: patch.body ? newBody : undefined,
-            options: patch.options,
-            response: patch.response,
+            options: shouldUpdateOptions ? normalizedOptions : undefined,
+            response: shouldUpdateResponse ? normalizedResponse : undefined,
         });
 
         const updated = await this.repo.update(questionId, patchDto);

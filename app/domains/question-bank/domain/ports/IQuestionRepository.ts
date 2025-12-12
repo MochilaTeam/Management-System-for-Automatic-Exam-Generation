@@ -20,7 +20,7 @@ export type Page<T> = { items: T[]; total: number };
 
 export interface IQuestionRepository {
     paginateDetail(criteria: ListQuestionsCriteria): Promise<Page<QuestionDetail>>;
-    get_detail_by_id(id: string): Promise<QuestionDetail | null>;
+    get_detail_by_id(id: string, includeInactive?: boolean): Promise<QuestionDetail | null>;
 
     create(data: QuestionCreate): Promise<QuestionDetail>;
     update(id: string, patch: QuestionUpdate): Promise<QuestionDetail | null>;
