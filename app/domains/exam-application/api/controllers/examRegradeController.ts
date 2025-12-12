@@ -3,12 +3,15 @@ import { NextFunction, Response } from 'express';
 import {
     makeListPendingExamRegradesQuery,
     makeRequestExamRegradeCommand,
+    makeResolveExamRegradeCommand,
 } from '../../../../core/dependencies/exam-application/examAssignment';
 import { UnauthorizedError } from '../../../../shared/exceptions/domainErrors';
 import { AuthenticatedRequest } from '../../../../shared/types/http/AuthenticatedRequest';
 import {
     listPendingExamRegradesQuerySchema,
+    regradeIdParamsSchema,
     requestExamRegradeCommandSchema,
+    resolveExamRegradeCommandSchema,
 } from '../../schemas/examRegradeSchema';
 
 export async function requestExamRegrade(
@@ -52,6 +55,30 @@ export async function listPendingExamRegrades(
         });
 
         const result = await makeListPendingExamRegradesQuery().execute(payload);
+        res.status(200).json(result);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function resolveExamRegrade(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction,
+) {
+    try {
+        const currentUserId = req.user?.id;
+        if (!currentUserId) {
+            throw new UnauthorizedError({ message: 'No se encontró el id del usuario' });
+        }
+
+        const { regradeId } = regradeIdParamsSchema.parse(req.params);
+        const payload = resolveExamRegradeCommandSchema.parse({
+            regradeId,
+            currentUserId,
+        });
+
+        const result = await makeResolveExamRegradeCommand().execute(payload);
         res.status(200).json(result);
     } catch (err) {
         next(err);

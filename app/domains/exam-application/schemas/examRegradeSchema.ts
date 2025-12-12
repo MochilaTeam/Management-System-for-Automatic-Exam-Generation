@@ -25,6 +25,15 @@ export const requestExamRegradeCommandSchema = requestExamRegradeBodySchema.exte
 
 export type RequestExamRegradeCommandSchema = z.infer<typeof requestExamRegradeCommandSchema>;
 
+export const resolveExamRegradeCommandSchema = z
+    .object({
+        regradeId: z.string().uuid(),
+        currentUserId: z.string().uuid(),
+    })
+    .strict();
+
+export type ResolveExamRegradeCommandSchema = z.infer<typeof resolveExamRegradeCommandSchema>;
+
 export const listPendingExamRegradesQuerySchema = z
     .object({
         currentUserId: z.string().uuid(),

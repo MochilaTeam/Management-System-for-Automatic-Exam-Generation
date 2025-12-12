@@ -21,6 +21,7 @@ import {
     ListPendingExamRegradesQuery,
     PendingExamRegradeItem,
     RequestExamRegradeCommandSchema,
+    ResolveExamRegradeCommandSchema,
 } from '../../schemas/examRegradeSchema';
 import type {
     ExamAssignmentStatusSnapshot,
@@ -435,81 +436,10 @@ export class ExamAssignmentService extends BaseDomainService {
                 });
             }
 
-            const examQuestions = await this.examQuestionRepo.listByExamId(assignment.examId);
-            if (!examQuestions.length) {
-                this.raiseBusinessRuleError(
-                    operation,
-                    'EL EXAMEN NO TIENE PREGUNTAS CONFIGURADAS',
-                    {
-                        entity: 'Exam',
-                    },
-                );
-            }
-
-            const examTotalScoreRaw = examQuestions.reduce(
-                (acc, question) => acc + Number(question.questionScore),
-                0,
-            );
-            if (examTotalScoreRaw <= 0) {
-                this.raiseBusinessRuleError(operation, 'LA NOTA TOTAL DEL EXAMEN ES INVÁLIDA', {
-                    entity: 'Exam',
-                });
-            }
-            const examTotalScore = Number(examTotalScoreRaw.toFixed(2));
-
-            const responses = await this.examResponseRepo.listByExamAndStudent(
-                assignment.examId,
-                assignment.studentId,
-            );
-
-            // Check if all questions with responses have been graded
-            const ungradedResponse = responses.find(
-                (resp) => resp.manualPoints === null && resp.autoPoints === null,
-            );
-
-            if (ungradedResponse) {
-                this.raiseBusinessRuleError(operation, 'AÚN HAY PREGUNTAS SIN CALIFICAR', {
-                    entity: 'ExamResponse',
-                    details: { ungradedResponseId: ungradedResponse.id },
-                });
-            }
-
-            const questionMap = new Map(examQuestions.map((question) => [question.id, question]));
-            const obtainedScoreRaw = responses.reduce((acc, resp) => {
-                const question = questionMap.get(resp.examQuestionId);
-                if (!question) {
-                    return acc;
-                }
-                const awarded = resp.manualPoints ?? resp.autoPoints ?? 0;
-                const normalized = Math.min(
-                    Math.max(Number(awarded), 0),
-                    Number(question.questionScore),
-                );
-                return acc + normalized;
-            }, 0);
-
-            const finalGrade = Number(Math.min(obtainedScoreRaw, examTotalScore).toFixed(2));
-
-            const statusAfterGrade = [
-                AssignedExamStatus.REGRADING,
-                AssignedExamStatus.REGRADED,
-            ].includes(assignment.status)
-                ? AssignedExamStatus.REGRADED
-                : AssignedExamStatus.GRADED;
-
-            await this.examAssignmentRepo.updateGrade(assignment.id, {
-                grade: finalGrade,
-                status: statusAfterGrade,
-            });
+            const result = await this.recalculateAssignmentGrade(assignment, operation);
 
             this.logOperationSuccess(operation);
-            return {
-                assignmentId: assignment.id,
-                examId: assignment.examId,
-                studentId: assignment.studentId,
-                finalGrade,
-                examTotalScore,
-            };
+            return result;
         } catch (error) {
             this.logOperationError(operation, error as Error);
             throw error;
@@ -582,6 +512,79 @@ export class ExamAssignmentService extends BaseDomainService {
         }
     }
 
+    async resolveExamRegrade(
+        input: ResolveExamRegradeCommandSchema,
+    ): Promise<CalculateExamGradeResult> {
+        const operation = 'resolve-exam-regrade';
+        this.logOperationStart(operation);
+
+        try {
+            const teacher = await this.getTeacherByUserId(input.currentUserId, operation);
+
+            const regrade = await this.examRegradeRepo.findById(input.regradeId);
+            if (!regrade) {
+                this.raiseNotFoundError(operation, 'SOLICITUD NO ENCONTRADA', {
+                    entity: 'ExamRegrade',
+                });
+            }
+
+            if (regrade.professorId !== teacher.id) {
+                this.raiseBusinessRuleError(operation, 'NO ERES EL DOCENTE ASIGNADO', {
+                    entity: 'ExamRegrade',
+                });
+            }
+
+            const assignment = await this.examAssignmentRepo.findByExamIdAndStudentId(
+                regrade.examId,
+                regrade.studentId,
+            );
+            if (!assignment) {
+                this.raiseNotFoundError(operation, 'ASIGNACIÓN NO ENCONTRADA', {
+                    entity: 'ExamAssignment',
+                });
+            }
+
+            if (
+                ![AssignedExamStatus.REGRADING, AssignedExamStatus.REGRADED].includes(
+                    assignment.status,
+                )
+            ) {
+                this.raiseBusinessRuleError(
+                    operation,
+                    'LA ASIGNACIÓN NO ESTÁ EN REVISIÓN DE NOTA',
+                    {
+                        entity: 'ExamAssignment',
+                    },
+                );
+            }
+
+            const activeStatuses = [
+                ExamRegradesStatus.REQUESTED,
+                ExamRegradesStatus.IN_REVIEW,
+            ];
+            if (!activeStatuses.includes(regrade.status)) {
+                this.raiseBusinessRuleError(operation, 'LA SOLICITUD YA FUE RESUELTA', {
+                    entity: 'ExamRegrade',
+                });
+            }
+
+            const gradeResult = await this.recalculateAssignmentGrade(assignment, operation);
+
+            await this.examRegradeRepo.resolve(regrade.id, {
+                status: ExamRegradesStatus.RESOLVED,
+                resolvedAt: new Date(),
+                finalGrade: gradeResult.finalGrade,
+            });
+
+            this.logOperationSuccess(operation);
+
+            return gradeResult;
+        } catch (error) {
+            this.logOperationError(operation, error as Error);
+            throw error;
+        }
+    }
+
     private async ensureTeacherCanReviewExam(
         operation: string,
         teacherId: string,
@@ -612,8 +615,117 @@ export class ExamAssignmentService extends BaseDomainService {
             const newStatus = await this.calculateStatusForSnapshot(snapshot, now);
             if (newStatus && newStatus !== snapshot.status) {
                 await this.examAssignmentRepo.updateStatus(snapshot.id, newStatus);
+
+                if (newStatus === AssignedExamStatus.IN_EVALUATION) {
+                    await this.ensureMissingResponsesHaveZeroScore(
+                        snapshot.examId,
+                        snapshot.studentId,
+                    );
+                }
             }
         }
+    }
+
+    private async ensureMissingResponsesHaveZeroScore(examId: string, studentId: string) {
+        const questions = await this.examQuestionRepo.listByExamId(examId);
+        if (!questions.length) return;
+
+        const responses = await this.examResponseRepo.listByExamAndStudent(examId, studentId);
+        const answeredQuestionIds = new Set(responses.map((resp) => resp.examQuestionId));
+
+        const unanswered = questions.filter((question) => !answeredQuestionIds.has(question.id));
+        if (!unanswered.length) return;
+
+        const creationDate = new Date();
+
+        await Promise.all(
+            unanswered.map((question) =>
+                this.examResponseRepo.create({
+                    examId,
+                    examQuestionId: question.id,
+                    studentId,
+                    selectedOptions: null,
+                    textAnswer: null,
+                    autoPoints: 0,
+                    manualPoints: null,
+                    answeredAt: creationDate,
+                }),
+            ),
+        );
+    }
+
+    private async recalculateAssignmentGrade(
+        assignment: StudentExamAssignmentItem,
+        operation: string,
+    ): Promise<CalculateExamGradeResult> {
+        const examQuestions = await this.examQuestionRepo.listByExamId(assignment.examId);
+        if (!examQuestions.length) {
+            this.raiseBusinessRuleError(operation, 'EL EXAMEN NO TIENE PREGUNTAS CONFIGURADAS', {
+                entity: 'Exam',
+            });
+        }
+
+        const examTotalScoreRaw = examQuestions.reduce(
+            (acc, question) => acc + Number(question.questionScore),
+            0,
+        );
+        if (examTotalScoreRaw <= 0) {
+            this.raiseBusinessRuleError(operation, 'LA NOTA TOTAL DEL EXAMEN ES INVÁLIDA', {
+                entity: 'Exam',
+            });
+        }
+        const examTotalScore = Number(examTotalScoreRaw.toFixed(2));
+
+        const responses = await this.examResponseRepo.listByExamAndStudent(
+            assignment.examId,
+            assignment.studentId,
+        );
+
+        const ungradedResponse = responses.find(
+            (resp) => resp.manualPoints === null && resp.autoPoints === null,
+        );
+
+        if (ungradedResponse) {
+            this.raiseBusinessRuleError(operation, 'AÚN HAY PREGUNTAS SIN CALIFICAR', {
+                entity: 'ExamResponse',
+                details: { ungradedResponseId: ungradedResponse.id },
+            });
+        }
+
+        const questionMap = new Map(examQuestions.map((question) => [question.id, question]));
+        const obtainedScoreRaw = responses.reduce((acc, resp) => {
+            const question = questionMap.get(resp.examQuestionId);
+            if (!question) {
+                return acc;
+            }
+            const awarded = resp.manualPoints ?? resp.autoPoints ?? 0;
+            const normalized = Math.min(
+                Math.max(Number(awarded), 0),
+                Number(question.questionScore),
+            );
+            return acc + normalized;
+        }, 0);
+
+        const finalGrade = Number(Math.min(obtainedScoreRaw, examTotalScore).toFixed(2));
+
+        const statusAfterGrade = [AssignedExamStatus.REGRADING, AssignedExamStatus.REGRADED].includes(
+            assignment.status,
+        )
+            ? AssignedExamStatus.REGRADED
+            : AssignedExamStatus.GRADED;
+
+        await this.examAssignmentRepo.updateGrade(assignment.id, {
+            grade: finalGrade,
+            status: statusAfterGrade,
+        });
+
+        return {
+            assignmentId: assignment.id,
+            examId: assignment.examId,
+            studentId: assignment.studentId,
+            finalGrade,
+            examTotalScore,
+        };
     }
 
     private async calculateStatusForSnapshot(

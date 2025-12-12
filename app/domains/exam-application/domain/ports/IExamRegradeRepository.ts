@@ -24,9 +24,14 @@ export type ListPendingRegradesCriteria = {
 
 export interface IExamRegradeRepository {
     create(input: CreateExamRegradeInput): Promise<ExamRegradeOutput>;
+    findById(id: string): Promise<ExamRegradeOutput | null>;
     findActiveByExamAndStudent(
         examId: string,
         studentId: string,
     ): Promise<ExamRegradeOutput | null>;
     listPendingByProfessor(criteria: ListPendingRegradesCriteria): Promise<Page<ExamRegradeOutput>>;
+    resolve(
+        id: string,
+        params: { status: ExamRegradesStatus; resolvedAt: Date; finalGrade: number },
+    ): Promise<void>;
 }

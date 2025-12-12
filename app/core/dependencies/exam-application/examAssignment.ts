@@ -2,6 +2,7 @@ import { makeExamQuestionRepository } from './examDependencies';
 import { CalculateExamGradeCommand } from '../../../domains/exam-application/application/commands/calculateExamGradeCommand';
 import { CreateExamAssignmentCommand } from '../../../domains/exam-application/application/commands/createExamAssignmentCommand';
 import { RequestExamRegradeCommand } from '../../../domains/exam-application/application/commands/requestExamRegradeCommand';
+import { ResolveExamRegradeCommand } from '../../../domains/exam-application/application/commands/resolveExamRegradeCommand';
 import { SendExamToEvaluatorCommand } from '../../../domains/exam-application/application/commands/sendExamToEvaluatorCommand';
 import { ListEvaluatorExamsQuery } from '../../../domains/exam-application/application/queries/listEvaluatorExamsQuery';
 import { ListPendingExamRegradesQuery } from '../../../domains/exam-application/application/queries/listPendingExamRegradesQuery';
@@ -29,6 +30,7 @@ let _listEvaluatorExamsQuery: ListEvaluatorExamsQuery | null = null;
 let _listPendingExamRegradesQuery: ListPendingExamRegradesQuery | null = null;
 let _requestExamRegradeCmd: RequestExamRegradeCommand | null = null;
 let _calculateExamGradeCmd: CalculateExamGradeCommand | null = null;
+let _resolveExamRegradeCmd: ResolveExamRegradeCommand | null = null;
 
 // Repository
 export function makeExamAssignmentRepository() {
@@ -92,6 +94,12 @@ export function makeCalculateExamGradeCommand() {
     if (_calculateExamGradeCmd) return _calculateExamGradeCmd;
     _calculateExamGradeCmd = new CalculateExamGradeCommand(makeExamAssignmentService());
     return _calculateExamGradeCmd;
+}
+
+export function makeResolveExamRegradeCommand() {
+    if (_resolveExamRegradeCmd) return _resolveExamRegradeCmd;
+    _resolveExamRegradeCmd = new ResolveExamRegradeCommand(makeExamAssignmentService());
+    return _resolveExamRegradeCmd;
 }
 
 // Queries
