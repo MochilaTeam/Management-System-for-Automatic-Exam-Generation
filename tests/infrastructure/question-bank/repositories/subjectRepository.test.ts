@@ -21,6 +21,7 @@ describe('SubjectRepository (infra, unitario)', () => {
     mockModel = {
       name: 'Subject',
       destroy: vi.fn(),
+      update: vi.fn(),
       findByPk: vi.fn(),
     } as unknown as SubjectModelStatic;
 
@@ -118,20 +119,23 @@ describe('SubjectRepository (infra, unitario)', () => {
   });
 
   // ---------- deleteById ----------
-  it('deleteById: devuelve true cuando destroy > 0', async () => {
-    (mockModel.destroy as any).mockResolvedValue(1);
+  it('deleteById: devuelve true cuando update > 0', async () => {
+    (mockModel.update as any).mockResolvedValue([1]);
 
     const result = await repo.deleteById('subj-1');
 
-    expect(mockModel.destroy).toHaveBeenCalledWith({
-      where: { id: 'subj-1' },
-      transaction: undefined,
-    });
+    expect(mockModel.update).toHaveBeenCalledWith(
+      { active: false },
+      {
+        where: { id: 'subj-1' },
+        transaction: undefined,
+      },
+    );
     expect(result).toBe(true);
   });
 
-  it('deleteById: devuelve false cuando destroy = 0', async () => {
-    (mockModel.destroy as any).mockResolvedValue(0);
+  it('deleteById: devuelve false cuando update = 0', async () => {
+    (mockModel.update as any).mockResolvedValue([0]);
 
     const result = await repo.deleteById('subj-1');
 
@@ -147,7 +151,7 @@ describe('SubjectRepository (infra, unitario)', () => {
     const result = await repo.existsSubjectTopic('subj-1', 'topic-1');
 
     expect(findOneSpy).toHaveBeenCalledWith({
-      where: { subjectId: 'subj-1', topicId: 'topic-1' },
+      where: { subjectId: 'subj-1', topicId: 'topic-1', active: true },
       transaction: undefined,
     });
     expect(result).toBe(true);

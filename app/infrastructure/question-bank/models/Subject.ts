@@ -7,6 +7,7 @@ class Subject extends Model {
     public name!: string;
     public program!: string;
     public leadTeacherId!: string;
+    public active!: boolean;
 }
 
 Subject.init(
@@ -27,6 +28,11 @@ Subject.init(
             references: { model: 'Teachers', key: 'id' },
             onUpdate: 'CASCADE',
             onDelete: 'RESTRICT',
+        },
+        active: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true,
         },
     },
     { sequelize, tableName: 'Subjects' },

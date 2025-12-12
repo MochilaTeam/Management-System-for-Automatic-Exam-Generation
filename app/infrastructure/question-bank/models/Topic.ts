@@ -5,6 +5,7 @@ import { sequelize } from '../../../database/database';
 class Topic extends Model {
     public id!: string;
     public title!: string;
+    public active!: boolean;
 }
 
 Topic.init(
@@ -16,6 +17,11 @@ Topic.init(
             allowNull: false,
         },
         title: { type: STRING(200), allowNull: false, unique: true },
+        active: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true,
+        },
     },
     {
         sequelize,

@@ -3,6 +3,7 @@ import { TopicCreate, TopicDetail, TopicUpdate } from '../../schemas/topicSchema
 export type TopicFilters = {
     q?: string;
     subject_id?: string;
+    active?: boolean;
 };
 
 export type ListTopicsCriteria = {
