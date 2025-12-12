@@ -230,6 +230,7 @@ export const examCreateSchema = z
         subjectId: uuid(),
         difficulty: z.nativeEnum(DifficultyLevelEnum),
         examStatus: z.nativeEnum(ExamStatusEnum),
+        active: z.boolean().default(true),
         authorId: uuid(),
         validatorId: uuid().nullable().optional(),
         observations: z.string().nullable().optional(),
@@ -250,6 +251,7 @@ export const examUpdateSchema = z
         questionCount: z.number().int().min(1).optional(),
         difficulty: z.nativeEnum(DifficultyLevelEnum).optional(),
         validatedAt: z.date().nullable().optional(),
+        active: z.boolean().optional(),
     })
     .strict()
     .refine((obj) => Object.keys(obj).length > 0, {
@@ -263,6 +265,7 @@ export const examReadSchema = z
         subjectId: uuid(),
         difficulty: z.nativeEnum(DifficultyLevelEnum),
         examStatus: z.nativeEnum(ExamStatusEnum),
+        active: z.boolean(),
         authorId: uuid(),
         validatorId: uuid().nullable(),
         observations: z.string().nullable(),

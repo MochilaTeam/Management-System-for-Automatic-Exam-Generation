@@ -7,6 +7,7 @@ export type ExamFilters = {
     subjectIds?: string[];
     difficulty?: DifficultyLevelEnum;
     examStatus?: ExamStatusEnum;
+    active?: boolean;
     authorId?: string;
     validatorId?: string;
     title?: string;

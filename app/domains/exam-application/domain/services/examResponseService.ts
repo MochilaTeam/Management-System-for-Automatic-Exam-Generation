@@ -234,7 +234,10 @@ export class ExamResponseService extends BaseDomainService {
             throw new NotFoundError({ message: 'No se encontró la pregunta solicitada' });
         }
 
-        const questionDetail = await this.questionRepo.get_detail_by_id(examQuestion.questionId);
+        const questionDetail = await this.questionRepo.get_detail_by_id(
+            examQuestion.questionId,
+            true,
+        );
         if (!questionDetail) {
             throw new NotFoundError({ message: 'Pregunta original no encontrada' });
         }
@@ -334,7 +337,7 @@ export class ExamResponseService extends BaseDomainService {
             throw new NotFoundError({ message: 'Pregunta del examen no encontrada' });
         }
 
-        const question = await this.questionRepo.get_detail_by_id(examQuestion.questionId);
+        const question = await this.questionRepo.get_detail_by_id(examQuestion.questionId, true);
         if (!question) {
             throw new NotFoundError({ message: 'Pregunta no encontrada' });
         }

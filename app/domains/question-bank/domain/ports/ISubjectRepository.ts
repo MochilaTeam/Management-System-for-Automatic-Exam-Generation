@@ -10,6 +10,7 @@ export type SubjectFilters = {
     name?: string;
     program?: string;
     leadTeacherId?: string;
+    active?: boolean;
 };
 
 export type Sort = { field: 'createdAt' | 'name'; dir: 'asc' | 'desc' };

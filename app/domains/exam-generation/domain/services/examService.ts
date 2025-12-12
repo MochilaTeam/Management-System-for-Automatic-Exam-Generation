@@ -52,6 +52,7 @@ export class ExamService extends BaseDomainService {
                 subjectIds: params.subjectIds,
                 difficulty: params.difficulty,
                 examStatus: params.examStatus,
+                active: true,
                 authorId: params.authorId,
                 validatorId: params.validatorId,
                 title: params.title,
@@ -378,6 +379,7 @@ export class ExamService extends BaseDomainService {
             subjectId: input.subjectId,
             difficulty: derivedDifficulty,
             examStatus: ExamStatusEnum.DRAFT,
+            active: true,
             authorId: teacher.id,
             validatorId: null,
             observations: null,
@@ -518,11 +520,19 @@ export class ExamService extends BaseDomainService {
     }
 
     async deleteExam(id: string): Promise<boolean> {
-        const deleted = await this.deps.examRepo.deleteById(id);
-        if (!deleted) {
+        const exam = await this.deps.examRepo.get_by_id(id);
+        if (!exam) {
             this.raiseNotFoundError('deleteExam', 'El examen no existe.', { entity: 'Exam' });
         }
-        return deleted;
+
+        if (exam.examStatus === ExamStatusEnum.DRAFT) {
+            return this.deps.examRepo.deleteById(id);
+        }
+
+        if (!exam.active) return true;
+
+        const updated = await this.deps.examRepo.update(id, { active: false });
+        return Boolean(updated);
     }
 
     async requestExamReview(examId: string, currentUserId: string): Promise<ExamDetailRead> {

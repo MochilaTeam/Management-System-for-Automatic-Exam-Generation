@@ -22,6 +22,7 @@ export const ExamMapper = {
             subjectId: string;
             difficulty: string;
             examStatus: string;
+            active: boolean;
             authorId: string;
             validatorId: string | null;
             observations: string | null;
@@ -38,6 +39,7 @@ export const ExamMapper = {
             topicProportion: plain.topicProportion ?? {},
             topicCoverage: plain.topicCoverage ?? {},
             validatedAt: plain.validatedAt ?? null,
+            active: plain.active ?? true,
         });
     },
 
@@ -48,6 +50,7 @@ export const ExamMapper = {
             subjectId: safe.subjectId,
             difficulty: safe.difficulty,
             examStatus: safe.examStatus,
+            active: safe.active ?? true,
             authorId: safe.authorId,
             validatorId: safe.validatorId ?? null,
             observations: safe.observations ?? null,
@@ -69,11 +72,14 @@ export const ExamMapper = {
         if (safe.questionCount !== undefined) attrs.questionCount = safe.questionCount;
         if (safe.difficulty !== undefined) attrs.difficulty = safe.difficulty;
         if (safe.validatedAt !== undefined) attrs.validatedAt = safe.validatedAt;
+        if (safe.active !== undefined) attrs.active = safe.active;
         return attrs;
     },
 
     toWhereFromFilters(filters?: ExamFilters): WhereOptions<Attributes<Exam>> {
-        const where: WhereOptions<Attributes<Exam>> = {};
+        const where: WhereOptions<Attributes<Exam>> = {
+            active: filters?.active ?? true,
+        };
         if (!filters) return where;
 
         if (filters.subjectId) where.subjectId = filters.subjectId;

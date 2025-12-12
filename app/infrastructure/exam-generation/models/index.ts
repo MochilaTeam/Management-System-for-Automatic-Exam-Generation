@@ -34,7 +34,7 @@ Exam.belongsToMany(Question, {
     foreignKey: 'examId',
     otherKey: 'questionId',
     onUpdate: 'CASCADE',
-    onDelete: 'RESTRICT',
+    onDelete: 'CASCADE',
 });
 
 Question.belongsToMany(Exam, {
