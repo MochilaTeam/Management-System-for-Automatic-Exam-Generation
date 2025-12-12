@@ -85,8 +85,10 @@ describe('ExamService', () => {
       offset: 0,
       filters: {
         subjectId: undefined,
+        subjectIds: undefined,
         difficulty: undefined,
         examStatus: undefined,
+        active: true,
         authorId: 't1',
         validatorId: undefined,
         title: undefined,
@@ -139,6 +141,7 @@ describe('ExamService', () => {
       title: 'Manual',
       difficulty: DifficultyLevelEnum.MEDIUM,
       examStatus: ExamStatusEnum.DRAFT,
+      active: true,
       authorId: 'teacher-1',
       validatorId: null,
       observations: null,
@@ -259,6 +262,7 @@ describe('ExamService', () => {
       id: 'exam-1',
       subjectId: 'sub-1',
       examStatus: ExamStatusEnum.DRAFT,
+      active: true,
     } as any;
     examRepo.get_by_id.mockResolvedValue(exam);
     examRepo.update.mockResolvedValue({ ...exam, title: 'Nuevo' });
@@ -304,9 +308,45 @@ describe('ExamService', () => {
 
   it('deleteExam: lanza error si no existe', async () => {
     const { service, examRepo } = makeService();
-    examRepo.deleteById.mockResolvedValue(false);
+    examRepo.get_by_id.mockResolvedValue(null);
 
     await expect(service.deleteExam('missing')).rejects.toThrow('El examen no existe.');
+  });
+
+  it('deleteExam: elimina físicamente si el estado es borrador', async () => {
+    const { service, examRepo } = makeService();
+    examRepo.get_by_id.mockResolvedValue({
+      id: 'exam-1',
+      examStatus: ExamStatusEnum.DRAFT,
+      active: true,
+    });
+    examRepo.deleteById.mockResolvedValue(true);
+
+    const result = await service.deleteExam('exam-1');
+
+    expect(examRepo.deleteById).toHaveBeenCalledWith('exam-1');
+    expect(examRepo.update).not.toHaveBeenCalled();
+    expect(result).toBe(true);
+  });
+
+  it('deleteExam: desactiva si no es borrador', async () => {
+    const { service, examRepo } = makeService();
+    examRepo.get_by_id.mockResolvedValue({
+      id: 'exam-1',
+      examStatus: ExamStatusEnum.PUBLISHED,
+      active: true,
+    });
+    examRepo.update.mockResolvedValue({
+      id: 'exam-1',
+      examStatus: ExamStatusEnum.PUBLISHED,
+      active: false,
+    });
+
+    const result = await service.deleteExam('exam-1');
+
+    expect(examRepo.deleteById).not.toHaveBeenCalled();
+    expect(examRepo.update).toHaveBeenCalledWith('exam-1', { active: false });
+    expect(result).toBe(true);
   });
 
   it('requestExamReview: valida estado bajo revisión', async () => {
@@ -315,6 +355,7 @@ describe('ExamService', () => {
       id: 'exam-1',
       subjectId: 'sub-1',
       examStatus: ExamStatusEnum.UNDER_REVIEW,
+      active: true,
     });
 
     await expect(service.requestExamReview('exam-1', 'user-1')).rejects.toThrow(
@@ -328,6 +369,7 @@ describe('ExamService', () => {
       id: 'exam-1',
       subjectId: 'sub-1',
       examStatus: ExamStatusEnum.DRAFT,
+      active: true,
     });
 
     await expect(service.acceptExam('exam-1', 'user-1')).rejects.toThrow(
