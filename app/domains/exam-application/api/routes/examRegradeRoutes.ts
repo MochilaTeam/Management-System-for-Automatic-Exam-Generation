@@ -3,7 +3,11 @@ import { Router } from 'express';
 import { authenticate } from '../../../../core/middlewares/authenticate';
 import { requireRoles } from '../../../../core/middlewares/authorize';
 import { Roles } from '../../../../shared/enums/rolesEnum';
-import { listPendingExamRegrades, requestExamRegrade } from '../controllers/examRegradeController';
+import {
+    listPendingExamRegrades,
+    requestExamRegrade,
+    resolveExamRegrade,
+} from '../controllers/examRegradeController';
 
 const router = Router();
 
@@ -124,6 +128,51 @@ router.get(
     authenticate,
     requireRoles(Roles.TEACHER),
     listPendingExamRegrades,
+);
+
+/**
+ * @openapi
+ * /exams/regrade-requests/{regradeId}/grade:
+ *   patch:
+ *     tags: [Exam Regrade]
+ *     summary: Finalizar recalificación y actualizar nota
+ *     description: |
+ *       Permite al profesor asignado recalcular la nota del examen solicitado para recalificación.
+ *       Cambia el estado del ExamAssignment de REGRADING a REGRADED y marca la solicitud como RESOLVED.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: regradeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID de la solicitud de recalificación a resolver
+ *     responses:
+ *       200:
+ *         description: Recalificación finalizada y nota actualizada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/CalculateExamGradeResult'
+ *       400:
+ *         description: Estado inválido o aún hay preguntas sin calificar
+ *       403:
+ *         description: No autorizado o no es el profesor asignado
+ *       404:
+ *         description: Solicitud de recalificación o asignación no encontrada
+ */
+router.patch(
+    '/exams/regrade-requests/:regradeId/grade',
+    authenticate,
+    requireRoles(Roles.TEACHER),
+    resolveExamRegrade,
 );
 
 export default router;
