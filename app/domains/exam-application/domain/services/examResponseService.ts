@@ -337,10 +337,7 @@ export class ExamResponseService extends BaseDomainService {
             throw new NotFoundError({ message: 'Pregunta del examen no encontrada' });
         }
 
-        const question = await this.questionRepo.get_detail_by_id(
-            examQuestion.questionId,
-            true,
-        );
+        const question = await this.questionRepo.get_detail_by_id(examQuestion.questionId, true);
         if (!question) {
             throw new NotFoundError({ message: 'Pregunta no encontrada' });
         }
