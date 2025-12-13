@@ -1,4 +1,5 @@
 import Subject from '../../../../infrastructure/question-bank/models/Subject';
+import TeacherSubject from '../../../../infrastructure/question-bank/models/TeacherSubject';
 import { Teacher } from '../../../../infrastructure/user/models';
 import { BaseDomainService } from '../../../../shared/domain/base_service';
 import { ExamStatusEnum } from '../../../exam-application/entities/enums/ExamStatusEnum';
@@ -34,6 +35,7 @@ type TeacherPlain = {
     id: string;
     userId: string;
     hasRoleSubjectLeader: boolean;
+    hasRoleExaminer: boolean;
 };
 
 type SubjectPlain = { id: string; leadTeacherId: string | null };
@@ -353,6 +355,82 @@ export class ExamService extends BaseDomainService {
         return teacher;
     }
 
+    private async ensureExaminerForExam(
+        operation: string,
+        subjectId: string,
+        currentUserId: string,
+    ): Promise<TeacherPlain> {
+        const teacher = await this.getTeacherByUserId(operation, currentUserId);
+        if (!teacher.hasRoleExaminer) {
+            this.raiseBusinessRuleError(
+                operation,
+                'Solo un docente con rol de examinador puede solicitar la revisión.',
+                {
+                    entity: 'Teacher',
+                    code: 'EXAMINER_ROLE_REQUIRED',
+                },
+            );
+        }
+
+        const subject = await Subject.findByPk(subjectId);
+        if (!subject) {
+            this.raiseNotFoundError(operation, 'La asignatura asociada al examen no existe.', {
+                entity: 'Subject',
+            });
+        }
+        const subjectPlain = subject.get({ plain: true }) as SubjectPlain;
+
+        if (subjectPlain.leadTeacherId === teacher.id) return teacher;
+
+        const teachesSubject = await TeacherSubject.findOne({
+            where: { teacherId: teacher.id, subjectId },
+        });
+        if (!teachesSubject) {
+            this.raiseBusinessRuleError(
+                operation,
+                'El docente no está asignado a la asignatura del examen.',
+                {
+                    entity: 'Subject',
+                    code: 'TEACHER_NOT_IN_SUBJECT',
+                },
+            );
+        }
+
+        return teacher;
+    }
+
+    private async getSubjectLeaderForValidation(
+        operation: string,
+        subjectId: string,
+    ): Promise<TeacherPlain> {
+        const subject = await Subject.findByPk(subjectId);
+        if (!subject) {
+            this.raiseNotFoundError(operation, 'La asignatura asociada al examen no existe.', {
+                entity: 'Subject',
+            });
+        }
+        const subjectPlain = subject.get({ plain: true }) as SubjectPlain;
+        if (!subjectPlain.leadTeacherId) {
+            this.raiseBusinessRuleError(
+                operation,
+                'La asignatura no tiene un jefe asignado para validar el examen.',
+                {
+                    entity: 'Subject',
+                    code: 'SUBJECT_WITHOUT_LEADER',
+                },
+            );
+        }
+
+        const leader = await Teacher.findByPk(subjectPlain.leadTeacherId);
+        if (!leader) {
+            this.raiseNotFoundError(operation, 'El jefe de asignatura no existe.', {
+                entity: 'Teacher',
+            });
+        }
+
+        return leader.get({ plain: true }) as TeacherPlain;
+    }
+
     async createManualExam(input: CreateManualExamCommandSchema): Promise<ExamDetailRead> {
         const teacher = await this.getTeacherByUserId('createManualExam', input.authorId);
         const targetCount = input.questions.length;
@@ -563,14 +641,18 @@ export class ExamService extends BaseDomainService {
                 },
             );
         }
-        const teacher = await this.ensureSubjectLeaderForExam(
+        await this.ensureExaminerForExam(
             'requestExamReview',
             exam.subjectId,
             currentUserId,
         );
+        const validator = await this.getSubjectLeaderForValidation(
+            'requestExamReview',
+            exam.subjectId,
+        );
         await this.deps.examRepo.update(examId, {
             examStatus: ExamStatusEnum.UNDER_REVIEW,
-            validatorId: teacher.id,
+            validatorId: validator.id,
             validatedAt: null,
         });
         return this.getExamDetailOrFail(examId, 'requestExamReview');

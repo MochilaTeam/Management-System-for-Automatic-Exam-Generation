@@ -1,6 +1,5 @@
 import ExamQuestionModel from '../../../../infrastructure/exam-generation/models/ExamQuestion';
 import QuestionTypeModel from '../../../../infrastructure/question-bank/models/QuestionType';
-import SubjectModel from '../../../../infrastructure/question-bank/models/Subject';
 import SubjectTopicModel from '../../../../infrastructure/question-bank/models/SubjectTopic';
 import SubtopicModel from '../../../../infrastructure/question-bank/models/SubTopic';
 import TeacherSubjectModel from '../../../../infrastructure/question-bank/models/TeacherSubject';
@@ -36,7 +35,6 @@ type TeacherPlain = {
 
 type SubtopicPlain = { id: string; topicId: string };
 type SubjectTopicPlain = { subjectId: string; topicId: string };
-type SubjectPlain = { id: string; leadTeacherId: string | null };
 type TeacherSubjectPlain = { teacherId: string; subjectId: string };
 
 export class QuestionService extends BaseDomainService {
@@ -133,23 +131,6 @@ export class QuestionService extends BaseDomainService {
             this.raiseBusinessRuleError(operation, 'TEACHER_NOT_ASSIGNED_TO_SUBJECT', {
                 entity: 'Subject',
                 code: 'TEACHER_NOT_IN_SUBJECT',
-            });
-        }
-
-        const isAuthor = question.authorId === teacher.id;
-
-        // Verificamos si es jefe de alguna de las asignaturas asociadas
-        let isSubjectLeader = false;
-        if (teacher.hasRoleSubjectLeader) {
-            const subjects = await SubjectModel.findAll({ where: { id: allowedSubjectIds } });
-            const plain = subjects.map((s) => s.get({ plain: true }) as SubjectPlain);
-            isSubjectLeader = plain.some((s) => s.leadTeacherId === teacher.id);
-        }
-
-        if (!isAuthor && !isSubjectLeader) {
-            this.raiseBusinessRuleError(operation, 'FORBIDDEN_TO_MANAGE_QUESTION', {
-                entity: 'Question',
-                code: 'QUESTION_MANAGE_FORBIDDEN',
             });
         }
 

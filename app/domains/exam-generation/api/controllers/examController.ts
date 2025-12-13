@@ -117,7 +117,9 @@ export async function listExams(req: Request, res: Response, next: NextFunction)
 
             const teacherSubjectRepo = new TeacherSubjectLinkRepository();
             const assignments = await teacherSubjectRepo.getAssignments(teacher.id);
-            const allowedSubjectIds = assignments.teachingSubjectIds;
+            const allowedSubjectIds = Array.from(
+                new Set([...assignments.teachingSubjectIds, ...assignments.leadSubjectIds]),
+            );
             const requestedSubjectIds =
                 payload.subjectId !== undefined
                     ? [payload.subjectId]
