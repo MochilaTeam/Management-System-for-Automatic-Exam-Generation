@@ -641,11 +641,7 @@ export class ExamService extends BaseDomainService {
                 },
             );
         }
-        await this.ensureExaminerForExam(
-            'requestExamReview',
-            exam.subjectId,
-            currentUserId,
-        );
+        await this.ensureExaminerForExam('requestExamReview', exam.subjectId, currentUserId);
         const validator = await this.getSubjectLeaderForValidation(
             'requestExamReview',
             exam.subjectId,
