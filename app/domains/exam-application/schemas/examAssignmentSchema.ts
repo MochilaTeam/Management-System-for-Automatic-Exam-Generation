@@ -109,6 +109,7 @@ export const studentExamAssignmentItemSchema = z
     .object({
         id: z.string().uuid(),
         examId: z.string().uuid(),
+        examTitle: z.string(),
         studentId: z.string().uuid(),
         subjectId: z.string().uuid(),
         subjectName: z.string(),
