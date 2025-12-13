@@ -224,6 +224,34 @@ type ExamAssignmentSeed = {
 };
 
 const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
+    'Parcial 1 - Modelo relacional': [
+        {
+            studentEmail: 'student1@example.com',
+            status: AssignedExamStatus.PENDING,
+            applicationDate: new Date('2025-12-31T10:00:00Z'),
+            durationMinutes: 90,
+            professorEmail: 'teacher1@example.com',
+        },
+    ],
+    'Parcial 2 - Consultas y rendimiento': [
+        {
+            studentEmail: 'student1@example.com',
+            status: AssignedExamStatus.GRADED,
+            applicationDate: new Date('2024-10-10T13:00:00Z'),
+            durationMinutes: 120,
+            professorEmail: 'teacher1@example.com',
+            grade: 15.5,
+            responses: [
+                {
+                    questionIndex: 1,
+                    selectedOptions: [{ text: 'Normalizar hasta 3FN', isCorrect: true }],
+                    autoPoints: 3,
+                    manualPoints: 1,
+                    answeredAt: new Date('2024-10-10T13:25:00Z'),
+                },
+            ],
+        },
+    ],
     'Examen Final - Transacciones y ACID': [
         {
             studentEmail: 'student1@example.com',
@@ -233,6 +261,13 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
         },
     ],
     'Evaluación Recuperación - Integridad y Consultas': [
+        {
+            studentEmail: 'student1@example.com',
+            status: AssignedExamStatus.IN_EVALUATION,
+            applicationDate: new Date('2025-05-01T14:00:00Z'),
+            durationMinutes: 90,
+            professorEmail: 'teacher1@example.com',
+        },
         {
             studentEmail: 'student2@example.com',
             status: AssignedExamStatus.IN_EVALUATION,
@@ -268,6 +303,21 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
         },
     ],
     'Revisión Especial - Optimización SQL': [
+        {
+            studentEmail: 'student1@example.com',
+            status: AssignedExamStatus.REGRADING,
+            applicationDate: new Date('2025-04-15T09:00:00Z'),
+            durationMinutes: 80,
+            professorEmail: 'teacher1@example.com',
+            grade: 9.5,
+            regrade: {
+                reason: 'Revisión de puntos parciales en JOINs',
+                status: ExamRegradesStatus.IN_REVIEW,
+                requestedAt: new Date('2025-04-16T10:00:00Z'),
+                resolvedAt: null,
+                finalGrade: null,
+            },
+        },
         {
             studentEmail: 'student3@example.com',
             status: AssignedExamStatus.REGRADING,
@@ -316,6 +366,40 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
             },
         },
     ],
+    'Evaluación Final - Conjuntos y funciones': [
+        {
+            studentEmail: 'student1@example.com',
+            status: AssignedExamStatus.REGRADED,
+            applicationDate: new Date('2024-08-20T09:00:00Z'),
+            durationMinutes: 75,
+            professorEmail: 'teacher3@example.com',
+            grade: 12.0,
+            regrade: {
+                reason: 'Corrección de ejercicio de funciones',
+                status: ExamRegradesStatus.RESOLVED,
+                requestedAt: new Date('2024-08-21T12:00:00Z'),
+                resolvedAt: new Date('2024-08-23T15:00:00Z'),
+                finalGrade: 13.5,
+                reviewerEmail: 'teacher2@example.com',
+            },
+        },
+        {
+            studentEmail: 'student3@example.com',
+            status: AssignedExamStatus.PENDING,
+            applicationDate: new Date('2024-06-10T08:00:00Z'),
+            durationMinutes: 100,
+            responses: [
+                {
+                    questionIndex: 1,
+                    textAnswer:
+                        'Una función es biyectiva cuando es inyectiva y sobreyectiva al mismo tiempo.',
+                    autoPoints: 0,
+                    manualPoints: null,
+                    answeredAt: new Date('2024-06-10T09:05:00Z'),
+                },
+            ],
+        },
+    ],
     'Parcial 2 - Estructuras y cadenas': [
         {
             studentEmail: 'student2@example.com',
@@ -331,24 +415,6 @@ const assignmentSeedByExamTitle: Record<string, ExamAssignmentSeed[]> = {
                     autoPoints: 3,
                     manualPoints: null,
                     answeredAt: new Date('2024-06-05T10:10:00Z'),
-                },
-            ],
-        },
-    ],
-    'Evaluación Final - Conjuntos y funciones': [
-        {
-            studentEmail: 'student3@example.com',
-            status: AssignedExamStatus.PENDING,
-            applicationDate: new Date('2024-06-10T08:00:00Z'),
-            durationMinutes: 100,
-            responses: [
-                {
-                    questionIndex: 1,
-                    textAnswer:
-                        'Una función es biyectiva cuando es inyectiva y sobreyectiva al mismo tiempo.',
-                    autoPoints: 0,
-                    manualPoints: null,
-                    answeredAt: new Date('2024-06-10T09:05:00Z'),
                 },
             ],
         },
