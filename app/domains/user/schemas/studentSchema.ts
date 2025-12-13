@@ -82,7 +82,11 @@ export const listStudentsQuerySchema = z
         active: booleanFromQuery.optional(),
         email: z.email().optional(),
         userId: z.uuid().optional(),
-        course: z.string().optional(),
+        course: z
+            .string()
+            .transform((s) => s.trim())
+            .pipe(z.string().min(1))
+            .optional(),
         filter: z
             .string()
             .transform((s) => s.trim())

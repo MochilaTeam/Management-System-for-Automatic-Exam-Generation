@@ -8,6 +8,7 @@ import ExamRegrades from '../infrastructure/exam-application/models/ExamRegrade'
 import ExamResponses from '../infrastructure/exam-application/models/ExamResponse';
 import Exam from '../infrastructure/exam-generation/models/Exam';
 import ExamQuestion from '../infrastructure/exam-generation/models/ExamQuestion';
+import LeaderSubject from '../infrastructure/question-bank/models/LeaderSubject';
 import Question from '../infrastructure/question-bank/models/Question';
 import QuestionSubtopic from '../infrastructure/question-bank/models/QuestionSubTopic';
 import QuestionType from '../infrastructure/question-bank/models/QuestionType';
@@ -40,6 +41,7 @@ export const syncTables = async (): Promise<void> => {
     await syncModel(Subject);
     await syncModel(SubjectTopic);
     await syncModel(Subtopic);
+    await syncModel(LeaderSubject);
     await syncModel(TeacherSubject);
     await syncModel(Topic);
     await syncModel(QuestionType);

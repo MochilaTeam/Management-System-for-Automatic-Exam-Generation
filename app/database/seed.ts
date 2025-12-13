@@ -16,6 +16,7 @@ import {
     SubTopic as Subtopic,
     SubjectTopic,
 } from '../infrastructure/question-bank/models';
+import LeaderSubject from '../infrastructure/question-bank/models/LeaderSubject';
 import Question from '../infrastructure/question-bank/models/Question';
 import QuestionType from '../infrastructure/question-bank/models/QuestionType';
 import TeacherSubject from '../infrastructure/question-bank/models/TeacherSubject';
@@ -1003,6 +1004,16 @@ async function seed() {
                     program: subjectSeed.program,
                 });
                 await subject.save({ transaction: t });
+            }
+
+            const [leaderSubject] = await LeaderSubject.findOrCreate({
+                where: { subjectId: subject.id },
+                defaults: { subjectId: subject.id, teacherId: teacherProfile.id },
+                transaction: t,
+            });
+            if (leaderSubject.getDataValue('teacherId') !== teacherProfile.id) {
+                leaderSubject.set('teacherId', teacherProfile.id);
+                await leaderSubject.save({ transaction: t });
             }
 
             await TeacherSubject.findOrCreate({

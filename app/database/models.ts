@@ -3,6 +3,7 @@ import ExamRegrades from '../infrastructure/exam-application/models/ExamRegrade'
 import ExamResponses from '../infrastructure/exam-application/models/ExamResponse';
 import Exam from '../infrastructure/exam-generation/models/Exam';
 import ExamQuestion from '../infrastructure/exam-generation/models/ExamQuestion';
+import LeaderSubject from '../infrastructure/question-bank/models/LeaderSubject';
 import Question from '../infrastructure/question-bank/models/Question';
 import QuestionSubtopic from '../infrastructure/question-bank/models/QuestionSubTopic';
 import QuestionType from '../infrastructure/question-bank/models/QuestionType';
@@ -30,6 +31,7 @@ type SequelizeModels = {
     Subject: typeof Subject;
     SubjectTopic: typeof SubjectTopic;
     Subtopic: typeof Subtopic;
+    LeaderSubject: typeof LeaderSubject;
     TeacherSubject: typeof TeacherSubject;
     Topic: typeof Topic;
 
@@ -61,6 +63,7 @@ export function getModels(): SequelizeModels {
         Subject,
         SubjectTopic,
         Subtopic,
+        LeaderSubject,
         TeacherSubject,
         Topic,
         // user

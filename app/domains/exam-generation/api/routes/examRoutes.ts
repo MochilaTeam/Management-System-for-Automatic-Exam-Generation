@@ -1,5 +1,7 @@
 import { Router } from 'express';
 
+import { requireRoles } from '../../../../core/middlewares/authorize';
+import { Roles } from '../../../../shared/enums/rolesEnum';
 import {
     acceptExam,
     createAutomaticExam,
@@ -205,7 +207,7 @@ router.delete('/exams/:examId', deleteExam);
  *             schema:
  *               $ref: '#/components/schemas/ExamDetailResponse'
  */
-router.patch('/exams/:examId/request-review', requestExamReview);
+router.patch('/exams/:examId/request-review', requireRoles(Roles.EXAMINER), requestExamReview);
 
 /**
  * @openapi

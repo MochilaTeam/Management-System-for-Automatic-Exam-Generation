@@ -15,8 +15,8 @@ import {
 
 const router = Router();
 
-router.use(authenticate);
-router.use(requireRoles(Roles.ADMIN, Roles.SUBJECT_LEADER));
+// Scope auth/authorization only to analytics endpoints to avoid affecting other routes.
+router.use('/analytics', authenticate, requireRoles(Roles.ADMIN, Roles.SUBJECT_LEADER));
 
 /**
  * @openapi
