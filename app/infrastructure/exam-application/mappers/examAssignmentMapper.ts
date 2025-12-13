@@ -7,17 +7,18 @@ import ExamAssignments from '../models/ExamAssignment';
 type ExamAssignmentWithIncludes = {
     id: string;
     examId: string;
-    professorId: string;
-    status: AssignedExamStatus;
-    applicationDate: Date;
-    durationMinutes: number;
-    grade: string | number | null;
     exam?: {
+        title: string;
         subjectId: string;
         subject?: {
             name: string;
         };
     };
+    professorId: string;
+    status: AssignedExamStatus;
+    applicationDate: Date;
+    durationMinutes: number;
+    grade: string | number | null;
     professor?: {
         user?: {
             name: string;
@@ -42,6 +43,7 @@ export const ExamAssignmentMapper = {
         return {
             id: plain.id,
             examId: plain.examId,
+            examTitle: plain.exam?.title ?? '',
             studentId: row.studentId,
             subjectId: plain.exam?.subjectId ?? '',
             subjectName: plain.exam?.subject?.name ?? 'Asigatura desconocida',

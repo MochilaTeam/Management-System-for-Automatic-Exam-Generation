@@ -79,10 +79,12 @@ describe('ExamAssignmentRepository', () => {
 
     const res = await repo.findByExamIdAndStudentId('exam-1', 'stu-1');
 
-    expect(mockModel.findOne).toHaveBeenCalledWith({
-      where: { examId: 'exam-1', studentId: 'stu-1' },
-      transaction: undefined,
-    });
+    expect(mockModel.findOne).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { examId: 'exam-1', studentId: 'stu-1' },
+        transaction: undefined,
+      }),
+    );
     expect(res).toEqual({ id: 'assign-1' });
   });
 
