@@ -18,12 +18,23 @@ vi.mock('../../../../app/infrastructure/question-bank/models/TeacherSubject', ()
   },
 }));
 
+vi.mock('../../../../app/infrastructure/question-bank/models/LeaderSubject', () => ({
+  __esModule: true,
+  default: {
+    findAll: vi.fn(),
+    destroy: vi.fn(),
+    bulkCreate: vi.fn(),
+  },
+}));
+
 import { TeacherSubjectLinkRepository } from '../../../../app/infrastructure/question-bank/repositories/teacherSubjectLinkRepository';
 import Subject from '../../../../app/infrastructure/question-bank/models/Subject';
 import TeacherSubject from '../../../../app/infrastructure/question-bank/models/TeacherSubject';
+import LeaderSubject from '../../../../app/infrastructure/question-bank/models/LeaderSubject';
 
 const SubjectMock = Subject as any;
 const TeacherSubjectMock = TeacherSubject as any;
+const LeaderSubjectMock = LeaderSubject as any;
 
 describe('TeacherSubjectLinkRepository', () => {
   let repo: TeacherSubjectLinkRepository;
@@ -64,25 +75,57 @@ describe('TeacherSubjectLinkRepository', () => {
     );
   });
 
-  it('syncLeadSubjects: limpia materias antiguas y asigna las nuevas', async () => {
+  it('syncLeadSubjects: crea registros únicos y asigna TeacherSubject', async () => {
+    LeaderSubjectMock.findAll
+      .mockResolvedValueOnce([]) // current leader rows
+      .mockResolvedValueOnce([]); // conflict check
+    SubjectMock.findAll.mockResolvedValue([]);
+
     await repo.syncLeadSubjects('t1', ['s1', 's2']);
 
-    expect(SubjectMock.update).toHaveBeenCalledWith(
-      { leadTeacherId: null },
-      { where: { leadTeacherId: 't1', id: { [Op.notIn]: ['s1', 's2'] } }, transaction: undefined },
+    expect(LeaderSubjectMock.destroy).not.toHaveBeenCalled();
+    expect(LeaderSubjectMock.bulkCreate).toHaveBeenCalledWith(
+      [
+        { teacherId: 't1', subjectId: 's1' },
+        { teacherId: 't1', subjectId: 's2' },
+      ],
+      { ignoreDuplicates: true, transaction: undefined },
     );
+    expect(SubjectMock.update).toHaveBeenCalledTimes(1);
     expect(SubjectMock.update).toHaveBeenCalledWith(
       { leadTeacherId: 't1' },
       { where: { id: { [Op.in]: ['s1', 's2'] } }, transaction: undefined },
     );
+    expect(TeacherSubjectMock.bulkCreate).toHaveBeenCalledWith(
+      [
+        { teacherId: 't1', subjectId: 's1' },
+        { teacherId: 't1', subjectId: 's2' },
+      ],
+      { ignoreDuplicates: true, transaction: undefined },
+    );
+  });
+
+  it('syncLeadSubjects: lanza error si ya existe un líder para la materia', async () => {
+    LeaderSubjectMock.findAll
+      .mockResolvedValueOnce([]) // current leader rows
+      .mockResolvedValueOnce([{ get: () => ({ teacherId: 't2', subjectId: 's1' }) }]);
+    SubjectMock.findAll.mockResolvedValue([]);
+
+    await expect(repo.syncLeadSubjects('t1', ['s1'])).rejects.toThrow(
+      'SUBJECT_ALREADY_HAS_LEADER',
+    );
+    expect(LeaderSubjectMock.bulkCreate).not.toHaveBeenCalled();
+    expect(SubjectMock.update).not.toHaveBeenCalled();
   });
 
   it('getAssignmentsForTeachers: construye mapa con materias lideradas y que dicta', async () => {
+    LeaderSubjectMock.findAll.mockResolvedValue([
+      { get: () => ({ teacherId: 't1', subjectId: 'lead-1' }) },
+    ]);
     SubjectMock.findAll
-      .mockResolvedValueOnce([
-        { get: () => ({ id: 'lead-1', name: 'Lead Subject', leadTeacherId: 't1' }) },
-      ])
-      .mockResolvedValueOnce([{ get: () => ({ id: 'teach-1', name: 'Teach Subject' }) }]);
+      .mockResolvedValueOnce([]) // legacy leads
+      .mockResolvedValueOnce([{ get: () => ({ id: 'lead-1', name: 'Lead Subject' }) }]) // names for lead links
+      .mockResolvedValueOnce([{ get: () => ({ id: 'teach-1', name: 'Teach Subject' }) }]); // names for teaching
     TeacherSubjectMock.findAll.mockResolvedValue([
       { get: () => ({ teacherId: 't1', subjectId: 'teach-1' }) },
     ]);

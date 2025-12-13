@@ -70,7 +70,7 @@ export const StudentMapper = {
         const userWhere: WhereOptions<Attributes<User>> = {};
 
         if (filters.userId) where.userId = filters.userId;
-        if (filters.course) where.course = filters.course;
+        if (filters.course) where.course = { [Op.like]: `%${filters.course}%` };
         if (filters.studentIds?.length) where.id = { [Op.in]: filters.studentIds };
         if (filters.email) userWhere.email = filters.email;
         if (filters.active !== undefined) userWhere.active = filters.active;

@@ -4,9 +4,11 @@ import { TeacherSubjectAssignments } from '../../../domains/user/domain/ports/IT
 import { ITeacherSubjectLinkRepository } from '../../../domains/user/domain/ports/ITeacherSubjectLinkRepository';
 import { BaseRepository } from '../../../shared/domain/base_repository';
 import Subject from '../models/Subject';
+import LeaderSubject from '../models/LeaderSubject';
 import TeacherSubject from '../models/TeacherSubject';
 
-type SubjectPlain = { id: string; name: string; leadTeacherId?: string | null };
+type SubjectPlain = { id: string; name?: string; leadTeacherId?: string | null };
+type LeaderSubjectPlain = { teacherId: string; subjectId: string };
 type TeacherSubjectPlain = { teacherId: string; subjectId: string };
 type TeacherSubjectCreate = { teacherId: string; subjectId: string };
 type TeacherSubjectUpdate = Record<string, never>;
@@ -56,6 +58,47 @@ export class TeacherSubjectLinkRepository
         return uniqueIds.filter((id) => !found.has(id));
     }
 
+    async findSubjectLeaders(
+        subjectIds: string[],
+        tx?: Transaction,
+    ): Promise<Map<string, string>> {
+        const leaders = new Map<string, string>();
+        const uniqueIds = Array.from(new Set(subjectIds));
+        if (uniqueIds.length === 0) return leaders;
+
+        const transaction = this.effTx(tx);
+
+        const leaderRows = await LeaderSubject.findAll({
+            where: { subjectId: { [Op.in]: uniqueIds } },
+            attributes: ['subjectId', 'teacherId'],
+            transaction,
+        });
+        for (const row of leaderRows) {
+            const plain = row.get({ plain: true }) as LeaderSubjectPlain;
+            leaders.set(plain.subjectId, plain.teacherId);
+        }
+
+        const missingIds = uniqueIds.filter((id) => !leaders.has(id));
+        if (missingIds.length > 0) {
+            const subjectRows = await Subject.findAll({
+                where: {
+                    id: { [Op.in]: missingIds },
+                    leadTeacherId: { [Op.not]: null },
+                },
+                attributes: ['id', 'leadTeacherId'],
+                transaction,
+            });
+            for (const subject of subjectRows) {
+                const plain = subject.get({ plain: true }) as SubjectPlain;
+                if (plain.leadTeacherId) {
+                    leaders.set(plain.id, plain.leadTeacherId);
+                }
+            }
+        }
+
+        return leaders;
+    }
+
     async syncTeachingSubjects(
         teacherId: string,
         subjectIds: string[],
@@ -97,19 +140,96 @@ export class TeacherSubjectLinkRepository
         tx?: Transaction,
     ): Promise<void> {
         const transaction = this.effTx(tx);
-        const uniqueIds = Array.from(new Set(subjectIds));
+        const desiredIds = Array.from(new Set(subjectIds));
+        const desiredSet = new Set(desiredIds);
 
-        const cleanupWhere =
-            uniqueIds.length > 0
-                ? { leadTeacherId: teacherId, id: { [Op.notIn]: uniqueIds } }
-                : { leadTeacherId: teacherId };
+        const leaderRows = await LeaderSubject.findAll({
+            where: { teacherId },
+            transaction,
+        });
+        const leaderTableIds = new Set(
+            leaderRows.map((row) => (row.get({ plain: true }) as LeaderSubjectPlain).subjectId),
+        );
 
-        await Subject.update({ leadTeacherId: null }, { where: cleanupWhere, transaction });
+        const legacyRows = await Subject.findAll({
+            where: { leadTeacherId: teacherId },
+            attributes: ['id'],
+            transaction,
+        });
+        const currentLeadIds = new Set<string>([
+            ...leaderTableIds,
+            ...legacyRows.map((row) => row.getDataValue('id') as string),
+        ]);
 
-        if (uniqueIds.length > 0) {
+        const toRemove = [...currentLeadIds].filter((id) => !desiredSet.has(id));
+        if (toRemove.length > 0) {
+            await LeaderSubject.destroy({
+                where: { teacherId, subjectId: toRemove },
+                transaction,
+            });
+            await Subject.update(
+                { leadTeacherId: null },
+                { where: { id: toRemove, leadTeacherId: teacherId }, transaction },
+            );
+        }
+
+        const toCreate = [...desiredSet].filter((id) => !leaderTableIds.has(id));
+        if (toCreate.length > 0) {
+            const existingLinks = await LeaderSubject.findAll({
+                where: { subjectId: { [Op.in]: toCreate } },
+                transaction,
+            });
+            const existingPlain = existingLinks.map(
+                (row) => row.get({ plain: true }) as LeaderSubjectPlain,
+            );
+
+            const conflicts = existingPlain
+                .filter((plain) => plain.teacherId !== teacherId)
+                .map((plain) => plain.subjectId);
+
+            const subjectsToValidate = toCreate.filter(
+                (id) => !existingPlain.some((plain) => plain.subjectId === id),
+            );
+            if (subjectsToValidate.length > 0) {
+                const subjectConflicts = await Subject.findAll({
+                    where: {
+                        id: { [Op.in]: subjectsToValidate },
+                        leadTeacherId: { [Op.not]: null, [Op.ne]: teacherId },
+                    },
+                    attributes: ['id'],
+                    transaction,
+                });
+                conflicts.push(
+                    ...subjectConflicts.map((row) => row.getDataValue('id') as string),
+                );
+            }
+
+            const conflictIds = Array.from(new Set(conflicts));
+            if (conflictIds.length > 0) {
+                const error = new Error('SUBJECT_ALREADY_HAS_LEADER');
+                (error as Error & { details?: unknown }).details = { subjectIds: conflictIds };
+                throw error;
+            }
+
+            const rowsToInsert = toCreate.filter(
+                (id) => !existingPlain.some((plain) => plain.subjectId === id),
+            );
+            if (rowsToInsert.length > 0) {
+                await LeaderSubject.bulkCreate(
+                    rowsToInsert.map((subjectId) => ({ teacherId, subjectId })),
+                    { ignoreDuplicates: true, transaction },
+                );
+            }
+        }
+
+        if (desiredIds.length > 0) {
             await Subject.update(
                 { leadTeacherId: teacherId },
-                { where: { id: { [Op.in]: uniqueIds } }, transaction },
+                { where: { id: { [Op.in]: desiredIds } }, transaction },
+            );
+            await TeacherSubject.bulkCreate(
+                desiredIds.map((subjectId) => ({ teacherId, subjectId })),
+                { ignoreDuplicates: true, transaction },
             );
         }
     }
@@ -143,43 +263,90 @@ export class TeacherSubjectLinkRepository
 
         const transaction = this.effTx(tx);
 
-        const leadSubjects = await Subject.findAll({
+        const leadSubjectIdsByTeacher = new Map<string, Set<string>>();
+        const leadSubjectIds = new Set<string>();
+        const subjectNameMap = new Map<string, string>();
+
+        const leadLinks = await LeaderSubject.findAll({
+            where: { teacherId: { [Op.in]: teacherIds } },
+            attributes: ['teacherId', 'subjectId'],
+            transaction,
+        });
+        for (const row of leadLinks) {
+            const plain = row.get({ plain: true }) as LeaderSubjectPlain;
+            const subjectSet = leadSubjectIdsByTeacher.get(plain.teacherId) ?? new Set<string>();
+            subjectSet.add(plain.subjectId);
+            leadSubjectIdsByTeacher.set(plain.teacherId, subjectSet);
+            leadSubjectIds.add(plain.subjectId);
+        }
+
+        const legacyLeadSubjects = await Subject.findAll({
             where: { leadTeacherId: { [Op.in]: teacherIds } },
             attributes: ['id', 'name', 'leadTeacherId'],
             transaction,
         });
-        for (const leadSubject of leadSubjects) {
+        for (const leadSubject of legacyLeadSubjects) {
             const plain = leadSubject.get({ plain: true }) as SubjectPlain;
             if (!plain.leadTeacherId) continue;
-            const entry = result.get(plain.leadTeacherId) ?? this.emptyAssignments();
-            if (!result.has(plain.leadTeacherId)) {
-                result.set(plain.leadTeacherId, entry);
+            const subjectSet = leadSubjectIdsByTeacher.get(plain.leadTeacherId) ?? new Set<string>();
+            subjectSet.add(plain.id);
+            leadSubjectIdsByTeacher.set(plain.leadTeacherId, subjectSet);
+            if (plain.name) subjectNameMap.set(plain.id, plain.name);
+            leadSubjectIds.add(plain.id);
+        }
+
+        const missingNames = Array.from(leadSubjectIds).filter(
+            (id) => !subjectNameMap.has(id),
+        );
+        if (missingNames.length > 0) {
+            const subjects = await Subject.findAll({
+                where: { id: { [Op.in]: missingNames } },
+                attributes: ['id', 'name'],
+                transaction,
+            });
+            for (const subject of subjects) {
+                const plain = subject.get({ plain: true }) as SubjectPlain;
+                if (plain.name) subjectNameMap.set(plain.id, plain.name);
             }
-            entry.leadSubjectIds.push(plain.id);
-            entry.leadSubjectNames.push(plain.name);
+        }
+
+        for (const [teacherId, subjectSet] of leadSubjectIdsByTeacher.entries()) {
+            const entry = result.get(teacherId) ?? this.emptyAssignments();
+            if (!result.has(teacherId)) {
+                result.set(teacherId, entry);
+            }
+            for (const subjectId of subjectSet) {
+                entry.leadSubjectIds.push(subjectId);
+                const name = subjectNameMap.get(subjectId);
+                if (name) {
+                    entry.leadSubjectNames.push(name);
+                }
+            }
         }
 
         const teachingRows = await TeacherSubject.findAll({
             where: { teacherId: { [Op.in]: teacherIds } },
             transaction,
         });
-        const subjectIds = Array.from(
+        const teachingSubjectIds = Array.from(
             new Set(
                 teachingRows.map(
                     (row) => (row.get({ plain: true }) as TeacherSubjectPlain).subjectId,
                 ),
             ),
         );
-        const subjectNameMap = new Map<string, string>();
-        if (subjectIds.length > 0) {
+        const missingTeachingNames = teachingSubjectIds.filter(
+            (id) => !subjectNameMap.has(id),
+        );
+        if (missingTeachingNames.length > 0) {
             const subjects = await Subject.findAll({
-                where: { id: { [Op.in]: subjectIds } },
+                where: { id: { [Op.in]: missingTeachingNames } },
                 attributes: ['id', 'name'],
                 transaction,
             });
             for (const subject of subjects) {
                 const plain = subject.get({ plain: true }) as SubjectPlain;
-                subjectNameMap.set(plain.id, plain.name);
+                if (plain.name) subjectNameMap.set(plain.id, plain.name);
             }
         }
 
