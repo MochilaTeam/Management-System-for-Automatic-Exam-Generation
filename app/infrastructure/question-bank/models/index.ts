@@ -1,10 +1,10 @@
+import LeaderSubject from './LeaderSubject';
 import Question from './Question';
 import QuestionSubtopic from './QuestionSubTopic';
 import QuestionType from './QuestionType';
 import Subject from './Subject';
 import SubjectTopic from './SubjectTopic';
 import Subtopic from './SubTopic';
-import LeaderSubject from './LeaderSubject';
 import TeacherSubject from './TeacherSubject';
 import Topic from './Topic';
 import { Teacher } from '../../user/models';
