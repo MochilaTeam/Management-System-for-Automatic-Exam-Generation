@@ -16,9 +16,9 @@ import {
     SubTopic as Subtopic,
     SubjectTopic,
 } from '../infrastructure/question-bank/models';
+import LeaderSubject from '../infrastructure/question-bank/models/LeaderSubject';
 import Question from '../infrastructure/question-bank/models/Question';
 import QuestionType from '../infrastructure/question-bank/models/QuestionType';
-import LeaderSubject from '../infrastructure/question-bank/models/LeaderSubject';
 import TeacherSubject from '../infrastructure/question-bank/models/TeacherSubject';
 import { Student, Teacher, User } from '../infrastructure/user/models';
 import { Roles } from '../shared/enums/rolesEnum';

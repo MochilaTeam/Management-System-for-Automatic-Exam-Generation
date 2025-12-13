@@ -28,10 +28,7 @@ LeaderSubject.init(
     {
         sequelize,
         tableName: 'LeaderSubjects',
-        indexes: [
-            { fields: ['teacherId'] },
-            { unique: true, fields: ['subjectId'] },
-        ],
+        indexes: [{ fields: ['teacherId'] }, { unique: true, fields: ['subjectId'] }],
     },
 );
 

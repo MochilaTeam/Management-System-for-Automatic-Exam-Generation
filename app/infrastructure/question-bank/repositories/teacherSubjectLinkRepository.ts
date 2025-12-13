@@ -3,8 +3,8 @@ import { Op, Transaction } from 'sequelize';
 import { TeacherSubjectAssignments } from '../../../domains/user/domain/ports/ITeacherSubjectLinkRepository';
 import { ITeacherSubjectLinkRepository } from '../../../domains/user/domain/ports/ITeacherSubjectLinkRepository';
 import { BaseRepository } from '../../../shared/domain/base_repository';
-import Subject from '../models/Subject';
 import LeaderSubject from '../models/LeaderSubject';
+import Subject from '../models/Subject';
 import TeacherSubject from '../models/TeacherSubject';
 
 type SubjectPlain = { id: string; name?: string; leadTeacherId?: string | null };
@@ -58,10 +58,7 @@ export class TeacherSubjectLinkRepository
         return uniqueIds.filter((id) => !found.has(id));
     }
 
-    async findSubjectLeaders(
-        subjectIds: string[],
-        tx?: Transaction,
-    ): Promise<Map<string, string>> {
+    async findSubjectLeaders(subjectIds: string[], tx?: Transaction): Promise<Map<string, string>> {
         const leaders = new Map<string, string>();
         const uniqueIds = Array.from(new Set(subjectIds));
         if (uniqueIds.length === 0) return leaders;
@@ -199,9 +196,7 @@ export class TeacherSubjectLinkRepository
                     attributes: ['id'],
                     transaction,
                 });
-                conflicts.push(
-                    ...subjectConflicts.map((row) => row.getDataValue('id') as string),
-                );
+                conflicts.push(...subjectConflicts.map((row) => row.getDataValue('id') as string));
             }
 
             const conflictIds = Array.from(new Set(conflicts));
@@ -288,16 +283,15 @@ export class TeacherSubjectLinkRepository
         for (const leadSubject of legacyLeadSubjects) {
             const plain = leadSubject.get({ plain: true }) as SubjectPlain;
             if (!plain.leadTeacherId) continue;
-            const subjectSet = leadSubjectIdsByTeacher.get(plain.leadTeacherId) ?? new Set<string>();
+            const subjectSet =
+                leadSubjectIdsByTeacher.get(plain.leadTeacherId) ?? new Set<string>();
             subjectSet.add(plain.id);
             leadSubjectIdsByTeacher.set(plain.leadTeacherId, subjectSet);
             if (plain.name) subjectNameMap.set(plain.id, plain.name);
             leadSubjectIds.add(plain.id);
         }
 
-        const missingNames = Array.from(leadSubjectIds).filter(
-            (id) => !subjectNameMap.has(id),
-        );
+        const missingNames = Array.from(leadSubjectIds).filter((id) => !subjectNameMap.has(id));
         if (missingNames.length > 0) {
             const subjects = await Subject.findAll({
                 where: { id: { [Op.in]: missingNames } },
@@ -335,9 +329,7 @@ export class TeacherSubjectLinkRepository
                 ),
             ),
         );
-        const missingTeachingNames = teachingSubjectIds.filter(
-            (id) => !subjectNameMap.has(id),
-        );
+        const missingTeachingNames = teachingSubjectIds.filter((id) => !subjectNameMap.has(id));
         if (missingTeachingNames.length > 0) {
             const subjects = await Subject.findAll({
                 where: { id: { [Op.in]: missingTeachingNames } },
