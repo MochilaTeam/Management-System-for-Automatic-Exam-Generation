@@ -20,6 +20,7 @@ const makeUserRepo = () =>
 const makeSubjectLinkRepo = () =>
   ({
     findMissingSubjectIds: vi.fn(),
+    findSubjectLeaders: vi.fn(),
     syncTeachingSubjects: vi.fn(),
     syncLeadSubjects: vi.fn(),
     getAssignments: vi.fn(),
@@ -55,6 +56,7 @@ describe('TeacherService', () => {
     userRepo.get_by_id.mockResolvedValue({ id: 'u1' });
     teacherRepo.existsBy.mockResolvedValue(false);
     subjectLinkRepo.findMissingSubjectIds.mockResolvedValue([]);
+    subjectLinkRepo.findSubjectLeaders.mockResolvedValue(new Map());
     const teacher = {
       id: 't1',
       userId: 'u1',
@@ -84,6 +86,7 @@ describe('TeacherService', () => {
     expect(userRepo.get_by_id).toHaveBeenCalledWith('u1');
     expect(teacherRepo.existsBy).toHaveBeenCalledWith({ userId: 'u1' });
     expect(subjectLinkRepo.findMissingSubjectIds).toHaveBeenCalledWith(['s1', 's2']);
+    expect(subjectLinkRepo.findSubjectLeaders).toHaveBeenCalledWith(['s1']);
     expect(teacherRepo.createProfile).toHaveBeenCalled();
     expect(subjectLinkRepo.syncTeachingSubjects).toHaveBeenCalledWith('t1', ['s2']);
     expect(subjectLinkRepo.syncLeadSubjects).toHaveBeenCalledWith('t1', ['s1']);
@@ -125,6 +128,7 @@ describe('TeacherService', () => {
     } as any;
     teacherRepo.updateProfile.mockResolvedValue(updated);
     subjectLinkRepo.findMissingSubjectIds.mockResolvedValue([]);
+    subjectLinkRepo.findSubjectLeaders.mockResolvedValue(new Map());
     subjectLinkRepo.getAssignments.mockResolvedValue({
       leadSubjectIds: ['s3'],
       leadSubjectNames: ['Química'],
@@ -146,6 +150,7 @@ describe('TeacherService', () => {
       hasRoleSubjectLeader: true,
     });
     expect(subjectLinkRepo.findMissingSubjectIds).toHaveBeenCalledWith(['s4']);
+    expect(subjectLinkRepo.findSubjectLeaders).toHaveBeenCalledWith(['s3']);
     expect(subjectLinkRepo.syncTeachingSubjects).toHaveBeenCalledWith('t1', ['s4']);
     expect(subjectLinkRepo.syncLeadSubjects).toHaveBeenCalledWith('t1', ['s3']);
     expect(result.subjects_names).toEqual(['Química']);

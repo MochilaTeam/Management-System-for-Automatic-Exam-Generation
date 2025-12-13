@@ -9,6 +9,7 @@ import QuestionType from '../infrastructure/question-bank/models/QuestionType';
 import Subject from '../infrastructure/question-bank/models/Subject';
 import SubjectTopic from '../infrastructure/question-bank/models/SubjectTopic';
 import Subtopic from '../infrastructure/question-bank/models/SubTopic';
+import LeaderSubject from '../infrastructure/question-bank/models/LeaderSubject';
 import TeacherSubject from '../infrastructure/question-bank/models/TeacherSubject';
 import Topic from '../infrastructure/question-bank/models/Topic';
 import { Student, Teacher, User } from '../infrastructure/user/models';
@@ -30,6 +31,7 @@ type SequelizeModels = {
     Subject: typeof Subject;
     SubjectTopic: typeof SubjectTopic;
     Subtopic: typeof Subtopic;
+    LeaderSubject: typeof LeaderSubject;
     TeacherSubject: typeof TeacherSubject;
     Topic: typeof Topic;
 
@@ -61,6 +63,7 @@ export function getModels(): SequelizeModels {
         Subject,
         SubjectTopic,
         Subtopic,
+        LeaderSubject,
         TeacherSubject,
         Topic,
         // user

@@ -4,6 +4,7 @@ import QuestionType from './QuestionType';
 import Subject from './Subject';
 import SubjectTopic from './SubjectTopic';
 import Subtopic from './SubTopic';
+import LeaderSubject from './LeaderSubject';
 import TeacherSubject from './TeacherSubject';
 import Topic from './Topic';
 import { Teacher } from '../../user/models';
@@ -69,6 +70,28 @@ Teacher.hasMany(Subject, {
     onUpdate: 'CASCADE',
     onDelete: 'RESTRICT',
 });
+Teacher.hasMany(LeaderSubject, {
+    foreignKey: 'teacherId',
+    as: 'subjectLeaderships',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE',
+});
+LeaderSubject.belongsTo(Teacher, {
+    foreignKey: 'teacherId',
+    as: 'leader',
+    targetKey: 'id',
+});
+Subject.hasOne(LeaderSubject, {
+    foreignKey: 'subjectId',
+    as: 'leadership',
+    onDelete: 'RESTRICT',
+    onUpdate: 'CASCADE',
+});
+LeaderSubject.belongsTo(Subject, {
+    foreignKey: 'subjectId',
+    as: 'subject',
+    targetKey: 'id',
+});
 Question.belongsToMany(Subtopic, {
     through: QuestionSubtopic,
     as: 'subtopics',
@@ -99,3 +122,4 @@ export { default as Subject } from './Subject';
 export { default as Topic } from './Topic';
 export { default as SubTopic } from './SubTopic';
 export { default as SubjectTopic } from './SubjectTopic';
+export { default as LeaderSubject } from './LeaderSubject';

@@ -7,6 +7,7 @@ export type TeacherSubjectAssignments = {
 
 export interface ITeacherSubjectLinkRepository {
     findMissingSubjectIds(subjectIds: string[]): Promise<string[]>;
+    findSubjectLeaders(subjectIds: string[]): Promise<Map<string, string>>;
     syncTeachingSubjects(teacherId: string, subjectIds: string[]): Promise<void>;
     syncLeadSubjects(teacherId: string, subjectIds: string[]): Promise<void>;
     findTeachersForSubject(subjectId: string): Promise<string[]>;

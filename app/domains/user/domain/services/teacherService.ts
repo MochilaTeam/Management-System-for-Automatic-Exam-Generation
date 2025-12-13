@@ -49,6 +49,7 @@ export class TeacherService extends BaseDomainService {
         const leadSubjectIds = input.subjects_ids ?? [];
         const teachingSubjectIds = input.teaching_subjects_ids ?? [];
         await this.ensureSubjectsExist([...leadSubjectIds, ...teachingSubjectIds], 'createProfile');
+        await this.ensureSubjectsHaveNoLeader(leadSubjectIds, null, 'createProfile');
 
         const teacher = await this.deps.teacherRepo.createProfile({
             userId: input.userId,
@@ -150,6 +151,7 @@ export class TeacherService extends BaseDomainService {
 
         if (patch.subjects_ids !== undefined) {
             await this.ensureSubjectsExist(patch.subjects_ids, 'updateProfile');
+            await this.ensureSubjectsHaveNoLeader(patch.subjects_ids, id, 'updateProfile');
             await this.deps.subjectLinkRepo.syncLeadSubjects(id, patch.subjects_ids);
         }
 
@@ -193,5 +195,28 @@ export class TeacherService extends BaseDomainService {
             teaching_subjects_ids: lists.teachingSubjectIds,
             teaching_subjects_names: lists.teachingSubjectNames,
         };
+    }
+
+    private async ensureSubjectsHaveNoLeader(
+        subjectIds: string[],
+        teacherId: string | null,
+        operation: string,
+    ) {
+        const uniqueIds = Array.from(new Set(subjectIds));
+        if (uniqueIds.length === 0) return;
+
+        const leaders = await this.deps.subjectLinkRepo.findSubjectLeaders(uniqueIds);
+        const conflicts = uniqueIds.filter((id) => {
+            const leaderId = leaders.get(id);
+            return leaderId && leaderId !== teacherId;
+        });
+
+        if (conflicts.length > 0) {
+            this.raiseBusinessRuleError(operation, 'SUBJECT_ALREADY_HAS_LEADER', {
+                entity: 'Subject',
+                code: 'SUBJECT_ALREADY_HAS_LEADER',
+                details: { subjectIds: conflicts },
+            });
+        }
     }
 }
