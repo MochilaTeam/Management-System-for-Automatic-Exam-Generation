@@ -212,9 +212,9 @@ export class TeacherService extends BaseDomainService {
         });
 
         if (conflicts.length > 0) {
-            this.raiseBusinessRuleError(operation, 'SUBJECT_ALREADY_HAS_LEADER', {
+            this.raiseBusinessRuleError(operation, 'La asignatura ya tiene un jefe', {
                 entity: 'Subject',
-                code: 'SUBJECT_ALREADY_HAS_LEADER',
+                code: 'La asignatura ya tiene un jefe',
                 details: { subjectIds: conflicts },
             });
         }

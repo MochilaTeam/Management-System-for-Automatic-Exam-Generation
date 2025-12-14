@@ -12,6 +12,7 @@ import type {
     Page,
 } from '../../../domains/question-bank/domain/ports/IQuestionRepository';
 import { DifficultyLevelEnum } from '../../../domains/question-bank/entities/enums/DifficultyLevels';
+import { QuestionTypeEnum } from '../../../domains/question-bank/entities/enums/QuestionType';
 import {
     QuestionCreate,
     QuestionDetail,
@@ -22,6 +23,7 @@ import {
 } from '../../../domains/question-bank/schemas/questionSchema';
 import { BaseRepository } from '../../../shared/domain/base_repository';
 import QuestionModel from '../models/Question';
+import QuestionTypeModel from '../models/QuestionType';
 import SubjectTopic from '../models/SubjectTopic';
 import Subtopic from '../models/SubTopic';
 
@@ -29,6 +31,7 @@ type QuestionPlain = {
     id: string;
     authorId: string;
     questionTypeId: string;
+    questionType?: { name: QuestionTypeEnum };
     subTopicId: string;
     difficulty: DifficultyLevelEnum;
     body: string;
@@ -45,6 +48,7 @@ const toQuestionDetail = (row: QuestionModel): QuestionDetail => {
         questionId: p.id,
         authorId: p.authorId,
         questionTypeId: p.questionTypeId,
+        questionTypeName: p.questionType?.name,
         subtopicId: p.subTopicId,
         difficulty: p.difficulty,
         body: p.body,
@@ -54,6 +58,12 @@ const toQuestionDetail = (row: QuestionModel): QuestionDetail => {
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
     });
+};
+
+const questionTypeInclude: Includeable = {
+    model: QuestionTypeModel,
+    as: 'questionType',
+    attributes: ['name'],
 };
 
 const toCreateAttrs = (dto: QuestionCreate): Record<string, unknown> => {
@@ -124,6 +134,7 @@ export class QuestionRepository
 
             const { rows, count } = await this.model.findAndCountAll({
                 where,
+                include: [questionTypeInclude],
                 limit,
                 offset,
                 order: [['createdAt', 'DESC']],
@@ -149,6 +160,7 @@ export class QuestionRepository
             }
             const row = await this.model.findOne({
                 where,
+                include: [questionTypeInclude],
                 transaction: this.effTx(tx),
             });
             return row ? this.toReadFn(row) : null;
