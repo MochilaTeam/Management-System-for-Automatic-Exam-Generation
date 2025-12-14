@@ -112,7 +112,7 @@ describe('TeacherSubjectLinkRepository', () => {
     SubjectMock.findAll.mockResolvedValue([]);
 
     await expect(repo.syncLeadSubjects('t1', ['s1'])).rejects.toThrow(
-      'SUBJECT_ALREADY_HAS_LEADER',
+      'La asignatura ya tiene un jefe',
     );
     expect(LeaderSubjectMock.bulkCreate).not.toHaveBeenCalled();
     expect(SubjectMock.update).not.toHaveBeenCalled();

@@ -20,8 +20,7 @@ export class TeacherSubjectLinkRepository
         TeacherSubjectCreate,
         TeacherSubjectUpdate
     >
-    implements ITeacherSubjectLinkRepository
-{
+    implements ITeacherSubjectLinkRepository {
     constructor(defaultTx?: Transaction) {
         super(
             TeacherSubject,
@@ -201,7 +200,7 @@ export class TeacherSubjectLinkRepository
 
             const conflictIds = Array.from(new Set(conflicts));
             if (conflictIds.length > 0) {
-                const error = new Error('SUBJECT_ALREADY_HAS_LEADER');
+                const error = new Error('La asignatura ya tiene un jefe');
                 (error as Error & { details?: unknown }).details = { subjectIds: conflictIds };
                 throw error;
             }
