@@ -25,6 +25,9 @@ export class ListEvaluatorExamsQuery extends BaseQuery<
             currentUserId: input.currentUserId,
             page: input.page,
             limit: input.limit,
+            subjectId: input.subjectId,
+            examTitle: input.examTitle,
+            studentId: input.studentId,
         });
 
         return new PaginatedSchema(items, { limit, offset, total });

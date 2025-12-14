@@ -341,6 +341,9 @@ export class ExamAssignmentService extends BaseDomainService {
                 filters: {
                     teacherId: teacher.id,
                     status: AssignedExamStatus.IN_EVALUATION,
+                    subjectId: input.subjectId,
+                    examTitle: input.examTitle,
+                    studentId: input.studentId,
                 },
             });
 
@@ -368,6 +371,9 @@ export class ExamAssignmentService extends BaseDomainService {
                 professorId: teacher.id,
                 limit,
                 offset,
+                subjectId: input.subjectId,
+                examTitle: input.examTitle,
+                studentId: input.studentId,
             });
 
             const enriched: PendingExamRegradeItem[] = [];

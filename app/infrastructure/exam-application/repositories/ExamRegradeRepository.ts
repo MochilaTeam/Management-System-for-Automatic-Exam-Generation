@@ -1,4 +1,4 @@
-import { ModelStatic, Op } from 'sequelize';
+import { Includeable, ModelStatic, Op, WhereOptions } from 'sequelize';
 
 import type {
     CreateExamRegradeInput,
@@ -71,6 +71,9 @@ export class ExamRegradeRepository implements IExamRegradeRepository {
         limit,
         offset,
         statuses,
+        subjectId,
+        examTitle,
+        studentId,
     }: ListPendingRegradesCriteria): Promise<Page<ExamRegradeOutput>> {
         try {
             const statusFilter =
@@ -78,13 +81,36 @@ export class ExamRegradeRepository implements IExamRegradeRepository {
                     ? statuses
                     : [ExamRegradesStatus.REQUESTED, ExamRegradesStatus.IN_REVIEW];
 
-            const { rows, count } = await this.model.findAndCountAll({
-                where: {
-                    professorId,
-                    status: {
-                        [Op.in]: statusFilter,
-                    },
+            const where: WhereOptions = {
+                professorId,
+                status: {
+                    [Op.in]: statusFilter,
                 },
+            };
+
+            if (studentId) {
+                where.studentId = studentId;
+            }
+
+            const examWhere: WhereOptions = {};
+            if (subjectId) {
+                examWhere.subjectId = subjectId;
+            }
+            if (examTitle) {
+                examWhere.title = { [Op.like]: `%${examTitle}%` };
+            }
+
+            const include: Includeable[] = [];
+            if (Object.keys(examWhere).length > 0) {
+                include.push({
+                    association: 'exam',
+                    where: examWhere,
+                });
+            }
+
+            const { rows, count } = await this.model.findAndCountAll({
+                where,
+                include,
                 limit,
                 offset,
                 order: [['requestedAt', 'DESC']],

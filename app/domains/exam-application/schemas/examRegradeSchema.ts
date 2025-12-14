@@ -39,6 +39,9 @@ export const listPendingExamRegradesQuerySchema = z
         currentUserId: z.string().uuid(),
         page: z.coerce.number().int().min(1).default(1),
         limit: z.coerce.number().int().min(1).max(50).default(10),
+        subjectId: z.string().uuid().optional(),
+        examTitle: z.string().optional(),
+        studentId: z.string().uuid().optional(),
     })
     .strict();
 
