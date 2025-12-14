@@ -112,12 +112,12 @@ export class UserService extends BaseDomainService {
         const email = this.normEmail(input.email);
         const user = await this.repo.findByEmailWithPassword(email);
         if (!user || !user.active) {
-            throw new UnauthorizedError({ message: 'Invalid credentials' });
+            throw new UnauthorizedError({ message: 'Credenciales inválidas' });
         }
 
         const passwordMatch = await this.hasher.compare(input.password, user.passwordHash);
         if (!passwordMatch) {
-            throw new UnauthorizedError({ message: 'Invalid credentials' });
+            throw new UnauthorizedError({ message: 'Credenciales inválidas' });
         }
 
         const safeUser = { id: user.id, role: user.role, email: user.email, name: user.name };

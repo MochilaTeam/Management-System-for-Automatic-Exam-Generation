@@ -7,6 +7,7 @@ import {
     makeListUsersQuery,
     makeUpdateUserCommand,
 } from '../../../../core/dependencies/user/userDependencies';
+import { BaseErrorResponse } from '../../../../shared/domain/base_response';
 import { HttpStatus } from '../../../../shared/enums/httpStatusEnum';
 import { AppError } from '../../../../shared/exceptions/appError';
 import { AuthenticatedRequest } from '../../../../shared/types/http/AuthenticatedRequest';
@@ -58,9 +59,30 @@ export async function updateUser(req: Request, res: Response, next: NextFunction
     }
 }
 
-export async function deleteUser(req: Request, res: Response, next: NextFunction) {
+export async function deleteUser(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
         const { userId } = userIdParamsSchema.parse(req.params);
+        const currentUserId = req.user?.id;
+
+        if (!currentUserId) {
+            throw new AppError({
+                message: 'Usuario no autenticado',
+                statusCode: HttpStatus.UNAUTHORIZED,
+            });
+        }
+
+        if (currentUserId === userId) {
+            return res
+                .status(HttpStatus.FORBIDDEN)
+                .json(
+                    new BaseErrorResponse(
+                        'No puedes eliminar tu propio usuario',
+                        'CANNOT_DELETE_SELF',
+                        HttpStatus.FORBIDDEN,
+                    ),
+                );
+        }
+
         await makeDeleteUserCommand().execute({ userId });
         res.status(204).send();
     } catch (err) {
