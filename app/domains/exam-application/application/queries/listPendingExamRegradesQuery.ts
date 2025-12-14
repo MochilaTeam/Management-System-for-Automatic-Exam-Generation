@@ -25,6 +25,9 @@ export class ListPendingExamRegradesQuery extends BaseQuery<
             currentUserId: input.currentUserId,
             page,
             limit,
+            subjectId: input.subjectId,
+            examTitle: input.examTitle,
+            studentId: input.studentId,
         });
 
         return new PaginatedSchema(items, { limit, offset, total });
