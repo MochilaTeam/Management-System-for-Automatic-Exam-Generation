@@ -36,7 +36,7 @@ const USERS = {
         email: 'student@example.com',
         password: 'estudiante123',
         age: 22,
-        course: 3,
+        course: '3',
     },
     TEACHERS: [
         {

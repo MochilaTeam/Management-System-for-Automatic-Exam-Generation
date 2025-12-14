@@ -11,7 +11,7 @@ const studentSchema = {
         email: { type: 'string', format: 'email', example: 'jane@example.com' },
         role: { type: 'string', enum: roleEnum },
         age: { type: 'integer', example: 21 },
-        course: { type: 'integer', example: 3 },
+        course: { type: 'string', example: '3' },
     },
     required: ['id', 'userId', 'name', 'email', 'role', 'age', 'course'],
 };
@@ -589,7 +589,7 @@ const swaggerDefinition = {
                     email: { type: 'string', format: 'email' },
                     password: { type: 'string', minLength: 8 },
                     age: { type: 'integer' },
-                    course: { type: 'integer' },
+                    course: { type: 'string' },
                 },
                 required: ['name', 'email', 'password', 'age', 'course'],
             },
@@ -601,7 +601,7 @@ const swaggerDefinition = {
                     role: { type: 'string', enum: roleEnum },
                     password: { type: 'string', minLength: 8 },
                     age: { type: 'integer' },
-                    course: { type: 'integer' },
+                    course: { type: 'string' },
                 },
             },
             CreateTeacherInput: {
