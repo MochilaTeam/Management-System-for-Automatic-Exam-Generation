@@ -104,6 +104,23 @@ router.post(
  *         schema:
  *           type: integer
  *           default: 10
+ *       - in: query
+ *         name: subjectId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filtrar por ID de la asignatura del examen
+ *       - in: query
+ *         name: examTitle
+ *         schema:
+ *           type: string
+ *         description: Filtrar por título del examen
+ *       - in: query
+ *         name: studentId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filtrar por ID del estudiante que solicitó la recalificación
  *     responses:
  *       200:
  *         description: Solicitudes pendientes obtenidas correctamente

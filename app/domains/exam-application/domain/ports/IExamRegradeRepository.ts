@@ -20,6 +20,9 @@ export type ListPendingRegradesCriteria = {
     limit: number;
     offset: number;
     statuses?: ExamRegradesStatus[];
+    subjectId?: string;
+    examTitle?: string;
+    studentId?: string;
 };
 
 export interface IExamRegradeRepository {
