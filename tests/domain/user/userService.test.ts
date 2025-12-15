@@ -31,6 +31,7 @@ const makeRepo = () =>
     update: vi.fn(),
     deleteById: vi.fn(),
     findByEmailWithPassword: vi.fn(),
+    getTeacherRolesByUserId: vi.fn(),
   } as any);
 
 const makeHasher = () =>
@@ -195,6 +196,81 @@ describe('UserService', () => {
 
     await expect(
       service.loginUser({ email: 'john@test.com', password: 'bad' } as any),
+    ).rejects.toBeInstanceOf(UnauthorizedError);
+  });
+
+  it('update: hashea contraseña y actualiza rol cuando se envían', async () => {
+    const repo = makeRepo();
+    const hasher = makeHasher();
+    const service = new UserService({ repo, hasher });
+
+    repo.get_by_id.mockResolvedValue({ id: 'u1', email: 'old@mail.com', role: Roles.STUDENT });
+    repo.existsBy.mockResolvedValue(false);
+    hasher.hash.mockResolvedValue('new-hash');
+    repo.update.mockResolvedValue({ id: 'u1', email: 'new@mail.com', role: Roles.TEACHER });
+
+    const result = await service.update('u1', {
+      email: 'New@mail.com',
+      password: 'pw',
+      role: Roles.TEACHER,
+    });
+
+    expect(hasher.hash).toHaveBeenCalledWith('pw');
+    expect(repo.update).toHaveBeenCalledWith('u1', {
+      email: 'new@mail.com',
+      passwordHash: 'new-hash',
+      role: Roles.TEACHER,
+    });
+    expect(result?.role).toBe(Roles.TEACHER);
+  });
+
+  it('loginUser: agrega roles de docente cuando corresponde', async () => {
+    const repo = makeRepo();
+    const hasher = makeHasher();
+    const service = new UserService({ repo, hasher });
+
+    const userWithHash = {
+      id: 'u1',
+      email: 'john@test.com',
+      name: 'John',
+      role: Roles.TEACHER,
+      passwordHash: 'hashed',
+      active: true,
+    };
+    repo.findByEmailWithPassword.mockResolvedValue(userWithHash);
+    repo.getTeacherRolesByUserId.mockResolvedValue({
+      hasRoleSubjectLeader: true,
+      hasRoleExaminer: true,
+    });
+    hasher.compare.mockResolvedValue(true);
+    (jwtMock as any).sign.mockReturnValue('teacher-token');
+
+    const result = await service.loginUser({
+      email: 'john@test.com',
+      password: 'pw',
+    } as any);
+
+    expect(repo.getTeacherRolesByUserId).toHaveBeenCalledWith('u1');
+    expect((jwtMock as any).sign).toHaveBeenCalled();
+    expect(result.user.role).toBe(Roles.TEACHER);
+  });
+
+  it('loginUser: rechaza usuarios inactivos', async () => {
+    const repo = makeRepo();
+    const hasher = makeHasher();
+    const service = new UserService({ repo, hasher });
+
+    repo.findByEmailWithPassword.mockResolvedValue({
+      id: 'u1',
+      email: 'john@test.com',
+      name: 'John',
+      role: Roles.STUDENT,
+      passwordHash: 'hashed',
+      active: false,
+    });
+
+    await expect(
+      service.loginUser({ email: 'john@test.com', password: 'pw' } as any),
     ).rejects.toBeInstanceOf(UnauthorizedError);
   });
 });

@@ -10,6 +10,7 @@ const makeTeacherRepo = () =>
     paginate: vi.fn(),
     updateProfile: vi.fn(),
     deleteById: vi.fn(),
+    findByIds: vi.fn(),
   } as any);
 
 const makeUserRepo = () =>
@@ -21,6 +22,7 @@ const makeSubjectLinkRepo = () =>
   ({
     findMissingSubjectIds: vi.fn(),
     findSubjectLeaders: vi.fn(),
+    findTeachersForSubject: vi.fn(),
     syncTeachingSubjects: vi.fn(),
     syncLeadSubjects: vi.fn(),
     getAssignments: vi.fn(),
@@ -207,5 +209,93 @@ describe('TeacherService', () => {
     expect(subjectLinkRepo.syncLeadSubjects).toHaveBeenCalledWith('t1', []);
     expect(teacherRepo.deleteById).toHaveBeenCalledWith('t1');
     expect(deleted).toBe(true);
+  });
+
+  it('createProfile: lanza error si faltan asignaturas', async () => {
+    const teacherRepo = makeTeacherRepo();
+    const userRepo = makeUserRepo();
+    const subjectLinkRepo = makeSubjectLinkRepo();
+    const service = new TeacherService({ teacherRepo, userRepo, subjectLinkRepo });
+
+    userRepo.get_by_id.mockResolvedValue({ id: 'u1' });
+    teacherRepo.existsBy.mockResolvedValue(false);
+    subjectLinkRepo.findMissingSubjectIds.mockResolvedValue(['s1']);
+
+    await expect(
+      service.createProfile({
+        userId: 'u1',
+        specialty: 'Math',
+        hasRoleSubjectLeader: false,
+        hasRoleExaminer: false,
+        subjects_ids: ['s1'],
+      }),
+    ).rejects.toThrow('Subject not found');
+  });
+
+  it('updateProfile: evita asignar materias con líder existente', async () => {
+    const teacherRepo = makeTeacherRepo();
+    const userRepo = makeUserRepo();
+    const subjectLinkRepo = makeSubjectLinkRepo();
+    const service = new TeacherService({ teacherRepo, userRepo, subjectLinkRepo });
+
+    teacherRepo.get_by_id.mockResolvedValue({ id: 't1' });
+    subjectLinkRepo.findMissingSubjectIds.mockResolvedValue([]);
+    subjectLinkRepo.findSubjectLeaders.mockResolvedValue(new Map([['s1', 'other']]));
+
+    await expect(
+      service.updateProfile('t1', { subjects_ids: ['s1'] }),
+    ).rejects.toThrow('SUBJECT_ALREADY_HAS_LEADER');
+  });
+
+  it('getById: retorna perfil con asignaciones', async () => {
+    const teacherRepo = makeTeacherRepo();
+    const userRepo = makeUserRepo();
+    const subjectLinkRepo = makeSubjectLinkRepo();
+    const service = new TeacherService({ teacherRepo, userRepo, subjectLinkRepo });
+
+    teacherRepo.get_by_id.mockResolvedValue({ id: 't1', name: 'Docente' });
+    subjectLinkRepo.getAssignments.mockResolvedValue({
+      leadSubjectIds: ['s1'],
+      leadSubjectNames: ['Algebra'],
+      teachingSubjectIds: ['s2'],
+      teachingSubjectNames: ['Geo'],
+    });
+
+    const result = await service.getById('t1');
+
+    expect(result?.subjects_ids).toEqual(['s1']);
+    expect(result?.teaching_subjects_names).toEqual(['Geo']);
+  });
+
+  it('findTeachersBySubject: retorna profesores ordenados con asignaciones', async () => {
+    const teacherRepo = makeTeacherRepo();
+    const userRepo = makeUserRepo();
+    const subjectLinkRepo = makeSubjectLinkRepo();
+    const service = new TeacherService({ teacherRepo, userRepo, subjectLinkRepo });
+
+    subjectLinkRepo.findTeachersForSubject.mockResolvedValue(['t2', 't1']);
+    teacherRepo.findByIds.mockResolvedValue([
+      { id: 't2', name: 'Zelda' },
+      { id: 't1', name: 'Anna' },
+    ]);
+    const assignments = new Map();
+    assignments.set('t1', {
+      leadSubjectIds: [],
+      leadSubjectNames: [],
+      teachingSubjectIds: ['s1'],
+      teachingSubjectNames: ['Álgebra'],
+    });
+    assignments.set('t2', {
+      leadSubjectIds: ['s1'],
+      leadSubjectNames: ['Álgebra'],
+      teachingSubjectIds: [],
+      teachingSubjectNames: [],
+    });
+    subjectLinkRepo.getAssignmentsForTeachers.mockResolvedValue(assignments);
+
+    const result = await service.findTeachersBySubject('s1');
+
+    expect(result[0].id).toBe('t1');
+    expect(result[1].subjects_ids).toEqual(['s1']);
   });
 });

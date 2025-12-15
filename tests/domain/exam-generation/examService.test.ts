@@ -10,14 +10,22 @@ vi.mock('../../../app/infrastructure/user/models', () => ({
   Teacher: { findOne: vi.fn() },
 }));
 
+vi.mock('../../../app/infrastructure/question-bank/models/TeacherSubject', () => ({
+  __esModule: true,
+  default: { findOne: vi.fn() },
+}));
+
 import { ExamService } from '../../../app/domains/exam-generation/domain/services/examService';
 import { ExamStatusEnum } from '../../../app/domains/exam-application/entities/enums/ExamStatusEnum';
 import { DifficultyLevelEnum } from '../../../app/domains/question-bank/entities/enums/DifficultyLevels';
 import SubjectModel from '../../../app/infrastructure/question-bank/models/Subject';
 import { Teacher as TeacherModel } from '../../../app/infrastructure/user/models';
+import TeacherSubjectModel from '../../../app/infrastructure/question-bank/models/TeacherSubject';
 
 const SubjectMock = SubjectModel as any;
 const TeacherMock = TeacherModel as any;
+const TeacherSubjectMock = TeacherSubjectModel as any;
+TeacherMock.findByPk = vi.fn();
 
 const makeExamRepo = () =>
   ({
@@ -63,6 +71,7 @@ beforeAll(() => {
 
 afterEach(() => {
   vi.clearAllMocks();
+  vi.restoreAllMocks();
 });
 
 describe('ExamService', () => {
@@ -375,5 +384,199 @@ describe('ExamService', () => {
     await expect(service.acceptExam('exam-1', 'user-1')).rejects.toThrow(
       'Solo se pueden aceptar exámenes en revisión.',
     );
+  });
+
+  it('createAutomaticExam: selecciona preguntas y arma preview con cobertura', async () => {
+    const { service, questionRepo } = makeService();
+    vi.spyOn(Math, 'random').mockReturnValue(0.2);
+    TeacherMock.findOne.mockResolvedValue({
+      get: () => ({ id: 't1', userId: 'user-1', hasRoleExaminer: true }),
+    });
+
+    questionRepo.findRandomByFilters
+      .mockResolvedValueOnce([
+        {
+          id: 'q1',
+          difficulty: DifficultyLevelEnum.EASY,
+          questionTypeId: 'qt1',
+          subTopicId: null,
+          topicId: 'topic1',
+          body: 'Pregunta 1',
+          options: [],
+          response: null,
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 'q2',
+          difficulty: DifficultyLevelEnum.HARD,
+          questionTypeId: 'qt1',
+          subTopicId: 'sub1',
+          topicId: 'topic2',
+          body: 'Pregunta 2',
+          options: [],
+          response: null,
+        },
+      ]);
+
+    const preview = await service.createAutomaticExam({
+      title: 'Auto',
+      subjectId: 'sub-1',
+      authorId: 'user-1',
+      questionCount: 2,
+      questionTypeCounts: [{ questionTypeId: 'qt1', count: 2 }],
+      difficultyCounts: {
+        [DifficultyLevelEnum.EASY]: 1,
+        [DifficultyLevelEnum.MEDIUM]: 0,
+        [DifficultyLevelEnum.HARD]: 1,
+      },
+      topicIds: ['topic1', 'topic2'],
+      subtopicDistribution: [{ subtopicId: 'sub1', percentage: 50 }],
+    } as any);
+
+    expect(preview.questions).toHaveLength(2);
+    expect(preview.topicCoverage).toMatchObject({
+      mode: 'automatic',
+      subjectId: 'sub-1',
+    });
+    expect(preview.topicProportion.topic1).toBeDefined();
+    expect(questionRepo.findRandomByFilters).toHaveBeenCalledTimes(2);
+  });
+
+  it('requestExamReview: valida roles y asigna validador', async () => {
+    const { service, examRepo, examQuestionRepo } = makeService();
+
+    examRepo.get_by_id.mockResolvedValue({
+      id: 'exam-1',
+      subjectId: 'sub-1',
+      examStatus: ExamStatusEnum.DRAFT,
+      active: true,
+    });
+    TeacherMock.findOne.mockResolvedValue({
+      get: () => ({
+        id: 't-1',
+        userId: 'user-1',
+        hasRoleExaminer: true,
+        hasRoleSubjectLeader: false,
+      }),
+    });
+    SubjectMock.findByPk.mockResolvedValue({
+      get: () => ({ id: 'sub-1', leadTeacherId: 'leader-1' }),
+    });
+    TeacherSubjectMock.findOne.mockResolvedValue({
+      id: 'ts-1',
+      teacherId: 't-1',
+      subjectId: 'sub-1',
+    });
+    TeacherMock.findByPk.mockResolvedValue({
+      get: () => ({
+        id: 'leader-1',
+        userId: 'user-2',
+        hasRoleSubjectLeader: true,
+        hasRoleExaminer: false,
+      }),
+    });
+    examQuestionRepo.listByExamId.mockResolvedValue([]);
+
+    await service.requestExamReview('exam-1', 'user-1');
+
+    expect(examRepo.update).toHaveBeenCalledWith('exam-1', {
+      examStatus: ExamStatusEnum.UNDER_REVIEW,
+      validatorId: 'leader-1',
+      validatedAt: null,
+    });
+  });
+
+  it('acceptExam: permite a un jefe de materia aprobar con comentario', async () => {
+    const { service, examRepo, examQuestionRepo } = makeService();
+
+    examRepo.get_by_id.mockResolvedValue({
+      id: 'exam-1',
+      subjectId: 'sub-1',
+      examStatus: ExamStatusEnum.UNDER_REVIEW,
+      active: true,
+    });
+    TeacherMock.findOne.mockResolvedValue({
+      get: () => ({
+        id: 't-1',
+        userId: 'user-1',
+        hasRoleExaminer: false,
+        hasRoleSubjectLeader: true,
+      }),
+    });
+    SubjectMock.findByPk.mockResolvedValue({
+      get: () => ({ id: 'sub-1', leadTeacherId: 't-1' }),
+    });
+    examQuestionRepo.listByExamId.mockResolvedValue([]);
+
+    const result = await service.acceptExam('exam-1', 'user-1', 'Bien hecho');
+
+    expect(examRepo.update).toHaveBeenCalledWith('exam-1', {
+      examStatus: ExamStatusEnum.APPROVED,
+      validatedAt: expect.any(Date),
+      observations: 'Bien hecho',
+    });
+    expect(result.examStatus).toBe(ExamStatusEnum.UNDER_REVIEW);
+  });
+
+  it('getById: devuelve el examen con preguntas asociadas', async () => {
+    const { service, examRepo, examQuestionRepo } = makeService();
+    examRepo.get_by_id.mockResolvedValue({ id: 'exam-1', subjectId: 'sub-1' });
+    examQuestionRepo.listByExamId.mockResolvedValue([{ id: 'eq-1' }]);
+
+    const detail = await service.getById('exam-1');
+
+    expect(detail?.questions).toEqual([{ id: 'eq-1' }]);
+  });
+
+  it('requestExamReview: no permite revisar un examen publicado', async () => {
+    const { service, examRepo } = makeService();
+    examRepo.get_by_id.mockResolvedValue({
+      id: 'exam-1',
+      subjectId: 'sub-1',
+      examStatus: ExamStatusEnum.PUBLISHED,
+      active: true,
+    });
+
+    await expect(service.requestExamReview('exam-1', 'user-1')).rejects.toThrow(
+      'No es posible solicitar revisión de un examen publicado.',
+    );
+  });
+
+  it('rejectExam: permite rechazar exámenes en revisión', async () => {
+    const { service, examRepo, examQuestionRepo } = makeService();
+
+    examRepo.get_by_id.mockResolvedValue({
+      id: 'exam-1',
+      subjectId: 'sub-1',
+      examStatus: ExamStatusEnum.UNDER_REVIEW,
+      active: true,
+    });
+    TeacherMock.findOne.mockResolvedValue({
+      get: () => ({
+        id: 't-1',
+        userId: 'user-1',
+        hasRoleExaminer: false,
+        hasRoleSubjectLeader: true,
+      }),
+    });
+    SubjectMock.findByPk.mockResolvedValue({
+      get: () => ({ id: 'sub-1', leadTeacherId: 't-1' }),
+    });
+    examQuestionRepo.listByExamId.mockResolvedValue([]);
+
+    await service.rejectExam('exam-1', 'user-1', 'Cambios pendientes');
+
+    expect(examRepo.update).toHaveBeenCalledWith('exam-1', {
+      examStatus: ExamStatusEnum.REJECTED,
+      validatedAt: expect.any(Date),
+      observations: 'Cambios pendientes',
+    });
+  });
+
+  it('computeTopicProportion: retorna objeto vacío cuando no hay preguntas', () => {
+    const { service } = makeService();
+    const proportion = (service as any).computeTopicProportion([]);
+    expect(proportion).toEqual({});
   });
 });
