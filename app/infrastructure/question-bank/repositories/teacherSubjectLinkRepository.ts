@@ -20,7 +20,8 @@ export class TeacherSubjectLinkRepository
         TeacherSubjectCreate,
         TeacherSubjectUpdate
     >
-    implements ITeacherSubjectLinkRepository {
+    implements ITeacherSubjectLinkRepository
+{
     constructor(defaultTx?: Transaction) {
         super(
             TeacherSubject,

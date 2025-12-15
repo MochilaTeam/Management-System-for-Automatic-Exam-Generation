@@ -94,7 +94,8 @@ const toUpdateAttrs = (dto: QuestionUpdate): Record<string, unknown> => {
 
 export class QuestionRepository
     extends BaseRepository<QuestionModel, QuestionDetail, QuestionCreate, QuestionUpdate>
-    implements IQuestionBankRepository, IExamQuestionRepository {
+    implements IQuestionBankRepository, IExamQuestionRepository
+{
     constructor(model: ModelStatic<QuestionModel>, defaultTx?: Transaction) {
         super(model, toQuestionDetail, toCreateAttrs, toUpdateAttrs, defaultTx);
     }
