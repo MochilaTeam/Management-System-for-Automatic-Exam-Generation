@@ -27,4 +27,7 @@ export type QuestionSearchCriteria = {
 export interface IQuestionRepository {
     findByIds(ids: string[]): Promise<QuestionForExam[]>;
     findRandomByFilters(criteria: QuestionSearchCriteria): Promise<QuestionForExam[]>;
+    getGroupedCounts(
+        criteria: Omit<QuestionSearchCriteria, 'limit' | 'excludeQuestionIds' | 'ids'>,
+    ): Promise<Array<{ questionTypeId: string; difficulty: DifficultyLevelEnum; count: number }>>;
 }

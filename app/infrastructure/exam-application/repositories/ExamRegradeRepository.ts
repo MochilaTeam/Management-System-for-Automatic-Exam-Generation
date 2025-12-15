@@ -66,6 +66,28 @@ export class ExamRegradeRepository implements IExamRegradeRepository {
         }
     }
 
+    async findAnyActiveByExamAndProfessor(
+        examId: string,
+        professorId: string,
+    ): Promise<ExamRegradeOutput | null> {
+        try {
+            const row = await this.model.findOne({
+                where: {
+                    examId,
+                    professorId,
+                    status: {
+                        [Op.in]: [ExamRegradesStatus.REQUESTED, ExamRegradesStatus.IN_REVIEW],
+                    },
+                },
+            });
+            return row ? ExamRegradeMapper.toOutput(row) : null;
+        } catch {
+            throw new BaseDatabaseError({
+                message: 'Error buscando solicitudes de recalificación activas',
+            });
+        }
+    }
+
     async listPendingByProfessor({
         professorId,
         limit,
