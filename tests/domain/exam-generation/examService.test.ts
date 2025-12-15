@@ -46,6 +46,7 @@ const makeQuestionRepo = () =>
   ({
     findByIds: vi.fn(),
     findRandomByFilters: vi.fn(),
+    getGroupedCounts: vi.fn(),
   } as any);
 
 beforeAll(() => {
@@ -189,6 +190,9 @@ describe('ExamService', () => {
     TeacherMock.findOne.mockResolvedValue({
       get: () => ({ id: 'teacher-1', userId: 'user-1', hasRoleSubjectLeader: true }),
     });
+    questionRepo.getGroupedCounts.mockResolvedValue([
+      { questionTypeId: 'qt1', difficulty: DifficultyLevelEnum.EASY, count: 0 },
+    ]);
     questionRepo.findRandomByFilters.mockResolvedValue([]);
 
     await expect(
@@ -204,7 +208,9 @@ describe('ExamService', () => {
           [DifficultyLevelEnum.HARD]: 0,
         },
       } as any),
-    ).rejects.toThrow('No hay suficientes preguntas para la parametrización solicitada.');
+    ).rejects.toThrow(
+      'No hay suficientes preguntas disponibles para satisfacer la combinación de tipos y dificultades solicitada.',
+    );
   });
 
   it('ensureQuestionsPayload: valida cantidad, duplicados e indices', () => {
@@ -260,8 +266,9 @@ describe('ExamService', () => {
           [DifficultyLevelEnum.MEDIUM]: 2,
           [DifficultyLevelEnum.HARD]: 0,
         },
+        [{ questionTypeId: 'qt1', difficulty: DifficultyLevelEnum.MEDIUM, count: 1 }],
       ),
-    ).toThrow('No se puede cumplir la combinación de tipos y dificultades solicitada.');
+    ).toThrow('Error interno en la asignación de preguntas');
   });
 
   it('updateExam: recalcula dificultad y reemplaza preguntas', async () => {
@@ -313,6 +320,28 @@ describe('ExamService', () => {
       { questionId: 'q1', questionIndex: 2, questionScore: 1 },
     ]);
     expect(res.id).toBe('exam-1');
+  });
+
+  it('updateExam: lanza NotFound cuando el examen no existe', async () => {
+    const { service, examRepo } = makeService();
+    examRepo.get_by_id.mockResolvedValue(null);
+
+    await expect(
+      service.updateExam('missing', { title: 'x', questions: [] } as any),
+    ).rejects.toThrow('El examen solicitado no existe.');
+  });
+
+  it('deleteExam: devuelve true si ya estaba inactivo', async () => {
+    const { service, examRepo } = makeService();
+    examRepo.get_by_id.mockResolvedValue({
+      id: 'exam-1',
+      examStatus: ExamStatusEnum.VALID,
+      active: false,
+    });
+
+    const result = await service.deleteExam('exam-1');
+    expect(result).toBe(true);
+    expect(examRepo.update).not.toHaveBeenCalled();
   });
 
   it('deleteExam: lanza error si no existe', async () => {
@@ -372,6 +401,34 @@ describe('ExamService', () => {
     );
   });
 
+  it('requestExamReview: rechaza si el examen ya fue aprobado', async () => {
+    const { service, examRepo } = makeService();
+    examRepo.get_by_id.mockResolvedValue({
+      id: 'exam-1',
+      subjectId: 'sub-1',
+      examStatus: ExamStatusEnum.APPROVED,
+      active: true,
+    });
+
+    await expect(service.requestExamReview('exam-1', 'user-1')).rejects.toThrow(
+      'El examen ya fue aceptado; realice cambios para volver a solicitar revisión.',
+    );
+  });
+
+  it('rejectExam: lanza error si el examen no está en revisión', async () => {
+    const { service, examRepo } = makeService();
+    examRepo.get_by_id.mockResolvedValue({
+      id: 'exam-1',
+      subjectId: 'sub-1',
+      examStatus: ExamStatusEnum.VALID,
+      active: true,
+    });
+
+    await expect(service.rejectExam('exam-1', 'user-1')).rejects.toThrow(
+      'Solo se pueden rechazar exámenes en revisión.',
+    );
+  });
+
   it('acceptExam: solo permite exámenes en revisión', async () => {
     const { service, examRepo } = makeService();
     examRepo.get_by_id.mockResolvedValue({
@@ -392,6 +449,10 @@ describe('ExamService', () => {
     TeacherMock.findOne.mockResolvedValue({
       get: () => ({ id: 't1', userId: 'user-1', hasRoleExaminer: true }),
     });
+    questionRepo.getGroupedCounts.mockResolvedValue([
+      { questionTypeId: 'qt1', difficulty: DifficultyLevelEnum.EASY, count: 5 },
+      { questionTypeId: 'qt1', difficulty: DifficultyLevelEnum.HARD, count: 5 },
+    ]);
 
     questionRepo.findRandomByFilters
       .mockResolvedValueOnce([

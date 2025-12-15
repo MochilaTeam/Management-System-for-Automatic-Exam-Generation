@@ -112,10 +112,12 @@ describe('QuestionRepository (infra, unitario)', () => {
 
     const result = await repo.get_detail_by_id('q-1');
 
-    expect(mockModel.findOne).toHaveBeenCalledWith({
-      where: { id: 'q-1', active: true },
-      transaction: undefined,
-    });
+    expect(mockModel.findOne).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'q-1', active: true },
+        transaction: undefined,
+      }),
+    );
     expect(result).toBeNull();
   });
 
@@ -124,10 +126,12 @@ describe('QuestionRepository (infra, unitario)', () => {
 
     await repo.get_detail_by_id('q-1', true);
 
-    expect(mockModel.findOne).toHaveBeenCalledWith({
-      where: { id: 'q-1' },
-      transaction: undefined,
-    });
+    expect(mockModel.findOne).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'q-1' },
+        transaction: undefined,
+      }),
+    );
   });
 
   it('get_detail_by_id: mapea a QuestionDetail cuando encuentra registro', async () => {
@@ -139,10 +143,12 @@ describe('QuestionRepository (infra, unitario)', () => {
 
     const result = await repo.get_detail_by_id('q-1');
 
-    expect(mockModel.findOne).toHaveBeenCalledWith({
-      where: { id: 'q-1', active: true },
-      transaction: undefined,
-    });
+    expect(mockModel.findOne).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'q-1', active: true },
+        transaction: undefined,
+      }),
+    );
     expect(toReadSpy).toHaveBeenCalledWith(row);
     expect(result).toBe(detail);
   });

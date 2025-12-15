@@ -244,7 +244,7 @@ describe('TeacherService', () => {
 
     await expect(
       service.updateProfile('t1', { subjects_ids: ['s1'] }),
-    ).rejects.toThrow('SUBJECT_ALREADY_HAS_LEADER');
+    ).rejects.toThrow('La asignatura ya tiene un jefe');
   });
 
   it('getById: retorna perfil con asignaciones', async () => {
