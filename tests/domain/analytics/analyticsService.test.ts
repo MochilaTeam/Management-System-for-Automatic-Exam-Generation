@@ -141,8 +141,78 @@ describe('AnalyticsService', () => {
         const service = makeService(repo);
         const result = await service.getExamPerformance('exam-1');
 
-        expect(result.questions).toHaveLength(2);
-        expect(result.overallSuccessRate).toBeCloseTo((4 * 5 + 2 * 4) / (5 * 5 + 5 * 4), 6);
-        expect(result.difficultyGroups.find((group) => group.difficulty === DifficultyLevelEnum.EASY)?.examCount).toBe(1);
+    expect(result.questions).toHaveLength(2);
+    expect(result.overallSuccessRate).toBeCloseTo((4 * 5 + 2 * 4) / (5 * 5 + 5 * 4), 6);
+    expect(result.difficultyGroups.find((group) => group.difficulty === DifficultyLevelEnum.EASY)?.examCount).toBe(1);
+  });
+
+  it('listAutomaticExams resume parámetros automáticos de manera legible', async () => {
+    const repo: Partial<IAnalyticsRepository> = {
+      fetchAutomaticExams: vi.fn().mockResolvedValue({
+        items: [
+          {
+            examId: 'e1',
+            title: 'Auto',
+            subjectId: 's1',
+            parameters: {
+              questionCount: 4,
+              questionTypePercentages: { sel: 2, multi: 2 },
+              topicCoverage: { algebra: 0.5, geometry: 0.5 },
+            },
+          },
+          { examId: 'e2', title: 'Sin params', subjectId: 's1', parameters: {} },
+        ],
+        total: 2,
+      }),
+    };
+
+    const service = makeService(repo);
+    const result = await service.listAutomaticExams({
+      limit: 10,
+      offset: 0,
+    } as any);
+
+    expect(result.data[0].parameterSummary).toContain('Proporción de preguntas por tipo');
+    expect(result.data[0].parameterSummary).toContain('sel: 50%');
+    expect(result.data[0].parameterSummary).toContain('algebra: 50%');
+    expect(result.data[1].parameterSummary).toContain('Sin detalles');
+  });
+
+  it('compareExamsAcrossSubjects retorna paginado vacío cuando no hay exámenes', async () => {
+    const repo: Partial<IAnalyticsRepository> = {
+      fetchExamComparisonBase: vi.fn().mockResolvedValue({ exams: [], total: 0 }),
+    };
+
+    const service = makeService(repo);
+    const result = await service.compareExamsAcrossSubjects({
+      subjectIds: [],
+      limit: 5,
+      offset: 0,
+      sortBy: ExamComparisonSortByEnum.CREATED_AT,
+      sortOrder: 'desc',
+      balanceThreshold: 0.2,
     });
+
+    expect(result.data).toEqual([]);
+    expect(result.meta.total).toBe(0);
+  });
+
+  it('listValidatedExams y listPopularQuestions delegan correctamente al repositorio', async () => {
+    const repo: Partial<IAnalyticsRepository> = {
+      fetchValidatedExams: vi.fn().mockResolvedValue({ items: [{ examId: 'e1' }], total: 1 }),
+      fetchPopularQuestions: vi.fn().mockResolvedValue({
+        items: [{ questionId: 'q1' }],
+        total: 1,
+      }),
+    };
+    const service = makeService(repo);
+
+    const validated = await service.listValidatedExams({ limit: 1, offset: 0 } as any);
+    const popular = await service.listPopularQuestions({ limit: 1, offset: 0 } as any);
+
+    expect(validated.data[0].examId).toBe('e1');
+    expect(popular.data[0].questionId).toBe('q1');
+    expect(repo.fetchValidatedExams).toHaveBeenCalled();
+    expect(repo.fetchPopularQuestions).toHaveBeenCalled();
+  });
 });

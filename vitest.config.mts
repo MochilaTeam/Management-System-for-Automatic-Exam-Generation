@@ -7,7 +7,7 @@ export default defineConfig({
     passWithNoTests: false,
     hookTimeout: 20000,
     coverage: {
-      provider: "v8",
+      provider: "istanbul",
       reporter: ["text", "html", "lcov"],
       reportsDirectory: "./coverage",
       // opcional: filtra solo código de app

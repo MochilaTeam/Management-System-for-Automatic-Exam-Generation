@@ -8,7 +8,6 @@ import {
 import { DeleteTeacherCommand } from '../../../domains/user/application/commands/deleteTeacherCommand';
 import { UpdateTeacherCommand } from '../../../domains/user/application/commands/updateTeacherCommand';
 import { GetTeacherByIdQuery } from '../../../domains/user/application/queries/GetTeacherByIdQuery';
-import { ListTeachersBySubjectQuery } from '../../../domains/user/application/queries/ListTeachersBySubjectQuery';
 import { ListTeachersQuery } from '../../../domains/user/application/queries/ListTeachersQuery';
 import { TeacherService } from '../../../domains/user/domain/services/teacherService';
 import { UserService } from '../../../domains/user/domain/services/userService';
