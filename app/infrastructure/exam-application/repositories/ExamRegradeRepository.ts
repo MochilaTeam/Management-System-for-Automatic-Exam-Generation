@@ -13,7 +13,7 @@ import { ExamRegradeMapper } from '../mappers/examRegradeMapper';
 import ExamRegrades from '../models/ExamRegrade';
 
 export class ExamRegradeRepository implements IExamRegradeRepository {
-    constructor(private readonly model: ModelStatic<ExamRegrades>) {}
+    constructor(private readonly model: ModelStatic<ExamRegrades>) { }
 
     async create(input: CreateExamRegradeInput): Promise<ExamRegradeOutput> {
         try {
@@ -53,6 +53,28 @@ export class ExamRegradeRepository implements IExamRegradeRepository {
                 where: {
                     examId,
                     studentId,
+                    status: {
+                        [Op.in]: [ExamRegradesStatus.REQUESTED, ExamRegradesStatus.IN_REVIEW],
+                    },
+                },
+            });
+            return row ? ExamRegradeMapper.toOutput(row) : null;
+        } catch {
+            throw new BaseDatabaseError({
+                message: 'Error buscando solicitudes de recalificación activas',
+            });
+        }
+    }
+
+    async findAnyActiveByExamAndProfessor(
+        examId: string,
+        professorId: string,
+    ): Promise<ExamRegradeOutput | null> {
+        try {
+            const row = await this.model.findOne({
+                where: {
+                    examId,
+                    professorId,
                     status: {
                         [Op.in]: [ExamRegradesStatus.REQUESTED, ExamRegradesStatus.IN_REVIEW],
                     },
