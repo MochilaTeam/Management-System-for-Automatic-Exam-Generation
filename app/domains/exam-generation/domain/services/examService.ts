@@ -222,8 +222,7 @@ export class ExamService extends BaseDomainService {
             available.set(`${a.questionTypeId}|${a.difficulty}`, a.count);
         });
 
-        const getAvailable = (t: string, d: DifficultyLevelEnum) =>
-            available.get(`${t}|${d}`) || 0;
+        const getAvailable = (t: string, d: DifficultyLevelEnum) => available.get(`${t}|${d}`) || 0;
 
         const types = Array.from(typeNeeds.keys());
         const resultEntries: Array<{
@@ -303,11 +302,9 @@ export class ExamService extends BaseDomainService {
 
         const totalAllocated = resultEntries.reduce((acc, entry) => acc + entry.count, 0);
         if (totalAllocated !== questionCount) {
-            this.raiseValidationError(
-                operation,
-                'Error interno en la asignación de preguntas.',
-                { entity: 'Exam' },
-            );
+            this.raiseValidationError(operation, 'Error interno en la asignación de preguntas.', {
+                entity: 'Exam',
+            });
         }
 
         return resultEntries;

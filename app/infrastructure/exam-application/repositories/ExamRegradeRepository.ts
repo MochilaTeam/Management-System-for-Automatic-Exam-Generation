@@ -13,7 +13,7 @@ import { ExamRegradeMapper } from '../mappers/examRegradeMapper';
 import ExamRegrades from '../models/ExamRegrade';
 
 export class ExamRegradeRepository implements IExamRegradeRepository {
-    constructor(private readonly model: ModelStatic<ExamRegrades>) { }
+    constructor(private readonly model: ModelStatic<ExamRegrades>) {}
 
     async create(input: CreateExamRegradeInput): Promise<ExamRegradeOutput> {
         try {
