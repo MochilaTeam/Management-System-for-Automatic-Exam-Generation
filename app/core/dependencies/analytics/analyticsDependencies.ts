@@ -1,3 +1,4 @@
+import { AnalyticsReportExporter } from '../../../domains/analytics/application/ports/AnalyticsReportExporter';
 import { CompareExamsReportQuery } from '../../../domains/analytics/application/queries/CompareExamsReportQuery';
 import { GetExamPerformanceReportQuery } from '../../../domains/analytics/application/queries/GetExamPerformanceReportQuery';
 import { GetSubjectDifficultyReportQuery } from '../../../domains/analytics/application/queries/GetSubjectDifficultyReportQuery';
@@ -6,6 +7,7 @@ import { ListPopularQuestionsReportQuery } from '../../../domains/analytics/appl
 import { ListReviewerActivityReportQuery } from '../../../domains/analytics/application/queries/ListReviewerActivityReportQuery';
 import { ListValidatedExamsReportQuery } from '../../../domains/analytics/application/queries/ListValidatedExamsReportQuery';
 import { AnalyticsService } from '../../../domains/analytics/domain/services/analyticsService';
+import { AnalyticsPdfExporter } from '../../../infrastructure/analytics/exporters/PDF/AnalyticsPdfExporter';
 import { AnalyticsRepository } from '../../../infrastructure/analytics/repositories/AnalyticsRepository';
 
 let repo: AnalyticsRepository | null = null;
@@ -17,6 +19,7 @@ let examPerformanceQuery: GetExamPerformanceReportQuery | null = null;
 let subjectDifficultyQuery: GetSubjectDifficultyReportQuery | null = null;
 let compareExamsQuery: CompareExamsReportQuery | null = null;
 let reviewerActivityQuery: ListReviewerActivityReportQuery | null = null;
+let reportExporter: AnalyticsReportExporter | null = null;
 
 function getRepo() {
     if (repo) return repo;
@@ -70,4 +73,10 @@ export function makeListReviewerActivityReportQuery() {
     if (reviewerActivityQuery) return reviewerActivityQuery;
     reviewerActivityQuery = new ListReviewerActivityReportQuery(getService());
     return reviewerActivityQuery;
+}
+
+export function makeAnalyticsReportExporter() {
+    if (reportExporter) return reportExporter;
+    reportExporter = new AnalyticsPdfExporter();
+    return reportExporter;
 }

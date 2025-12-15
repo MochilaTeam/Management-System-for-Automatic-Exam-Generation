@@ -1,10 +1,10 @@
 import { PaginatedSchema } from '../../../../shared/domain/base_response';
 import { BaseQuery } from '../../../../shared/domain/base_use_case';
 import { AnalyticsService } from '../../domain/services/analyticsService';
-import { ValidatedExamReportRow, ValidatedExamsReportInput } from '../../schemas/analyticsSchema';
+import { ValidatedExamReportRow, ValidatedExamsReportOptions } from '../../schemas/analyticsSchema';
 
 export class ListValidatedExamsReportQuery extends BaseQuery<
-    ValidatedExamsReportInput,
+    ValidatedExamsReportOptions,
     PaginatedSchema<ValidatedExamReportRow>
 > {
     constructor(private readonly svc: AnalyticsService) {
@@ -12,7 +12,7 @@ export class ListValidatedExamsReportQuery extends BaseQuery<
     }
 
     protected async executeBusinessLogic(
-        input: ValidatedExamsReportInput,
+        input: ValidatedExamsReportOptions,
     ): Promise<PaginatedSchema<ValidatedExamReportRow>> {
         return this.svc.listValidatedExams(input);
     }

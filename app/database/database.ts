@@ -1,5 +1,6 @@
 import mysql from 'mysql2/promise';
-import { Sequelize } from 'sequelize';
+import { Sequelize, DataTypes } from 'sequelize';
+import type { QueryInterface } from 'sequelize';
 
 import 'dotenv/config';
 import { get_logger } from '../core/dependencies/dependencies';
@@ -59,12 +60,33 @@ export const connect = async (): Promise<void> => {
         await createDatabaseIfNotExists();
         await sequelize.authenticate();
         logger.auditLogger.info('Connected to MySQL');
+        await ensureActiveIndexColumn();
         await sequelize.sync({ alter: false });
     } catch (error) {
         logger.errorLogger.error('Error connecting to MySQL:', error);
         throw new Error('Failed to connect to the MySQL database');
     }
 };
+
+async function ensureActiveIndexColumn(): Promise<void> {
+    const queryInterface: QueryInterface = sequelize.getQueryInterface();
+    try {
+        const columns = await queryInterface.describeTable('Exams');
+        if (!('active' in columns)) {
+            await queryInterface.addColumn('Exams', 'active', {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: true,
+            });
+        }
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (message.includes("doesn't exist") || message.includes('ER_BAD_TABLE_ERROR')) {
+            return;
+        }
+        throw error;
+    }
+}
 
 export const disconnect = async (): Promise<void> => {
     try {

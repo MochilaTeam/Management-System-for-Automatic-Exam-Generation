@@ -1,10 +1,10 @@
 import { PaginatedSchema } from '../../../../shared/domain/base_response';
 import { BaseQuery } from '../../../../shared/domain/base_use_case';
 import { AnalyticsService } from '../../domain/services/analyticsService';
-import { AutomaticExamReportInput, AutomaticExamReportRow } from '../../schemas/analyticsSchema';
+import { AutomaticExamReportOptions, AutomaticExamReportRow } from '../../schemas/analyticsSchema';
 
 export class ListAutomaticExamsReportQuery extends BaseQuery<
-    AutomaticExamReportInput,
+    AutomaticExamReportOptions,
     PaginatedSchema<AutomaticExamReportRow>
 > {
     constructor(private readonly svc: AnalyticsService) {
@@ -12,7 +12,7 @@ export class ListAutomaticExamsReportQuery extends BaseQuery<
     }
 
     protected async executeBusinessLogic(
-        input: AutomaticExamReportInput,
+        input: AutomaticExamReportOptions,
     ): Promise<PaginatedSchema<AutomaticExamReportRow>> {
         return this.svc.listAutomaticExams(input);
     }

@@ -2,11 +2,11 @@ import { BaseQuery } from '../../../../shared/domain/base_use_case';
 import { AnalyticsService } from '../../domain/services/analyticsService';
 import {
     SubjectDifficultyReport,
-    SubjectDifficultyReportInput,
+    SubjectDifficultyReportOptions,
 } from '../../schemas/analyticsSchema';
 
 export class GetSubjectDifficultyReportQuery extends BaseQuery<
-    SubjectDifficultyReportInput,
+    SubjectDifficultyReportOptions,
     SubjectDifficultyReport
 > {
     constructor(private readonly svc: AnalyticsService) {
@@ -14,7 +14,7 @@ export class GetSubjectDifficultyReportQuery extends BaseQuery<
     }
 
     protected async executeBusinessLogic(
-        input: SubjectDifficultyReportInput,
+        input: SubjectDifficultyReportOptions,
     ): Promise<SubjectDifficultyReport> {
         return this.svc.getSubjectDifficultyReport(input);
     }

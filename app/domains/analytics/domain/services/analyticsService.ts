@@ -2,21 +2,22 @@ import { PaginatedSchema } from '../../../../shared/domain/base_response';
 import { BaseDomainService } from '../../../../shared/domain/base_service';
 import { DifficultyLevelEnum } from '../../../question-bank/entities/enums/DifficultyLevels';
 import {
-    AutomaticExamReportInput,
+    AutomaticExamReportOptions,
     AutomaticExamReportRow,
-    ExamComparisonReportInput,
+    ExamComparisonReportOptions,
     ExamComparisonRow,
     ExamComparisonTopicDistribution,
     ExamPerformanceReport,
     ExamPerformanceRow,
-    PopularQuestionsReportInput,
+    PopularQuestionsReportOptions,
     PopularQuestionsReportRow,
-    ReviewerActivityReportInput,
+    ReviewerActivityReportOptions,
     ReviewerActivityRow,
     SubjectDifficultyCorrelationRow,
     SubjectDifficultyDetail,
     SubjectDifficultyReport,
-    ValidatedExamsReportInput,
+    SubjectDifficultyReportOptions,
+    ValidatedExamsReportOptions,
     ValidatedExamReportRow,
 } from '../../schemas/analyticsSchema';
 import {
@@ -25,7 +26,6 @@ import {
     ExamTopicRecord,
     IAnalyticsRepository,
     ReviewerActivityFilter,
-    SubjectDifficultyFilter,
     SubjectDifficultyRecord,
 } from '../ports/IAnalyticsRepository';
 
@@ -45,21 +45,25 @@ export class AnalyticsService extends BaseDomainService {
     }
 
     async listAutomaticExams(
-        input: AutomaticExamReportInput,
+        input: AutomaticExamReportOptions,
     ): Promise<PaginatedSchema<AutomaticExamReportRow>> {
         const { items, total } = await this.dependencies.analyticsRepo.fetchAutomaticExams(input);
-        return new PaginatedSchema(items, { limit: input.limit, offset: input.offset, total });
+        const enriched = items.map((item) => ({
+            ...item,
+            parameterSummary: this.summarizeAutomaticParameters(item.parameters),
+        }));
+        return new PaginatedSchema(enriched, { limit: input.limit, offset: input.offset, total });
     }
 
     async listPopularQuestions(
-        input: PopularQuestionsReportInput,
+        input: PopularQuestionsReportOptions,
     ): Promise<PaginatedSchema<PopularQuestionsReportRow>> {
         const { items, total } = await this.dependencies.analyticsRepo.fetchPopularQuestions(input);
         return new PaginatedSchema(items, { limit: input.limit, offset: input.offset, total });
     }
 
     async listValidatedExams(
-        input: ValidatedExamsReportInput,
+        input: ValidatedExamsReportOptions,
     ): Promise<PaginatedSchema<ValidatedExamReportRow>> {
         const { items, total } = await this.dependencies.analyticsRepo.fetchValidatedExams(input);
         return new PaginatedSchema(items, { limit: input.limit, offset: input.offset, total });
@@ -78,7 +82,7 @@ export class AnalyticsService extends BaseDomainService {
     }
 
     async getSubjectDifficultyReport(
-        input: SubjectDifficultyFilter,
+        input: SubjectDifficultyReportOptions,
     ): Promise<SubjectDifficultyReport> {
         const records = await this.dependencies.analyticsRepo.fetchSubjectDifficultyRecords(input);
         const grouped = new Map<
@@ -100,7 +104,9 @@ export class AnalyticsService extends BaseDomainService {
             });
         });
 
-        const selectedSubjects = order.slice(input.offset, input.offset + input.limit);
+        const selectedSubjects = input.exportAll
+            ? order
+            : order.slice(input.offset, input.offset + input.limit);
         const subjectCorrelations: SubjectDifficultyCorrelationRow[] = selectedSubjects.map(
             (subjectId) => {
                 const bucket = grouped.get(subjectId)!;
@@ -125,7 +131,7 @@ export class AnalyticsService extends BaseDomainService {
     }
 
     async compareExamsAcrossSubjects(
-        input: ExamComparisonReportInput,
+        input: ExamComparisonReportOptions,
     ): Promise<PaginatedSchema<ExamComparisonRow>> {
         const comparisonFilter: ExamComparisonFilter = input;
         const base =
@@ -155,7 +161,7 @@ export class AnalyticsService extends BaseDomainService {
     }
 
     async listReviewerActivity(
-        input: ReviewerActivityReportInput,
+        input: ReviewerActivityReportOptions,
     ): Promise<PaginatedSchema<ReviewerActivityRow>> {
         const filter: ReviewerActivityFilter = input;
         const { items, total } =
@@ -195,7 +201,7 @@ export class AnalyticsService extends BaseDomainService {
             return {
                 difficulty,
                 successRate,
-                questionCount: bucket.count,
+                examCount: bucket.count,
             };
         });
     }
@@ -287,5 +293,104 @@ export class AnalyticsService extends BaseDomainService {
             topicName: record.topicName,
             questionCount: record.count,
         }));
+    }
+
+    private summarizeAutomaticParameters(params: unknown): string {
+        const isRecord = (value: unknown): value is Record<string, unknown> =>
+            typeof value === 'object' && value !== null && !Array.isArray(value);
+        if (!isRecord(params) || Object.keys(params).length === 0) return 'Sin detalles';
+
+        const getNumber = (value: unknown): number | null => {
+            const num = typeof value === 'number' ? value : Number(value);
+            return Number.isFinite(num) ? num : null;
+        };
+
+        const formatDistribution = (record: Record<string, unknown>): string => {
+            const entries = Object.entries(record);
+            if (!entries.length) return '';
+            return entries
+                .map(([key, value]) => {
+                    const num = typeof value === 'number' ? value : Number(value);
+                    const display =
+                        Number.isFinite(num) && num >= 0 && num <= 1
+                            ? `${(num * 100).toFixed(0)}%`
+                            : String(value);
+                    return `${key}: ${display}`;
+                })
+                .join(', ');
+        };
+
+        const total =
+            getNumber(params.questionCount) ??
+            getNumber(params.totalQuestions) ??
+            (isRecord(params.topicProportion)
+                ? Object.values(params.topicProportion)
+                      .map((v) => getNumber(v) ?? 0)
+                      .reduce((a, b) => a + b, 0)
+                : null);
+
+        const typeDistribution =
+            (isRecord(params.topicProportion) && params.topicProportion) ||
+            (isRecord(params.questionTypes) && params.questionTypes) ||
+            (isRecord(params.typeDistribution) && params.typeDistribution) ||
+            (isRecord(params.questionTypeDistribution) && params.questionTypeDistribution) ||
+            (isRecord(params.questionTypeProportion) && params.questionTypeProportion) ||
+            (isRecord(params.questionTypeCoverage) && params.questionTypeCoverage) ||
+            (isRecord(params.questionTypePercentages) && params.questionTypePercentages);
+
+        const typeText = (() => {
+            if (!typeDistribution) return 'sin datos';
+            const entries = Object.entries(typeDistribution);
+            if (!entries.length) return 'sin datos';
+            const sum =
+                total !== null
+                    ? total
+                    : entries.reduce((acc, [, val]) => acc + (getNumber(val) ?? 0), 0);
+            if (sum === 0) return 'sin datos';
+
+            const parts = entries.map(([label, val]) => {
+                const num = getNumber(val);
+                if (num === null) return `${label}: -`;
+                const ratio = num > 1 ? num / sum : num; // si vienen en 0-1 ya es proporción
+                const pct = (ratio * 100).toFixed(0);
+                return `${label}: ${pct}%`;
+            });
+            return parts.join(', ');
+        })();
+
+        const topicCoverage =
+            (isRecord(params.topicCoverage) && params.topicCoverage) ||
+            (isRecord(params.topics) && params.topics) ||
+            (Array.isArray(params.topics) && { topics: params.topics });
+
+        const topicText = (() => {
+            if (!topicCoverage) return 'sin datos';
+            if (Array.isArray((topicCoverage as Record<string, unknown>).topics)) {
+                const topics = (topicCoverage as Record<string, unknown>).topics as unknown[];
+                const names = topics
+                    .map((t: unknown) =>
+                        isRecord(t)
+                            ? String(t.title ?? t.name ?? t.topicName ?? '')
+                            : typeof t === 'string'
+                              ? t
+                              : '',
+                    )
+                    .filter(Boolean);
+                if (names.length) return names.join(', ');
+            }
+            const distribution = formatDistribution(topicCoverage as Record<string, unknown>);
+            if (distribution) return distribution;
+            const keys = Object.keys(topicCoverage as Record<string, unknown>);
+            return keys.length ? keys.join(', ') : 'sin datos';
+        })();
+
+        const totalText = total !== null ? String(total) : 'sin datos';
+
+        const lines = [
+            `- Proporción de preguntas por tipo: ${typeText}`,
+            `- Cobertura de temas: ${topicText}`,
+            `- Cantidad total de preguntas: ${totalText}`,
+        ];
+        return lines.join('\n');
     }
 }

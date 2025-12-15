@@ -2,12 +2,12 @@ import { PaginatedSchema } from '../../../../shared/domain/base_response';
 import { BaseQuery } from '../../../../shared/domain/base_use_case';
 import { AnalyticsService } from '../../domain/services/analyticsService';
 import {
-    PopularQuestionsReportInput,
+    PopularQuestionsReportOptions,
     PopularQuestionsReportRow,
 } from '../../schemas/analyticsSchema';
 
 export class ListPopularQuestionsReportQuery extends BaseQuery<
-    PopularQuestionsReportInput,
+    PopularQuestionsReportOptions,
     PaginatedSchema<PopularQuestionsReportRow>
 > {
     constructor(private readonly svc: AnalyticsService) {
@@ -15,7 +15,7 @@ export class ListPopularQuestionsReportQuery extends BaseQuery<
     }
 
     protected async executeBusinessLogic(
-        input: PopularQuestionsReportInput,
+        input: PopularQuestionsReportOptions,
     ): Promise<PaginatedSchema<PopularQuestionsReportRow>> {
         return this.svc.listPopularQuestions(input);
     }
