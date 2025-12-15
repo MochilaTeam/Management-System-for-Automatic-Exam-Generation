@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { ZodError } from 'zod';
 
 import { BaseErrorResponse } from '../../shared/domain/base_response';
 import { HttpStatus } from '../../shared/enums/httpStatusEnum';
@@ -26,6 +27,32 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
             err.details,
         );
         return res.status(err.statusCode).json(response);
+    }
+
+    if (err instanceof ZodError) {
+        const details = err.issues.map((issue) => ({
+            path: issue.path.join('.') || 'root',
+            code: issue.code,
+            message: issue.message,
+        }));
+
+        logger.errorLogger.error({
+            message: 'Validation failed',
+            code: 'VALIDATION_ERROR',
+            statusCode: HttpStatus.BAD_REQUEST,
+            details,
+            path: req.originalUrl,
+            method: req.method,
+        });
+
+        const response = new BaseErrorResponse(
+            'Datos inválidos. Revisa los campos requeridos.',
+            'VALIDATION_ERROR',
+            HttpStatus.BAD_REQUEST,
+            'Validation',
+            details,
+        );
+        return res.status(HttpStatus.BAD_REQUEST).json(response);
     }
 
     const payload = {

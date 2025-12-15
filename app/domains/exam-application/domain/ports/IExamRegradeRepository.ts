@@ -32,6 +32,10 @@ export interface IExamRegradeRepository {
         examId: string,
         studentId: string,
     ): Promise<ExamRegradeOutput | null>;
+    findAnyActiveByExamAndProfessor(
+        examId: string,
+        professorId: string,
+    ): Promise<ExamRegradeOutput | null>;
     listPendingByProfessor(criteria: ListPendingRegradesCriteria): Promise<Page<ExamRegradeOutput>>;
     resolve(
         id: string,

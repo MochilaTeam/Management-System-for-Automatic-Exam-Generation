@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import { authenticate } from '../../../../core/middlewares/authenticate';
 import {
     createUser,
     deleteUser,
@@ -154,6 +155,6 @@ router.get('/users/me', getCurrentUser);
  */
 router.get('/users/:userId', getUserById);
 router.patch('/users/:userId', updateUser);
-router.delete('/users/:userId', deleteUser);
+router.delete('/users/:userId', authenticate, deleteUser);
 
 export default router;

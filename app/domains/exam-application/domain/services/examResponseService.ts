@@ -21,11 +21,13 @@ import {
     UpdateManualPointsCommandSchema,
 } from '../../schemas/examResponseSchema';
 import { IExamAssignmentRepository } from '../ports/IExamAssignmentRepository';
+import { IExamRegradeRepository } from '../ports/IExamRegradeRepository';
 import { IExamResponseRepository } from '../ports/IExamResponseRepository';
 
 type Deps = {
     examResponseRepo: IExamResponseRepository;
     examAssignmentRepo: IExamAssignmentRepository;
+    examRegradeRepo: IExamRegradeRepository;
     questionRepo: IQuestionRepository;
     studentRepo: IStudentRepository;
     examQuestionRepo: IExamQuestionRepository;
@@ -36,6 +38,7 @@ type Deps = {
 export class ExamResponseService extends BaseDomainService {
     private readonly examResponseRepo: IExamResponseRepository;
     private readonly examAssignmentRepo: IExamAssignmentRepository;
+    private readonly examRegradeRepo: IExamRegradeRepository;
     private readonly questionRepo: IQuestionRepository;
     private readonly studentRepo: IStudentRepository;
     private readonly examQuestionRepo: IExamQuestionRepository;
@@ -45,6 +48,7 @@ export class ExamResponseService extends BaseDomainService {
     constructor({
         examResponseRepo,
         examAssignmentRepo,
+        examRegradeRepo,
         questionRepo,
         studentRepo,
         examQuestionRepo,
@@ -54,6 +58,7 @@ export class ExamResponseService extends BaseDomainService {
         super();
         this.examResponseRepo = examResponseRepo;
         this.examAssignmentRepo = examAssignmentRepo;
+        this.examRegradeRepo = examRegradeRepo;
         this.questionRepo = questionRepo;
         this.studentRepo = studentRepo;
         this.examQuestionRepo = examQuestionRepo;
@@ -285,11 +290,32 @@ export class ExamResponseService extends BaseDomainService {
         }
 
         if (!assignment) {
+            // Try to find if the teacher is a regrade reviewer for ANY student in this exam
+            const regrade = await this.examRegradeRepo.findAnyActiveByExamAndProfessor(
+                examId,
+                teacher.id,
+            );
+            if (regrade) {
+                // If found, fetch the assignment for that student to validate context
+                assignment = await this.examAssignmentRepo.findByExamIdAndStudentId(
+                    examId,
+                    regrade.studentId,
+                );
+            }
+        }
+
+        if (!assignment) {
             throw new NotFoundError({ message: 'No se encontró la asignacion del examen' });
         }
 
         if (assignment.teacherId !== teacher.id) {
-            throw new ForbiddenError({ message: 'No eres el profesor asignado a este examen' });
+            const regrade = await this.examRegradeRepo.findActiveByExamAndStudent(
+                examId,
+                assignment.studentId,
+            );
+            if (!regrade || regrade.professorId !== teacher.id) {
+                throw new ForbiddenError({ message: 'No eres el profesor asignado a este examen' });
+            }
         }
 
         await this.ensureTeacherCanReviewExam(operation, teacher.id, assignment.subjectId);

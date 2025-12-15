@@ -12,6 +12,7 @@ import type {
     Page,
 } from '../../../domains/question-bank/domain/ports/IQuestionRepository';
 import { DifficultyLevelEnum } from '../../../domains/question-bank/entities/enums/DifficultyLevels';
+import { QuestionTypeEnum } from '../../../domains/question-bank/entities/enums/QuestionType';
 import {
     QuestionCreate,
     QuestionDetail,
@@ -22,6 +23,7 @@ import {
 } from '../../../domains/question-bank/schemas/questionSchema';
 import { BaseRepository } from '../../../shared/domain/base_repository';
 import QuestionModel from '../models/Question';
+import QuestionTypeModel from '../models/QuestionType';
 import SubjectTopic from '../models/SubjectTopic';
 import Subtopic from '../models/SubTopic';
 
@@ -29,6 +31,7 @@ type QuestionPlain = {
     id: string;
     authorId: string;
     questionTypeId: string;
+    questionType?: { name: QuestionTypeEnum };
     subTopicId: string;
     difficulty: DifficultyLevelEnum;
     body: string;
@@ -45,6 +48,7 @@ const toQuestionDetail = (row: QuestionModel): QuestionDetail => {
         questionId: p.id,
         authorId: p.authorId,
         questionTypeId: p.questionTypeId,
+        questionTypeName: p.questionType?.name,
         subtopicId: p.subTopicId,
         difficulty: p.difficulty,
         body: p.body,
@@ -54,6 +58,12 @@ const toQuestionDetail = (row: QuestionModel): QuestionDetail => {
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
     });
+};
+
+const questionTypeInclude: Includeable = {
+    model: QuestionTypeModel,
+    as: 'questionType',
+    attributes: ['name'],
 };
 
 const toCreateAttrs = (dto: QuestionCreate): Record<string, unknown> => {
@@ -84,8 +94,7 @@ const toUpdateAttrs = (dto: QuestionUpdate): Record<string, unknown> => {
 
 export class QuestionRepository
     extends BaseRepository<QuestionModel, QuestionDetail, QuestionCreate, QuestionUpdate>
-    implements IQuestionBankRepository, IExamQuestionRepository
-{
+    implements IQuestionBankRepository, IExamQuestionRepository {
     constructor(model: ModelStatic<QuestionModel>, defaultTx?: Transaction) {
         super(model, toQuestionDetail, toCreateAttrs, toUpdateAttrs, defaultTx);
     }
@@ -124,6 +133,7 @@ export class QuestionRepository
 
             const { rows, count } = await this.model.findAndCountAll({
                 where,
+                include: [questionTypeInclude],
                 limit,
                 offset,
                 order: [['createdAt', 'DESC']],
@@ -149,6 +159,7 @@ export class QuestionRepository
             }
             const row = await this.model.findOne({
                 where,
+                include: [questionTypeInclude],
                 transaction: this.effTx(tx),
             });
             return row ? this.toReadFn(row) : null;
@@ -348,6 +359,71 @@ export class QuestionRepository
                 transaction: this.effTx(tx),
             });
             return rows.map((row) => QuestionRepository.toQuestionForExam(row));
+        } catch (error) {
+            return this.raiseError(error, this.model.name);
+        }
+    }
+
+    async getGroupedCounts(
+        criteria: Omit<QuestionSearchCriteria, 'limit' | 'excludeQuestionIds' | 'ids'>,
+        tx?: Transaction,
+    ): Promise<Array<{ questionTypeId: string; difficulty: DifficultyLevelEnum; count: number }>> {
+        try {
+            const where: WhereOptions = { active: true };
+            if (criteria.difficulty) where.difficulty = criteria.difficulty;
+            if (criteria.questionTypeIds && criteria.questionTypeIds.length > 0) {
+                where.questionTypeId = { [Op.in]: criteria.questionTypeIds };
+            }
+            if (criteria.subtopicIds && criteria.subtopicIds.length > 0) {
+                where.subTopicId = { [Op.in]: criteria.subtopicIds };
+            }
+
+            let topicFilterIds = criteria.topicIds?.length ? [...criteria.topicIds] : undefined;
+            if (criteria.subjectId) {
+                const subjectTopics = await SubjectTopic.findAll({
+                    attributes: ['topicId'],
+                    where: { subjectId: criteria.subjectId },
+                    transaction: this.effTx(tx),
+                });
+                const allowedIds = subjectTopics.map((row) => row.getDataValue('topicId'));
+                if (!allowedIds.length) {
+                    return [];
+                }
+                topicFilterIds = topicFilterIds
+                    ? topicFilterIds.filter((id) => allowedIds.includes(id))
+                    : allowedIds;
+                if (!topicFilterIds.length) {
+                    return [];
+                }
+            }
+
+            const rows = await this.model.findAll({
+                attributes: ['questionTypeId', 'difficulty'],
+                where,
+                include: this.buildInclude(topicFilterIds),
+                transaction: this.effTx(tx),
+            });
+
+            const map = new Map<string, number>();
+            rows.forEach((r) => {
+                const key = `${r.questionTypeId}|${r.difficulty}`;
+                map.set(key, (map.get(key) || 0) + 1);
+            });
+
+            const result: Array<{
+                questionTypeId: string;
+                difficulty: DifficultyLevelEnum;
+                count: number;
+            }> = [];
+            for (const [key, count] of map.entries()) {
+                const [questionTypeId, difficulty] = key.split('|');
+                result.push({
+                    questionTypeId,
+                    difficulty: difficulty as DifficultyLevelEnum,
+                    count,
+                });
+            }
+            return result;
         } catch (error) {
             return this.raiseError(error, this.model.name);
         }

@@ -1,4 +1,4 @@
-import { makeExamAssignmentRepository } from './examAssignment';
+import { makeExamAssignmentRepository, makeExamRegradeRepository } from './examAssignment';
 import { makeExamQuestionRepository } from './examDependencies';
 import { CreateExamResponseCommand } from '../../../domains/exam-application/application/commands/createExamResponseCommand';
 import { UpdateExamResponseCommand } from '../../../domains/exam-application/application/commands/updateExamResponseCommand';
@@ -34,6 +34,7 @@ export function makeExamResponseService() {
 
     const examResponseRepo = makeExamResponseRepository();
     const examAssignmentRepo = makeExamAssignmentRepository();
+    const examRegradeRepo = makeExamRegradeRepository();
     const questionRepo = makeQuestionRepository();
     const examQuestionRepo = makeExamQuestionRepository();
     const studentRepo = new StudentRepository(Student);
@@ -43,6 +44,7 @@ export function makeExamResponseService() {
     _svc = new ExamResponseService({
         examResponseRepo,
         examAssignmentRepo,
+        examRegradeRepo,
         questionRepo,
         studentRepo,
         examQuestionRepo,

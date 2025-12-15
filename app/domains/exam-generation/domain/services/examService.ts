@@ -201,73 +201,113 @@ export class ExamService extends BaseDomainService {
         questionCount: number,
         typeEntries: QuestionTypeDistributionEntry[],
         difficultyCounts: DifficultyCountMap,
+        availableCounts: Array<{
+            questionTypeId: string;
+            difficulty: DifficultyLevelEnum;
+            count: number;
+        }>,
     ) {
-        const typeMap = new Map<string, number>();
-        typeEntries.forEach((entry) => {
-            if (entry.count <= 0) return;
-            typeMap.set(
-                entry.questionTypeId,
-                (typeMap.get(entry.questionTypeId) ?? 0) + entry.count,
-            );
+        const typeNeeds = new Map<string, number>();
+        typeEntries.forEach((e) =>
+            typeNeeds.set(e.questionTypeId, (typeNeeds.get(e.questionTypeId) || 0) + e.count),
+        );
+
+        const difficultyNeeds = new Map<DifficultyLevelEnum, number>();
+        (Object.keys(difficultyCounts) as DifficultyLevelEnum[]).forEach((k) => {
+            if (difficultyCounts[k] > 0) difficultyNeeds.set(k, difficultyCounts[k]);
         });
 
-        const difficultyMap = new Map<DifficultyLevelEnum, number>();
-        (Object.keys(difficultyCounts) as Array<keyof DifficultyCountMap>).forEach((key) => {
-            const value = difficultyCounts[key];
-            if (value > 0) {
-                difficultyMap.set(key as DifficultyLevelEnum, value);
-            }
+        const available = new Map<string, number>();
+        availableCounts.forEach((a) => {
+            available.set(`${a.questionTypeId}|${a.difficulty}`, a.count);
         });
 
-        const entries: Array<{
+        const getAvailable = (t: string, d: DifficultyLevelEnum) => available.get(`${t}|${d}`) || 0;
+
+        const types = Array.from(typeNeeds.keys());
+        const resultEntries: Array<{
             questionTypeId: string;
             difficulty: DifficultyLevelEnum;
             count: number;
         }> = [];
 
-        for (const [typeId, typeCount] of typeMap.entries()) {
-            let remainingType = typeCount;
-            for (const diffKey of Array.from(difficultyMap.keys())) {
-                if (remainingType <= 0) break;
-                const diffRemaining = difficultyMap.get(diffKey) ?? 0;
-                if (diffRemaining <= 0) continue;
-                const allocation = Math.min(remainingType, diffRemaining);
-                entries.push({ questionTypeId: typeId, difficulty: diffKey, count: allocation });
-                remainingType -= allocation;
-                difficultyMap.set(diffKey, diffRemaining - allocation);
+        const diffs = [
+            DifficultyLevelEnum.EASY,
+            DifficultyLevelEnum.MEDIUM,
+            DifficultyLevelEnum.HARD,
+        ];
+
+        const solve = (typeIdx: number): boolean => {
+            if (typeIdx >= types.length) {
+                return true;
             }
 
-            if (remainingType > 0) {
-                this.raiseValidationError(
-                    operation,
-                    'No se puede cumplir la combinación de tipos y dificultades solicitada.',
-                    { entity: 'Exam' },
-                );
-            }
-        }
+            const typeId = types[typeIdx];
+            const needed = typeNeeds.get(typeId)!;
 
-        const remainingDifficulty = Array.from(difficultyMap.values()).reduce(
-            (acc, value) => acc + value,
-            0,
-        );
-        if (remainingDifficulty > 0) {
+            const partition = (dIdx: number, remain: number, currentAlloc: number[]): boolean => {
+                if (dIdx === diffs.length) {
+                    if (remain === 0) {
+                        let pushedCount = 0;
+                        for (let i = 0; i < 3; i++) {
+                            const d = diffs[i];
+                            const c = currentAlloc[i];
+                            if (c > 0) {
+                                difficultyNeeds.set(d, difficultyNeeds.get(d)! - c);
+                                resultEntries.push({
+                                    questionTypeId: typeId,
+                                    difficulty: d,
+                                    count: c,
+                                });
+                                pushedCount++;
+                            }
+                        }
+
+                        if (solve(typeIdx + 1)) return true;
+
+                        for (let k = 0; k < pushedCount; k++) resultEntries.pop();
+                        for (let i = 0; i < 3; i++) {
+                            const d = diffs[i];
+                            const c = currentAlloc[i];
+                            if (c > 0) {
+                                difficultyNeeds.set(d, difficultyNeeds.get(d)! + c);
+                            }
+                        }
+                        return false;
+                    }
+                    return false;
+                }
+
+                const diff = diffs[dIdx];
+                const diffNeed = difficultyNeeds.get(diff) || 0;
+                const diffAvail = getAvailable(typeId, diff);
+                const maxCanTake = Math.min(remain, diffNeed, diffAvail);
+
+                for (let take = maxCanTake; take >= 0; take--) {
+                    if (partition(dIdx + 1, remain - take, [...currentAlloc, take])) return true;
+                }
+                return false;
+            };
+
+            return partition(0, needed, []);
+        };
+
+        if (!solve(0)) {
             this.raiseValidationError(
                 operation,
-                'No se puede cumplir la combinación de tipos y dificultades solicitada.',
+                'No hay suficientes preguntas disponibles para satisfacer la combinación de tipos y dificultades solicitada.',
                 { entity: 'Exam' },
             );
         }
 
-        const totalAllocated = entries.reduce((acc, entry) => acc + entry.count, 0);
+        const totalAllocated = resultEntries.reduce((acc, entry) => acc + entry.count, 0);
         if (totalAllocated !== questionCount) {
-            this.raiseValidationError(
-                operation,
-                'La parametrización de tipos y dificultades no coincide con la cantidad solicitada.',
-                { entity: 'Exam' },
-            );
+            this.raiseValidationError(operation, 'Error interno en la asignación de preguntas.', {
+                entity: 'Exam',
+            });
         }
 
-        return entries;
+        return resultEntries;
     }
 
     private async fetchQuestionsOrFail(
@@ -476,11 +516,18 @@ export class ExamService extends BaseDomainService {
     ): Promise<AutomaticExamPreview> {
         const teacher = await this.getTeacherByUserId('createAutomaticExam', input.authorId);
         const derivedDifficulty = this.deriveDifficultyFromDistribution(input.difficultyCounts);
+        const availableCounts = await this.deps.questionRepo.getGroupedCounts({
+            subjectId: input.subjectId,
+            topicIds: input.topicIds,
+            subtopicIds: input.subtopicDistribution?.map((s) => s.subtopicId),
+        });
+
         const selectionPlan = this.buildSelectionPlan(
             'createAutomaticExam',
             input.questionCount,
             input.questionTypeCounts,
             input.difficultyCounts,
+            availableCounts,
         );
         const selected: QuestionForExam[] = [];
         const used = new Set<string>();

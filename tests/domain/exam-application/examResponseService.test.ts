@@ -22,39 +22,56 @@ vi.mock(
 );
 
 const makeExamResponseRepo = () =>
-  ({
-    create: vi.fn(),
-    findById: vi.fn(),
-    findByExamQuestionAndStudent: vi.fn(),
-    update: vi.fn(),
-    studentHasResponses: vi.fn(),
-    listByExamAndStudent: vi.fn(),
-  } as any);
+({
+  create: vi.fn(),
+  findById: vi.fn(),
+  findByExamQuestionAndStudent: vi.fn(),
+  update: vi.fn(),
+  studentHasResponses: vi.fn(),
+  listByExamAndStudent: vi.fn(),
+} as any);
 
 const makeExamAssignmentRepo = () =>
-  ({
-    findByExamIdAndStudentId: vi.fn(),
-  } as any);
+({
+  findByExamIdAndStudentId: vi.fn(),
+  findOneByExamIdAndProfessorId: vi.fn(),
+} as any);
 
 const makeQuestionRepo = () =>
-  ({
-    get_detail_by_id: vi.fn(),
-  } as any);
+({
+  get_detail_by_id: vi.fn(),
+} as any);
 
 const makeStudentRepo = () =>
-  ({
-    list: vi.fn(),
-  } as any);
+({
+  list: vi.fn(),
+} as any);
 
 const makeExamQuestionRepo = () =>
-  ({
-    getById: vi.fn(),
-    findByExamIdAndIndex: vi.fn(),
-  } as any);
+({
+  getById: vi.fn(),
+  findByExamIdAndIndex: vi.fn(),
+} as any);
 
 afterEach(() => {
   vi.clearAllMocks();
 });
+
+const makeTeacherRepo = () =>
+({
+  list: vi.fn(),
+} as any);
+
+const makeTeacherSubjectLinkRepo = () =>
+({
+  getAssignments: vi.fn(),
+} as any);
+
+const makeExamRegradeRepo = () =>
+({
+  findActiveByExamAndStudent: vi.fn(),
+  findAnyActiveByExamAndProfessor: vi.fn(),
+} as any);
 
 describe('ExamResponseService', () => {
   const makeService = () => {
@@ -63,14 +80,31 @@ describe('ExamResponseService', () => {
     const questionRepo = makeQuestionRepo();
     const studentRepo = makeStudentRepo();
     const examQuestionRepo = makeExamQuestionRepo();
+    const teacherRepo = makeTeacherRepo();
+    const teacherSubjectLinkRepo = makeTeacherSubjectLinkRepo();
+    const examRegradeRepo = makeExamRegradeRepo();
+
     const service = new ExamResponseService({
       examResponseRepo,
       examAssignmentRepo,
       questionRepo,
       studentRepo,
       examQuestionRepo,
+      teacherRepo,
+      teacherSubjectLinkRepo,
+      examRegradeRepo,
     });
-    return { service, examResponseRepo, examAssignmentRepo, questionRepo, studentRepo, examQuestionRepo };
+    return {
+      service,
+      examResponseRepo,
+      examAssignmentRepo,
+      questionRepo,
+      studentRepo,
+      examQuestionRepo,
+      teacherRepo,
+      teacherSubjectLinkRepo,
+      examRegradeRepo,
+    };
   };
 
   it('createExamResponse: calcula autoPoints y guarda respuesta', async () => {
@@ -169,5 +203,55 @@ describe('ExamResponseService', () => {
         user_id: 'user-1',
       } as any),
     ).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it('getResponseByQuestionIndex: permite acceso a profesor no asignado si tiene solicitud de regrade', async () => {
+    const {
+      service,
+      studentRepo,
+      teacherRepo,
+      examAssignmentRepo,
+      examRegradeRepo,
+      teacherSubjectLinkRepo,
+      examQuestionRepo,
+      examResponseRepo,
+    } = makeService();
+
+    // Simular que es un profesor
+    studentRepo.list.mockResolvedValue([]);
+    teacherRepo.list.mockResolvedValue([{ id: 'teacher2' }]);
+
+    // Asignación pertenece a otro profesor (teacher1)
+    examAssignmentRepo.findOneByExamIdAndProfessorId.mockResolvedValue({
+      id: 'assign1',
+      teacherId: 'teacher1',
+      studentId: 'stu1',
+      subjectId: 'sub1',
+    });
+
+    // Existe regrade para este profesor (teacher2)
+    examRegradeRepo.findActiveByExamAndStudent.mockResolvedValue({
+      id: 'regrade1',
+      professorId: 'teacher2',
+    });
+
+    // El profesor tiene permisos sobre la materia (para pasar ensureTeacherCanReviewExam)
+    teacherSubjectLinkRepo.getAssignments.mockResolvedValue({
+      teachingSubjectIds: ['sub1'],
+      leadSubjectIds: [],
+    });
+
+    examQuestionRepo.findByExamIdAndIndex.mockResolvedValue({ id: 'eq1', questionId: 'q1' });
+    examResponseRepo.findByExamQuestionAndStudent.mockResolvedValue({ id: 'resp1' });
+
+    const result = await service.getResponseByQuestionIndex({
+      examId: 'exam1',
+      questionIndex: 1,
+      user_id: 'user-teacher-2',
+      studentId: 'stu1',
+    } as any);
+
+    expect(result).toBeDefined();
+    expect(result.id).toBe('resp1');
   });
 });

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { DifficultyLevelEnum } from '../entities/enums/DifficultyLevels';
+import { QuestionTypeEnum } from '../entities/enums/QuestionType';
 
 // ===== Params =====
 export const questionIdParamsSchema = z
@@ -17,6 +18,7 @@ export const questionDetailSchema = z
         questionId: z.string().uuid(),
         authorId: z.string().uuid(),
         questionTypeId: z.string().uuid(),
+        questionTypeName: z.nativeEnum(QuestionTypeEnum).optional(),
         subtopicId: z.string().uuid(),
         difficulty: z.nativeEnum(DifficultyLevelEnum),
         body: z.string(),
