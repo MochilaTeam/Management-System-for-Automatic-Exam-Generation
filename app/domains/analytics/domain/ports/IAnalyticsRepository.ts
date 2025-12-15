@@ -1,26 +1,26 @@
 import { DifficultyLevelEnum } from '../../../question-bank/entities/enums/DifficultyLevels';
 import {
-    AutomaticExamReportInput,
+    AutomaticExamReportOptions,
     AutomaticExamReportRow,
-    ExamComparisonReportInput,
+    ExamComparisonReportOptions,
     ExamPerformanceRow,
-    PopularQuestionsReportInput,
+    PopularQuestionsReportOptions,
     PopularQuestionsReportRow,
     RegradeComparisonRow,
-    ReviewerActivityReportInput,
+    ReviewerActivityReportOptions,
     ReviewerActivityRow,
-    SubjectDifficultyReportInput,
+    SubjectDifficultyReportOptions,
     TopFailingQuestionRow,
-    ValidatedExamsReportInput,
+    ValidatedExamsReportOptions,
     ValidatedExamReportRow,
 } from '../../schemas/analyticsSchema';
 
-export type AutomaticExamFilter = AutomaticExamReportInput;
-export type PopularQuestionsFilter = PopularQuestionsReportInput;
-export type ValidatedExamsFilter = ValidatedExamsReportInput;
-export type SubjectDifficultyFilter = SubjectDifficultyReportInput;
-export type ExamComparisonFilter = ExamComparisonReportInput;
-export type ReviewerActivityFilter = ReviewerActivityReportInput;
+export type AutomaticExamFilter = AutomaticExamReportOptions;
+export type PopularQuestionsFilter = PopularQuestionsReportOptions;
+export type ValidatedExamsFilter = ValidatedExamsReportOptions;
+export type SubjectDifficultyFilter = SubjectDifficultyReportOptions;
+export type ExamComparisonFilter = ExamComparisonReportOptions;
+export type ReviewerActivityFilter = ReviewerActivityReportOptions;
 
 export type SubjectDifficultyRecord = {
     subjectId: string;

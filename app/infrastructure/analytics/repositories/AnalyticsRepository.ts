@@ -24,7 +24,7 @@ import Exam from '../../exam-generation/models/Exam';
 import Subject from '../../question-bank/models/Subject';
 import { Teacher, User } from '../../user/models';
 
-const FINALIZED_EXAM_STATUSES = [ExamStatusEnum.APPROVED, ExamStatusEnum.PUBLISHED];
+const FINALIZED_EXAM_STATUSES = [ExamStatusEnum.PUBLISHED];
 
 type PopularQuestionRowRecord = {
     questionId: string;
@@ -99,6 +99,18 @@ type ExamTopicRecordRow = {
     count: number | string;
 };
 
+type ExamTypeCountRow = {
+    examId: string;
+    questionType: string | null;
+    count: number | string;
+};
+
+type ExamTopicCoverageRow = {
+    examId: string;
+    topicName: string | null;
+    count: number | string;
+};
+
 export class AnalyticsRepository implements IAnalyticsRepository {
     async fetchAutomaticExams(filter: AutomaticExamFilter) {
         const modeCondition = sequelize.where(
@@ -109,6 +121,9 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         if (filter.subjectId) where.subjectId = filter.subjectId;
 
         const order = this.buildAutomaticExamOrder(filter);
+        const paginationOptions =
+            filter.exportAll === true ? {} : { limit: filter.limit, offset: filter.offset };
+
         const { rows, count } = await Exam.findAndCountAll({
             where,
             include: [
@@ -121,9 +136,26 @@ export class AnalyticsRepository implements IAnalyticsRepository {
                 { model: Subject, as: 'subject', attributes: ['id', 'name'] },
             ],
             order: order as Order,
-            limit: filter.limit,
-            offset: filter.offset,
+            ...paginationOptions,
             attributes: ['id', 'title', 'subjectId', 'authorId', 'topicCoverage', 'createdAt'],
+        });
+
+        const examIds = rows.map((exam) => exam.id);
+        const [typeCounts, topicCoverages] = await Promise.all([
+            this.fetchExamQuestionTypeCounts(examIds),
+            this.fetchExamTopicCoverage(examIds),
+        ]);
+
+        const typeCountMap = new Map<string, ExamTypeCountRow[]>();
+        typeCounts.forEach((row) => {
+            if (!typeCountMap.has(row.examId)) typeCountMap.set(row.examId, []);
+            typeCountMap.get(row.examId)!.push(row);
+        });
+
+        const topicCoverageMap = new Map<string, ExamTopicCoverageRow[]>();
+        topicCoverages.forEach((row) => {
+            if (!topicCoverageMap.has(row.examId)) topicCoverageMap.set(row.examId, []);
+            topicCoverageMap.get(row.examId)!.push(row);
         });
 
         const items = rows.map((exam) => ({
@@ -134,7 +166,11 @@ export class AnalyticsRepository implements IAnalyticsRepository {
             creatorId: exam.authorId,
             creatorName: exam.author?.user?.name ?? null,
             createdAt: exam.createdAt,
-            parameters: (exam.topicCoverage ?? null) as Record<string, unknown> | null,
+            parameters: this.buildAutomaticParameters(
+                exam.id,
+                typeCountMap.get(exam.id) ?? [],
+                topicCoverageMap.get(exam.id) ?? [],
+            ),
         }));
 
         return { items, total: count };
@@ -143,7 +179,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     async fetchPopularQuestions(filter: PopularQuestionsFilter) {
         const direction = this.getSortDirection(filter.sortOrder);
         const column = this.mapPopularSort(filter.sortBy);
-        const query = `
+        const baseQuery = `
             SELECT
                 q.id AS questionId,
                 q.body AS questionBody,
@@ -160,11 +196,10 @@ export class AnalyticsRepository implements IAnalyticsRepository {
               AND e.examStatus IN (:statuses)
             GROUP BY q.id, q.body, q.difficulty, t.id, t.title
             ORDER BY ${column} ${direction}
-            LIMIT :limit
-            OFFSET :offset
         `;
+        const paginationClause = filter.exportAll ? '' : ' LIMIT :limit OFFSET :offset';
 
-        const rows = await sequelize.query<PopularQuestionRowRecord>(query, {
+        const rows = await sequelize.query<PopularQuestionRowRecord>(baseQuery + paginationClause, {
             type: QueryTypes.SELECT,
             replacements: {
                 subjectId: filter.subjectId,
@@ -213,12 +248,14 @@ export class AnalyticsRepository implements IAnalyticsRepository {
                 ? [[{ model: Subject, as: 'subject' }, 'name', direction]]
                 : [['validatedAt', direction]];
 
+        const paginationOptions =
+            filter.exportAll === true ? {} : { limit: filter.limit, offset: filter.offset };
+
         const { rows, count } = await Exam.findAndCountAll({
             where,
             include: [{ model: Subject, as: 'subject', attributes: ['name'] }],
             order: order as Order,
-            limit: filter.limit,
-            offset: filter.offset,
+            ...paginationOptions,
             attributes: ['id', 'title', 'subjectId', 'validatedAt', 'observations', 'validatorId'],
         });
 
@@ -247,14 +284,20 @@ export class AnalyticsRepository implements IAnalyticsRepository {
                 t.id AS topicId,
                 t.title AS topicName,
                 COUNT(er.id) AS attempts,
-                AVG(COALESCE(er.manualPoints, er.autoPoints, 0)) AS averageScore
-            FROM ExamResponses er
-            JOIN ExamQuestions eq ON er.examQuestionId = eq.id
+                AVG(
+                    LEAST(
+                        GREATEST(COALESCE(er.manualPoints, er.autoPoints, 0), 0),
+                        eq.questionScore
+                    )
+                ) AS averageScore
+            FROM ExamQuestions eq
+            LEFT JOIN ExamResponses er ON er.examQuestionId = eq.id
             JOIN Questions q ON eq.questionId = q.id
             LEFT JOIN Subtopics st ON q.subTopicId = st.id
             LEFT JOIN Topics t ON st.topicId = t.id
-            WHERE er.examId = :examId
+            WHERE eq.examId = :examId
             GROUP BY eq.id, q.difficulty, q.body, t.id, t.title
+            ORDER BY eq.questionIndex ASC
         `;
 
         const rows = await sequelize.query<ExamPerformanceRowRecord>(query, {
@@ -433,8 +476,8 @@ export class AnalyticsRepository implements IAnalyticsRepository {
             where,
             include: [{ model: Subject, as: 'subject', attributes: ['name'] }],
             order: order as Order,
-            limit: filter.limit,
-            offset: filter.offset,
+            limit: filter.exportAll ? undefined : filter.limit,
+            offset: filter.exportAll ? undefined : filter.offset,
             attributes: ['id', 'title', 'subjectId', 'createdAt'],
         });
 
@@ -508,6 +551,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         const direction = this.getSortDirection(filter.sortOrder);
         const orderClause = this.buildReviewerOrder(filter.sortBy, direction);
 
+        const paginationClause = filter.exportAll ? '' : ' LIMIT :limit OFFSET :offset';
         const query = `
             SELECT
                 e.validatorId AS reviewerId,
@@ -520,11 +564,10 @@ export class AnalyticsRepository implements IAnalyticsRepository {
             LEFT JOIN Teachers t ON e.validatorId = t.id
             LEFT JOIN Users u ON t.userId = u.id
             WHERE e.validatorId IS NOT NULL
-              AND e.validatedAt >= :since
+              AND GREATEST(COALESCE(e.validatedAt, '1970-01-01'), e.updatedAt) >= :since
             GROUP BY e.validatorId, e.subjectId, s.name, u.name
             ORDER BY ${orderClause}
-            LIMIT :limit
-            OFFSET :offset
+            ${paginationClause}
         `;
 
         const rows = await sequelize.query<ReviewerActivityRowRecord>(query, {
@@ -538,7 +581,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
                 SELECT 1
                 FROM Exams e
                 WHERE e.validatorId IS NOT NULL
-                  AND e.validatedAt >= :since
+                  AND GREATEST(COALESCE(e.validatedAt, '1970-01-01'), e.updatedAt) >= :since
                 GROUP BY e.validatorId, e.subjectId
             ) AS aggregated
         `;
@@ -595,6 +638,71 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         if (sortBy === ReviewerActivitySortByEnum.TEACHER_NAME) return `reviewerName ${direction}`;
         if (sortBy === ReviewerActivitySortByEnum.SUBJECT_NAME) return `subjectName ${direction}`;
         return `reviewedExams ${direction}`;
+    }
+
+    private async fetchExamQuestionTypeCounts(examIds: string[]) {
+        if (!examIds.length) return [];
+        const query = `
+            SELECT
+                eq.examId,
+                COALESCE(qt.name, 'Desconocido') AS questionType,
+                COUNT(*) AS count
+            FROM ExamQuestions eq
+            JOIN Questions q ON eq.questionId = q.id
+            LEFT JOIN QuestionTypes qt ON q.questionTypeId = qt.id
+            WHERE eq.examId IN (:examIds)
+            GROUP BY eq.examId, questionType
+        `;
+        return sequelize.query<ExamTypeCountRow>(query, {
+            type: QueryTypes.SELECT,
+            replacements: { examIds },
+        });
+    }
+
+    private async fetchExamTopicCoverage(examIds: string[]) {
+        if (!examIds.length) return [];
+        const query = `
+            SELECT
+                eq.examId,
+                COALESCE(t.title, 'Sin tema') AS topicName,
+                COUNT(*) AS count
+            FROM ExamQuestions eq
+            JOIN Questions q ON eq.questionId = q.id
+            LEFT JOIN Subtopics st ON q.subTopicId = st.id
+            LEFT JOIN Topics t ON st.topicId = t.id
+            WHERE eq.examId IN (:examIds)
+            GROUP BY eq.examId, topicName
+        `;
+        return sequelize.query<ExamTopicCoverageRow>(query, {
+            type: QueryTypes.SELECT,
+            replacements: { examIds },
+        });
+    }
+
+    private buildAutomaticParameters(
+        examId: string,
+        typeCounts: ExamTypeCountRow[],
+        topicCoverages: ExamTopicCoverageRow[],
+    ): Record<string, unknown> {
+        const totalQuestions = typeCounts.reduce((acc, row) => acc + Number(row.count ?? 0), 0);
+        const topicProportion: Record<string, number> = {};
+        typeCounts.forEach((row) => {
+            const count = Number(row.count ?? 0);
+            if (!totalQuestions || !row.questionType) return;
+            topicProportion[row.questionType] = Number((count / totalQuestions).toFixed(4));
+        });
+
+        const topics = topicCoverages.map((row) => ({
+            topicName: row.topicName ?? 'Sin tema',
+            questionCount: Number(row.count ?? 0),
+        }));
+
+        return {
+            examId,
+            questionCount: totalQuestions,
+            topicProportion,
+            topicCoverage: { topics },
+        };
     }
 
     private getSortDirection(order: string): 'ASC' | 'DESC' {

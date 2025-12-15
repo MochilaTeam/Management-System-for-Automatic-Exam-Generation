@@ -161,7 +161,7 @@ export class SubjectRepository
 
     async existsSubjectTopic(subjectId: string, topicId: string, tx?: Transaction) {
         const found = await SubjectTopicModel.findOne({
-            where: { subjectId, topicId },
+            where: { subjectId, topicId, active: true },
             transaction: this.effTx(tx),
         });
         return Boolean(found);

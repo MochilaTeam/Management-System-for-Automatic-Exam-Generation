@@ -63,6 +63,7 @@ type ExamSeed = {
     difficulty: DifficultyLevelEnum;
     examStatus: ExamStatusEnum;
     startIndex: number;
+    coverageMode?: string;
 };
 
 const questionScoreByDifficulty: Record<DifficultyLevelEnum, number> = {

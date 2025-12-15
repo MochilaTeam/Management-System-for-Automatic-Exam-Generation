@@ -39,6 +39,9 @@ export const automaticExamReportRequestSchema = automaticExamReportSchemaBase.ex
 });
 
 export type AutomaticExamReportInput = z.infer<typeof automaticExamReportSchemaBase>;
+export type AutomaticExamReportOptions = AutomaticExamReportInput & {
+    exportAll?: boolean;
+};
 export type AutomaticExamReportRequest = z.infer<typeof automaticExamReportRequestSchema>;
 
 const popularQuestionsReportSchemaBase = z.object({
@@ -54,6 +57,9 @@ export const popularQuestionsReportRequestSchema = popularQuestionsReportSchemaB
 });
 
 export type PopularQuestionsReportInput = z.infer<typeof popularQuestionsReportSchemaBase>;
+export type PopularQuestionsReportOptions = PopularQuestionsReportInput & {
+    exportAll?: boolean;
+};
 export type PopularQuestionsReportRequest = z.infer<typeof popularQuestionsReportRequestSchema>;
 
 const validatedExamsReportSchemaBase = z.object({
@@ -70,6 +76,9 @@ export const validatedExamsReportRequestSchema = validatedExamsReportSchemaBase.
 });
 
 export type ValidatedExamsReportInput = z.infer<typeof validatedExamsReportSchemaBase>;
+export type ValidatedExamsReportOptions = ValidatedExamsReportInput & {
+    exportAll?: boolean;
+};
 export type ValidatedExamsReportRequest = z.infer<typeof validatedExamsReportRequestSchema>;
 
 export const examPerformanceParamsSchema = z.object({
@@ -98,6 +107,9 @@ export const subjectDifficultyReportRequestSchema = subjectDifficultyReportSchem
 });
 
 export type SubjectDifficultyReportInput = z.infer<typeof subjectDifficultyReportSchemaBase>;
+export type SubjectDifficultyReportOptions = SubjectDifficultyReportInput & {
+    exportAll?: boolean;
+};
 export type SubjectDifficultyReportRequest = z.infer<typeof subjectDifficultyReportRequestSchema>;
 
 const examComparisonReportSchemaBase = z.object({
@@ -114,6 +126,9 @@ export const examComparisonReportRequestSchema = examComparisonReportSchemaBase.
 });
 
 export type ExamComparisonReportInput = z.infer<typeof examComparisonReportSchemaBase>;
+export type ExamComparisonReportOptions = ExamComparisonReportInput & {
+    exportAll?: boolean;
+};
 export type ExamComparisonReportRequest = z.infer<typeof examComparisonReportRequestSchema>;
 
 const reviewerActivityReportSchemaBase = z.object({
@@ -130,6 +145,9 @@ export const reviewerActivityReportRequestSchema = reviewerActivityReportSchemaB
 });
 
 export type ReviewerActivityReportInput = z.infer<typeof reviewerActivityReportSchemaBase>;
+export type ReviewerActivityReportOptions = ReviewerActivityReportInput & {
+    exportAll?: boolean;
+};
 export type ReviewerActivityReportRequest = z.infer<typeof reviewerActivityReportRequestSchema>;
 
 export type AutomaticExamReportRow = {
@@ -141,6 +159,7 @@ export type AutomaticExamReportRow = {
     creatorName: string | null;
     createdAt: Date;
     parameters: Record<string, unknown> | null;
+    parameterSummary?: string | null;
 };
 
 export type PopularQuestionsReportRow = {
@@ -183,7 +202,7 @@ export type ExamPerformanceReport = {
     difficultyGroups: {
         difficulty: DifficultyLevelEnum;
         successRate: number;
-        questionCount: number;
+        examCount: number;
     }[];
 };
 
